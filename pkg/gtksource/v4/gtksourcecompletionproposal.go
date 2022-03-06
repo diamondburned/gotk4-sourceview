@@ -14,18 +14,29 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern GIcon* _gotk4_gtksource4_CompletionProposalIface_get_gicon(GtkSourceCompletionProposal*);
+// extern GdkPixbuf* _gotk4_gtksource4_CompletionProposalIface_get_icon(GtkSourceCompletionProposal*);
+// extern gboolean _gotk4_gtksource4_CompletionProposalIface_equal(GtkSourceCompletionProposal*, GtkSourceCompletionProposal*);
+// extern gchar* _gotk4_gtksource4_CompletionProposalIface_get_icon_name(GtkSourceCompletionProposal*);
+// extern gchar* _gotk4_gtksource4_CompletionProposalIface_get_info(GtkSourceCompletionProposal*);
+// extern gchar* _gotk4_gtksource4_CompletionProposalIface_get_label(GtkSourceCompletionProposal*);
+// extern gchar* _gotk4_gtksource4_CompletionProposalIface_get_markup(GtkSourceCompletionProposal*);
+// extern gchar* _gotk4_gtksource4_CompletionProposalIface_get_text(GtkSourceCompletionProposal*);
+// extern guint _gotk4_gtksource4_CompletionProposalIface_hash(GtkSourceCompletionProposal*);
+// extern void _gotk4_gtksource4_CompletionProposalIface_changed(GtkSourceCompletionProposal*);
+// extern void _gotk4_gtksource4_CompletionProposal_ConnectChanged(gpointer, guintptr);
 import "C"
+
+// glib.Type values for gtksourcecompletionproposal.go.
+var GTypeCompletionProposal = externglib.Type(C.gtk_source_completion_proposal_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_completion_proposal_get_type()), F: marshalCompletionProposaller},
+		{T: GTypeCompletionProposal, F: marshalCompletionProposal},
 	})
 }
 
 // CompletionProposalOverrider contains methods that are overridable.
-//
-// As of right now, interface overriding and subclassing is not supported
-// yet, so the interface currently has no use.
 type CompletionProposalOverrider interface {
 	// Changed emits the "changed" signal on proposal. This should be called by
 	// implementations whenever the name, icon or info of the proposal has
@@ -153,9 +164,173 @@ type CompletionProposaller interface {
 	Text() string
 	// Hash: get the hash value of proposal.
 	Hash() uint
+
+	// Changed is emitted when the proposal has changed.
+	ConnectChanged(func()) externglib.SignalHandle
 }
 
 var _ CompletionProposaller = (*CompletionProposal)(nil)
+
+func ifaceInitCompletionProposaller(gifacePtr, data C.gpointer) {
+	iface := (*C.GtkSourceCompletionProposalIface)(unsafe.Pointer(gifacePtr))
+	iface.changed = (*[0]byte)(C._gotk4_gtksource4_CompletionProposalIface_changed)
+	iface.equal = (*[0]byte)(C._gotk4_gtksource4_CompletionProposalIface_equal)
+	iface.get_gicon = (*[0]byte)(C._gotk4_gtksource4_CompletionProposalIface_get_gicon)
+	iface.get_icon = (*[0]byte)(C._gotk4_gtksource4_CompletionProposalIface_get_icon)
+	iface.get_icon_name = (*[0]byte)(C._gotk4_gtksource4_CompletionProposalIface_get_icon_name)
+	iface.get_info = (*[0]byte)(C._gotk4_gtksource4_CompletionProposalIface_get_info)
+	iface.get_label = (*[0]byte)(C._gotk4_gtksource4_CompletionProposalIface_get_label)
+	iface.get_markup = (*[0]byte)(C._gotk4_gtksource4_CompletionProposalIface_get_markup)
+	iface.get_text = (*[0]byte)(C._gotk4_gtksource4_CompletionProposalIface_get_text)
+	iface.hash = (*[0]byte)(C._gotk4_gtksource4_CompletionProposalIface_hash)
+}
+
+//export _gotk4_gtksource4_CompletionProposalIface_changed
+func _gotk4_gtksource4_CompletionProposalIface_changed(arg0 *C.GtkSourceCompletionProposal) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(CompletionProposalOverrider)
+
+	iface.Changed()
+}
+
+//export _gotk4_gtksource4_CompletionProposalIface_equal
+func _gotk4_gtksource4_CompletionProposalIface_equal(arg0 *C.GtkSourceCompletionProposal, arg1 *C.GtkSourceCompletionProposal) (cret C.gboolean) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(CompletionProposalOverrider)
+
+	var _other CompletionProposaller // out
+
+	{
+		objptr := unsafe.Pointer(arg1)
+		if objptr == nil {
+			panic("object of type gtksource.CompletionProposaller is nil")
+		}
+
+		object := externglib.Take(objptr)
+		casted := object.WalkCast(func(obj externglib.Objector) bool {
+			_, ok := obj.(CompletionProposaller)
+			return ok
+		})
+		rv, ok := casted.(CompletionProposaller)
+		if !ok {
+			panic("no marshaler for " + object.TypeFromInstance().String() + " matching gtksource.CompletionProposaller")
+		}
+		_other = rv
+	}
+
+	ok := iface.Equal(_other)
+
+	if ok {
+		cret = C.TRUE
+	}
+
+	return cret
+}
+
+//export _gotk4_gtksource4_CompletionProposalIface_get_gicon
+func _gotk4_gtksource4_CompletionProposalIface_get_gicon(arg0 *C.GtkSourceCompletionProposal) (cret *C.GIcon) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(CompletionProposalOverrider)
+
+	icon := iface.GIcon()
+
+	if icon != nil {
+		cret = (*C.GIcon)(unsafe.Pointer(externglib.InternObject(icon).Native()))
+	}
+
+	return cret
+}
+
+//export _gotk4_gtksource4_CompletionProposalIface_get_icon
+func _gotk4_gtksource4_CompletionProposalIface_get_icon(arg0 *C.GtkSourceCompletionProposal) (cret *C.GdkPixbuf) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(CompletionProposalOverrider)
+
+	pixbuf := iface.Icon()
+
+	if pixbuf != nil {
+		cret = (*C.GdkPixbuf)(unsafe.Pointer(externglib.InternObject(pixbuf).Native()))
+	}
+
+	return cret
+}
+
+//export _gotk4_gtksource4_CompletionProposalIface_get_icon_name
+func _gotk4_gtksource4_CompletionProposalIface_get_icon_name(arg0 *C.GtkSourceCompletionProposal) (cret *C.gchar) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(CompletionProposalOverrider)
+
+	utf8 := iface.IconName()
+
+	if utf8 != "" {
+		cret = (*C.gchar)(unsafe.Pointer(C.CString(utf8)))
+		defer C.free(unsafe.Pointer(cret))
+	}
+
+	return cret
+}
+
+//export _gotk4_gtksource4_CompletionProposalIface_get_info
+func _gotk4_gtksource4_CompletionProposalIface_get_info(arg0 *C.GtkSourceCompletionProposal) (cret *C.gchar) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(CompletionProposalOverrider)
+
+	utf8 := iface.Info()
+
+	if utf8 != "" {
+		cret = (*C.gchar)(unsafe.Pointer(C.CString(utf8)))
+	}
+
+	return cret
+}
+
+//export _gotk4_gtksource4_CompletionProposalIface_get_label
+func _gotk4_gtksource4_CompletionProposalIface_get_label(arg0 *C.GtkSourceCompletionProposal) (cret *C.gchar) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(CompletionProposalOverrider)
+
+	utf8 := iface.Label()
+
+	cret = (*C.gchar)(unsafe.Pointer(C.CString(utf8)))
+
+	return cret
+}
+
+//export _gotk4_gtksource4_CompletionProposalIface_get_markup
+func _gotk4_gtksource4_CompletionProposalIface_get_markup(arg0 *C.GtkSourceCompletionProposal) (cret *C.gchar) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(CompletionProposalOverrider)
+
+	utf8 := iface.Markup()
+
+	cret = (*C.gchar)(unsafe.Pointer(C.CString(utf8)))
+
+	return cret
+}
+
+//export _gotk4_gtksource4_CompletionProposalIface_get_text
+func _gotk4_gtksource4_CompletionProposalIface_get_text(arg0 *C.GtkSourceCompletionProposal) (cret *C.gchar) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(CompletionProposalOverrider)
+
+	utf8 := iface.Text()
+
+	cret = (*C.gchar)(unsafe.Pointer(C.CString(utf8)))
+
+	return cret
+}
+
+//export _gotk4_gtksource4_CompletionProposalIface_hash
+func _gotk4_gtksource4_CompletionProposalIface_hash(arg0 *C.GtkSourceCompletionProposal) (cret C.guint) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(CompletionProposalOverrider)
+
+	guint := iface.Hash()
+
+	cret = C.guint(guint)
+
+	return cret
+}
 
 func wrapCompletionProposal(obj *externglib.Object) *CompletionProposal {
 	return &CompletionProposal{
@@ -163,14 +338,30 @@ func wrapCompletionProposal(obj *externglib.Object) *CompletionProposal {
 	}
 }
 
-func marshalCompletionProposaller(p uintptr) (interface{}, error) {
+func marshalCompletionProposal(p uintptr) (interface{}, error) {
 	return wrapCompletionProposal(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
-// ConnectChanged: emitted when the proposal has changed. The completion popup
+//export _gotk4_gtksource4_CompletionProposal_ConnectChanged
+func _gotk4_gtksource4_CompletionProposal_ConnectChanged(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
+}
+
+// ConnectChanged is emitted when the proposal has changed. The completion popup
 // will react to this by updating the shown information.
 func (proposal *CompletionProposal) ConnectChanged(f func()) externglib.SignalHandle {
-	return proposal.Connect("changed", f)
+	return externglib.ConnectGeneratedClosure(proposal, "changed", false, unsafe.Pointer(C._gotk4_gtksource4_CompletionProposal_ConnectChanged), f)
 }
 
 // Changed emits the "changed" signal on proposal. This should be called by
@@ -178,7 +369,7 @@ func (proposal *CompletionProposal) ConnectChanged(f func()) externglib.SignalHa
 func (proposal *CompletionProposal) Changed() {
 	var _arg0 *C.GtkSourceCompletionProposal // out
 
-	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(proposal.Native()))
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
 
 	C.gtk_source_completion_proposal_changed(_arg0)
 	runtime.KeepAlive(proposal)
@@ -201,8 +392,8 @@ func (proposal *CompletionProposal) Equal(other CompletionProposaller) bool {
 	var _arg1 *C.GtkSourceCompletionProposal // out
 	var _cret C.gboolean                     // in
 
-	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(proposal.Native()))
-	_arg1 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(other.Native()))
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
+	_arg1 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(other).Native()))
 
 	_cret = C.gtk_source_completion_proposal_equal(_arg0, _arg1)
 	runtime.KeepAlive(proposal)
@@ -227,7 +418,7 @@ func (proposal *CompletionProposal) GIcon() gio.Iconner {
 	var _arg0 *C.GtkSourceCompletionProposal // out
 	var _cret *C.GIcon                       // in
 
-	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(proposal.Native()))
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
 
 	_cret = C.gtk_source_completion_proposal_get_gicon(_arg0)
 	runtime.KeepAlive(proposal)
@@ -264,7 +455,7 @@ func (proposal *CompletionProposal) Icon() *gdkpixbuf.Pixbuf {
 	var _arg0 *C.GtkSourceCompletionProposal // out
 	var _cret *C.GdkPixbuf                   // in
 
-	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(proposal.Native()))
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
 
 	_cret = C.gtk_source_completion_proposal_get_icon(_arg0)
 	runtime.KeepAlive(proposal)
@@ -298,7 +489,7 @@ func (proposal *CompletionProposal) IconName() string {
 	var _arg0 *C.GtkSourceCompletionProposal // out
 	var _cret *C.gchar                       // in
 
-	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(proposal.Native()))
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
 
 	_cret = C.gtk_source_completion_proposal_get_icon_name(_arg0)
 	runtime.KeepAlive(proposal)
@@ -325,7 +516,7 @@ func (proposal *CompletionProposal) Info() string {
 	var _arg0 *C.GtkSourceCompletionProposal // out
 	var _cret *C.gchar                       // in
 
-	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(proposal.Native()))
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
 
 	_cret = C.gtk_source_completion_proposal_get_info(_arg0)
 	runtime.KeepAlive(proposal)
@@ -353,7 +544,7 @@ func (proposal *CompletionProposal) Label() string {
 	var _arg0 *C.GtkSourceCompletionProposal // out
 	var _cret *C.gchar                       // in
 
-	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(proposal.Native()))
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
 
 	_cret = C.gtk_source_completion_proposal_get_label(_arg0)
 	runtime.KeepAlive(proposal)
@@ -379,7 +570,7 @@ func (proposal *CompletionProposal) Markup() string {
 	var _arg0 *C.GtkSourceCompletionProposal // out
 	var _cret *C.gchar                       // in
 
-	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(proposal.Native()))
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
 
 	_cret = C.gtk_source_completion_proposal_get_markup(_arg0)
 	runtime.KeepAlive(proposal)
@@ -407,7 +598,7 @@ func (proposal *CompletionProposal) Text() string {
 	var _arg0 *C.GtkSourceCompletionProposal // out
 	var _cret *C.gchar                       // in
 
-	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(proposal.Native()))
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
 
 	_cret = C.gtk_source_completion_proposal_get_text(_arg0)
 	runtime.KeepAlive(proposal)
@@ -432,7 +623,7 @@ func (proposal *CompletionProposal) Hash() uint {
 	var _arg0 *C.GtkSourceCompletionProposal // out
 	var _cret C.guint                        // in
 
-	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(proposal.Native()))
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
 
 	_cret = C.gtk_source_completion_proposal_hash(_arg0)
 	runtime.KeepAlive(proposal)

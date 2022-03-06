@@ -12,18 +12,20 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern GtkSourceStyleScheme* _gotk4_gtksource5_StyleSchemeChooserInterface_get_style_scheme(GtkSourceStyleSchemeChooser*);
+// extern void _gotk4_gtksource5_StyleSchemeChooserInterface_set_style_scheme(GtkSourceStyleSchemeChooser*, GtkSourceStyleScheme*);
 import "C"
+
+// glib.Type values for gtksourcestyleschemechooser.go.
+var GTypeStyleSchemeChooser = externglib.Type(C.gtk_source_style_scheme_chooser_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_style_scheme_chooser_get_type()), F: marshalStyleSchemeChooserer},
+		{T: GTypeStyleSchemeChooser, F: marshalStyleSchemeChooser},
 	})
 }
 
 // StyleSchemeChooserOverrider contains methods that are overridable.
-//
-// As of right now, interface overriding and subclassing is not supported
-// yet, so the interface currently has no use.
 type StyleSchemeChooserOverrider interface {
 	// StyleScheme gets the currently-selected scheme.
 	//
@@ -62,13 +64,43 @@ type StyleSchemeChooserer interface {
 
 var _ StyleSchemeChooserer = (*StyleSchemeChooser)(nil)
 
+func ifaceInitStyleSchemeChooserer(gifacePtr, data C.gpointer) {
+	iface := (*C.GtkSourceStyleSchemeChooserInterface)(unsafe.Pointer(gifacePtr))
+	iface.get_style_scheme = (*[0]byte)(C._gotk4_gtksource5_StyleSchemeChooserInterface_get_style_scheme)
+	iface.set_style_scheme = (*[0]byte)(C._gotk4_gtksource5_StyleSchemeChooserInterface_set_style_scheme)
+}
+
+//export _gotk4_gtksource5_StyleSchemeChooserInterface_get_style_scheme
+func _gotk4_gtksource5_StyleSchemeChooserInterface_get_style_scheme(arg0 *C.GtkSourceStyleSchemeChooser) (cret *C.GtkSourceStyleScheme) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(StyleSchemeChooserOverrider)
+
+	styleScheme := iface.StyleScheme()
+
+	cret = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(styleScheme).Native()))
+
+	return cret
+}
+
+//export _gotk4_gtksource5_StyleSchemeChooserInterface_set_style_scheme
+func _gotk4_gtksource5_StyleSchemeChooserInterface_set_style_scheme(arg0 *C.GtkSourceStyleSchemeChooser, arg1 *C.GtkSourceStyleScheme) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(StyleSchemeChooserOverrider)
+
+	var _scheme *StyleScheme // out
+
+	_scheme = wrapStyleScheme(externglib.Take(unsafe.Pointer(arg1)))
+
+	iface.SetStyleScheme(_scheme)
+}
+
 func wrapStyleSchemeChooser(obj *externglib.Object) *StyleSchemeChooser {
 	return &StyleSchemeChooser{
 		Object: obj,
 	}
 }
 
-func marshalStyleSchemeChooserer(p uintptr) (interface{}, error) {
+func marshalStyleSchemeChooser(p uintptr) (interface{}, error) {
 	return wrapStyleSchemeChooser(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -82,7 +114,7 @@ func (chooser *StyleSchemeChooser) StyleScheme() *StyleScheme {
 	var _arg0 *C.GtkSourceStyleSchemeChooser // out
 	var _cret *C.GtkSourceStyleScheme        // in
 
-	_arg0 = (*C.GtkSourceStyleSchemeChooser)(unsafe.Pointer(chooser.Native()))
+	_arg0 = (*C.GtkSourceStyleSchemeChooser)(unsafe.Pointer(externglib.InternObject(chooser).Native()))
 
 	_cret = C.gtk_source_style_scheme_chooser_get_style_scheme(_arg0)
 	runtime.KeepAlive(chooser)
@@ -104,8 +136,8 @@ func (chooser *StyleSchemeChooser) SetStyleScheme(scheme *StyleScheme) {
 	var _arg0 *C.GtkSourceStyleSchemeChooser // out
 	var _arg1 *C.GtkSourceStyleScheme        // out
 
-	_arg0 = (*C.GtkSourceStyleSchemeChooser)(unsafe.Pointer(chooser.Native()))
-	_arg1 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(scheme.Native()))
+	_arg0 = (*C.GtkSourceStyleSchemeChooser)(unsafe.Pointer(externglib.InternObject(chooser).Native()))
+	_arg1 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
 
 	C.gtk_source_style_scheme_chooser_set_style_scheme(_arg0, _arg1)
 	runtime.KeepAlive(chooser)

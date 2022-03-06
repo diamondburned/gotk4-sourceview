@@ -2,7 +2,7 @@ module github.com/diamondburned/gotk4-sourceview/pkg
 
 go 1.17
 
-require github.com/diamondburned/gotk4/pkg v0.0.0-20220122222342-2b51f7b628af
+require github.com/diamondburned/gotk4/pkg v0.0.0-20220305042118-cfb7981704dc
 
 require (
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20201222180813-1025295fd063 // indirect

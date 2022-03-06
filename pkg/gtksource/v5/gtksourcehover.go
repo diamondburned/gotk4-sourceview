@@ -14,10 +14,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcehover.go.
+var GTypeHover = externglib.Type(C.gtk_source_hover_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_hover_get_type()), F: marshalHoverer},
+		{T: GTypeHover, F: marshalHover},
 	})
+}
+
+// HoverOverrider contains methods that are overridable.
+type HoverOverrider interface {
 }
 
 type Hover struct {
@@ -29,13 +36,21 @@ var (
 	_ externglib.Objector = (*Hover)(nil)
 )
 
+func classInitHoverer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapHover(obj *externglib.Object) *Hover {
 	return &Hover{
 		Object: obj,
 	}
 }
 
-func marshalHoverer(p uintptr) (interface{}, error) {
+func marshalHover(p uintptr) (interface{}, error) {
 	return wrapHover(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -45,8 +60,8 @@ func (self *Hover) AddProvider(provider HoverProviderer) {
 	var _arg0 *C.GtkSourceHover         // out
 	var _arg1 *C.GtkSourceHoverProvider // out
 
-	_arg0 = (*C.GtkSourceHover)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GtkSourceHoverProvider)(unsafe.Pointer(provider.Native()))
+	_arg0 = (*C.GtkSourceHover)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceHoverProvider)(unsafe.Pointer(externglib.InternObject(provider).Native()))
 
 	C.gtk_source_hover_add_provider(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -59,8 +74,8 @@ func (self *Hover) RemoveProvider(provider HoverProviderer) {
 	var _arg0 *C.GtkSourceHover         // out
 	var _arg1 *C.GtkSourceHoverProvider // out
 
-	_arg0 = (*C.GtkSourceHover)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GtkSourceHoverProvider)(unsafe.Pointer(provider.Native()))
+	_arg0 = (*C.GtkSourceHover)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceHoverProvider)(unsafe.Pointer(externglib.InternObject(provider).Native()))
 
 	C.gtk_source_hover_remove_provider(_arg0, _arg1)
 	runtime.KeepAlive(self)

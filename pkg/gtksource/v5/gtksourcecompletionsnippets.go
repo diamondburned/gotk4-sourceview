@@ -13,10 +13,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcecompletionsnippets.go.
+var GTypeCompletionSnippets = externglib.Type(C.gtk_source_completion_snippets_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_completion_snippets_get_type()), F: marshalCompletionSnippetser},
+		{T: GTypeCompletionSnippets, F: marshalCompletionSnippets},
 	})
+}
+
+// CompletionSnippetsOverrider contains methods that are overridable.
+type CompletionSnippetsOverrider interface {
 }
 
 type CompletionSnippets struct {
@@ -30,6 +37,14 @@ var (
 	_ externglib.Objector = (*CompletionSnippets)(nil)
 )
 
+func classInitCompletionSnippetser(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapCompletionSnippets(obj *externglib.Object) *CompletionSnippets {
 	return &CompletionSnippets{
 		Object: obj,
@@ -39,7 +54,7 @@ func wrapCompletionSnippets(obj *externglib.Object) *CompletionSnippets {
 	}
 }
 
-func marshalCompletionSnippetser(p uintptr) (interface{}, error) {
+func marshalCompletionSnippets(p uintptr) (interface{}, error) {
 	return wrapCompletionSnippets(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 

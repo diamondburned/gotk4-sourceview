@@ -17,10 +17,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcecompletioncontext.go.
+var GTypeCompletionContext = externglib.Type(C.gtk_source_completion_context_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_completion_context_get_type()), F: marshalCompletionContexter},
+		{T: GTypeCompletionContext, F: marshalCompletionContext},
 	})
+}
+
+// CompletionContextOverrider contains methods that are overridable.
+type CompletionContextOverrider interface {
 }
 
 type CompletionContext struct {
@@ -34,6 +41,14 @@ var (
 	_ externglib.Objector = (*CompletionContext)(nil)
 )
 
+func classInitCompletionContexter(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapCompletionContext(obj *externglib.Object) *CompletionContext {
 	return &CompletionContext{
 		Object: obj,
@@ -43,7 +58,7 @@ func wrapCompletionContext(obj *externglib.Object) *CompletionContext {
 	}
 }
 
-func marshalCompletionContexter(p uintptr) (interface{}, error) {
+func marshalCompletionContext(p uintptr) (interface{}, error) {
 	return wrapCompletionContext(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -55,7 +70,7 @@ func (self *CompletionContext) Activation() CompletionActivation {
 	var _arg0 *C.GtkSourceCompletionContext   // out
 	var _cret C.GtkSourceCompletionActivation // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_activation(_arg0)
 	runtime.KeepAlive(self)
@@ -89,7 +104,7 @@ func (self *CompletionContext) Bounds() (begin *gtk.TextIter, end *gtk.TextIter,
 	var _arg2 C.GtkTextIter                 // in
 	var _cret C.gboolean                    // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_bounds(_arg0, &_arg1, &_arg2)
 	runtime.KeepAlive(self)
@@ -120,7 +135,7 @@ func (self *CompletionContext) Buffer() *Buffer {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret *C.GtkSourceBuffer            // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_buffer(_arg0)
 	runtime.KeepAlive(self)
@@ -146,7 +161,7 @@ func (self *CompletionContext) Busy() bool {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret C.gboolean                    // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_busy(_arg0)
 	runtime.KeepAlive(self)
@@ -170,7 +185,7 @@ func (self *CompletionContext) Completion() *Completion {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret *C.GtkSourceCompletion        // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_completion(_arg0)
 	runtime.KeepAlive(self)
@@ -196,7 +211,7 @@ func (self *CompletionContext) Empty() bool {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret C.gboolean                    // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_empty(_arg0)
 	runtime.KeepAlive(self)
@@ -220,7 +235,7 @@ func (self *CompletionContext) Language() *Language {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret *C.GtkSourceLanguage          // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_language(_arg0)
 	runtime.KeepAlive(self)
@@ -244,7 +259,7 @@ func (self *CompletionContext) View() *View {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret *C.GtkSourceView              // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_view(_arg0)
 	runtime.KeepAlive(self)
@@ -269,7 +284,7 @@ func (self *CompletionContext) Word() string {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret *C.char                       // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_word(_arg0)
 	runtime.KeepAlive(self)
@@ -299,10 +314,10 @@ func (self *CompletionContext) SetProposalsForProvider(provider CompletionProvid
 	var _arg1 *C.GtkSourceCompletionProvider // out
 	var _arg2 *C.GListModel                  // out
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(provider.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(provider).Native()))
 	if results != nil {
-		_arg2 = (*C.GListModel)(unsafe.Pointer(results.Native()))
+		_arg2 = (*C.GListModel)(unsafe.Pointer(externglib.InternObject(results).Native()))
 	}
 
 	C.gtk_source_completion_context_set_proposals_for_provider(_arg0, _arg1, _arg2)

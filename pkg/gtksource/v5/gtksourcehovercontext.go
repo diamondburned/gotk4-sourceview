@@ -16,10 +16,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcehovercontext.go.
+var GTypeHoverContext = externglib.Type(C.gtk_source_hover_context_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_hover_context_get_type()), F: marshalHoverContexter},
+		{T: GTypeHoverContext, F: marshalHoverContext},
 	})
+}
+
+// HoverContextOverrider contains methods that are overridable.
+type HoverContextOverrider interface {
 }
 
 type HoverContext struct {
@@ -31,13 +38,21 @@ var (
 	_ externglib.Objector = (*HoverContext)(nil)
 )
 
+func classInitHoverContexter(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapHoverContext(obj *externglib.Object) *HoverContext {
 	return &HoverContext{
 		Object: obj,
 	}
 }
 
-func marshalHoverContexter(p uintptr) (interface{}, error) {
+func marshalHoverContext(p uintptr) (interface{}, error) {
 	return wrapHoverContext(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -54,7 +69,7 @@ func (self *HoverContext) Bounds(begin, end *gtk.TextIter) bool {
 	var _arg2 *C.GtkTextIter           // out
 	var _cret C.gboolean               // in
 
-	_arg0 = (*C.GtkSourceHoverContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceHoverContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(begin)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 
@@ -82,7 +97,7 @@ func (self *HoverContext) Buffer() *Buffer {
 	var _arg0 *C.GtkSourceHoverContext // out
 	var _cret *C.GtkSourceBuffer       // in
 
-	_arg0 = (*C.GtkSourceHoverContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceHoverContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_hover_context_get_buffer(_arg0)
 	runtime.KeepAlive(self)
@@ -103,7 +118,7 @@ func (self *HoverContext) Iter(iter *gtk.TextIter) bool {
 	var _arg1 *C.GtkTextIter           // out
 	var _cret C.gboolean               // in
 
-	_arg0 = (*C.GtkSourceHoverContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceHoverContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 
 	_cret = C.gtk_source_hover_context_get_iter(_arg0, _arg1)
@@ -127,7 +142,7 @@ func (self *HoverContext) View() *View {
 	var _arg0 *C.GtkSourceHoverContext // out
 	var _cret *C.GtkSourceView         // in
 
-	_arg0 = (*C.GtkSourceHoverContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceHoverContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_hover_context_get_view(_arg0)
 	runtime.KeepAlive(self)

@@ -15,10 +15,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcestyle.go.
+var GTypeStyle = externglib.Type(C.gtk_source_style_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_style_get_type()), F: marshalStyler},
+		{T: GTypeStyle, F: marshalStyle},
 	})
+}
+
+// StyleOverrider contains methods that are overridable.
+type StyleOverrider interface {
 }
 
 type Style struct {
@@ -30,13 +37,21 @@ var (
 	_ externglib.Objector = (*Style)(nil)
 )
 
+func classInitStyler(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapStyle(obj *externglib.Object) *Style {
 	return &Style{
 		Object: obj,
 	}
 }
 
-func marshalStyler(p uintptr) (interface{}, error) {
+func marshalStyle(p uintptr) (interface{}, error) {
 	return wrapStyle(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -56,9 +71,9 @@ func (style *Style) Apply(tag *gtk.TextTag) {
 	var _arg1 *C.GtkTextTag     // out
 
 	if style != nil {
-		_arg0 = (*C.GtkSourceStyle)(unsafe.Pointer(style.Native()))
+		_arg0 = (*C.GtkSourceStyle)(unsafe.Pointer(externglib.InternObject(style).Native()))
 	}
-	_arg1 = (*C.GtkTextTag)(unsafe.Pointer(tag.Native()))
+	_arg1 = (*C.GtkTextTag)(unsafe.Pointer(externglib.InternObject(tag).Native()))
 
 	C.gtk_source_style_apply(_arg0, _arg1)
 	runtime.KeepAlive(style)
@@ -76,7 +91,7 @@ func (style *Style) Copy() *Style {
 	var _arg0 *C.GtkSourceStyle // out
 	var _cret *C.GtkSourceStyle // in
 
-	_arg0 = (*C.GtkSourceStyle)(unsafe.Pointer(style.Native()))
+	_arg0 = (*C.GtkSourceStyle)(unsafe.Pointer(externglib.InternObject(style).Native()))
 
 	_cret = C.gtk_source_style_copy(_arg0)
 	runtime.KeepAlive(style)

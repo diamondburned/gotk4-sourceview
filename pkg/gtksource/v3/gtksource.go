@@ -19,18 +19,32 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksource.go.
+var (
+	GTypeBackgroundPatternType = externglib.Type(C.gtk_source_background_pattern_type_get_type())
+	GTypeBracketMatchType      = externglib.Type(C.gtk_source_bracket_match_type_get_type())
+	GTypeChangeCaseType        = externglib.Type(C.gtk_source_change_case_type_get_type())
+	GTypeCompressionType       = externglib.Type(C.gtk_source_compression_type_get_type())
+	GTypeNewlineType           = externglib.Type(C.gtk_source_newline_type_get_type())
+	GTypeSmartHomeEndType      = externglib.Type(C.gtk_source_smart_home_end_type_get_type())
+	GTypeViewGutterPosition    = externglib.Type(C.gtk_source_view_gutter_position_get_type())
+	GTypeCompletionActivation  = externglib.Type(C.gtk_source_completion_activation_get_type())
+	GTypeGutterRendererState   = externglib.Type(C.gtk_source_gutter_renderer_state_get_type())
+	GTypeSortFlags             = externglib.Type(C.gtk_source_sort_flags_get_type())
+)
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_background_pattern_type_get_type()), F: marshalBackgroundPatternType},
-		{T: externglib.Type(C.gtk_source_bracket_match_type_get_type()), F: marshalBracketMatchType},
-		{T: externglib.Type(C.gtk_source_change_case_type_get_type()), F: marshalChangeCaseType},
-		{T: externglib.Type(C.gtk_source_compression_type_get_type()), F: marshalCompressionType},
-		{T: externglib.Type(C.gtk_source_newline_type_get_type()), F: marshalNewlineType},
-		{T: externglib.Type(C.gtk_source_smart_home_end_type_get_type()), F: marshalSmartHomeEndType},
-		{T: externglib.Type(C.gtk_source_view_gutter_position_get_type()), F: marshalViewGutterPosition},
-		{T: externglib.Type(C.gtk_source_completion_activation_get_type()), F: marshalCompletionActivation},
-		{T: externglib.Type(C.gtk_source_gutter_renderer_state_get_type()), F: marshalGutterRendererState},
-		{T: externglib.Type(C.gtk_source_sort_flags_get_type()), F: marshalSortFlags},
+		{T: GTypeBackgroundPatternType, F: marshalBackgroundPatternType},
+		{T: GTypeBracketMatchType, F: marshalBracketMatchType},
+		{T: GTypeChangeCaseType, F: marshalChangeCaseType},
+		{T: GTypeCompressionType, F: marshalCompressionType},
+		{T: GTypeNewlineType, F: marshalNewlineType},
+		{T: GTypeSmartHomeEndType, F: marshalSmartHomeEndType},
+		{T: GTypeViewGutterPosition, F: marshalViewGutterPosition},
+		{T: GTypeCompletionActivation, F: marshalCompletionActivation},
+		{T: GTypeGutterRendererState, F: marshalGutterRendererState},
+		{T: GTypeSortFlags, F: marshalSortFlags},
 	})
 }
 

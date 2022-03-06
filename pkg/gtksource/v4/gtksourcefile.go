@@ -16,10 +16,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcefile.go.
+var GTypeFile = externglib.Type(C.gtk_source_file_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_file_get_type()), F: marshalFiler},
+		{T: GTypeFile, F: marshalFile},
 	})
+}
+
+// FileOverrider contains methods that are overridable.
+type FileOverrider interface {
 }
 
 type File struct {
@@ -31,13 +38,21 @@ var (
 	_ externglib.Objector = (*File)(nil)
 )
 
+func classInitFiler(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapFile(obj *externglib.Object) *File {
 	return &File{
 		Object: obj,
 	}
 }
 
-func marshalFiler(p uintptr) (interface{}, error) {
+func marshalFile(p uintptr) (interface{}, error) {
 	return wrapFile(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -70,7 +85,7 @@ func NewFile() *File {
 func (file *File) CheckFileOnDisk() {
 	var _arg0 *C.GtkSourceFile // out
 
-	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 
 	C.gtk_source_file_check_file_on_disk(_arg0)
 	runtime.KeepAlive(file)
@@ -84,7 +99,7 @@ func (file *File) CompressionType() CompressionType {
 	var _arg0 *C.GtkSourceFile           // out
 	var _cret C.GtkSourceCompressionType // in
 
-	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 
 	_cret = C.gtk_source_file_get_compression_type(_arg0)
 	runtime.KeepAlive(file)
@@ -107,7 +122,7 @@ func (file *File) Encoding() *Encoding {
 	var _arg0 *C.GtkSourceFile     // out
 	var _cret *C.GtkSourceEncoding // in
 
-	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 
 	_cret = C.gtk_source_file_get_encoding(_arg0)
 	runtime.KeepAlive(file)
@@ -127,7 +142,7 @@ func (file *File) Location() gio.Filer {
 	var _arg0 *C.GtkSourceFile // out
 	var _cret *C.GFile         // in
 
-	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 
 	_cret = C.gtk_source_file_get_location(_arg0)
 	runtime.KeepAlive(file)
@@ -163,7 +178,7 @@ func (file *File) NewlineType() NewlineType {
 	var _arg0 *C.GtkSourceFile       // out
 	var _cret C.GtkSourceNewlineType // in
 
-	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 
 	_cret = C.gtk_source_file_get_newline_type(_arg0)
 	runtime.KeepAlive(file)
@@ -189,7 +204,7 @@ func (file *File) IsDeleted() bool {
 	var _arg0 *C.GtkSourceFile // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 
 	_cret = C.gtk_source_file_is_deleted(_arg0)
 	runtime.KeepAlive(file)
@@ -217,7 +232,7 @@ func (file *File) IsExternallyModified() bool {
 	var _arg0 *C.GtkSourceFile // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 
 	_cret = C.gtk_source_file_is_externally_modified(_arg0)
 	runtime.KeepAlive(file)
@@ -242,7 +257,7 @@ func (file *File) IsLocal() bool {
 	var _arg0 *C.GtkSourceFile // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 
 	_cret = C.gtk_source_file_is_local(_arg0)
 	runtime.KeepAlive(file)
@@ -270,7 +285,7 @@ func (file *File) IsReadonly() bool {
 	var _arg0 *C.GtkSourceFile // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 
 	_cret = C.gtk_source_file_is_readonly(_arg0)
 	runtime.KeepAlive(file)
@@ -294,9 +309,9 @@ func (file *File) SetLocation(location gio.Filer) {
 	var _arg0 *C.GtkSourceFile // out
 	var _arg1 *C.GFile         // out
 
-	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg0 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 	if location != nil {
-		_arg1 = (*C.GFile)(unsafe.Pointer(location.Native()))
+		_arg1 = (*C.GFile)(unsafe.Pointer(externglib.InternObject(location).Native()))
 	}
 
 	C.gtk_source_file_set_location(_arg0, _arg1)

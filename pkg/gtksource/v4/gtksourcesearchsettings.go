@@ -14,10 +14,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcesearchsettings.go.
+var GTypeSearchSettings = externglib.Type(C.gtk_source_search_settings_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_search_settings_get_type()), F: marshalSearchSettingser},
+		{T: GTypeSearchSettings, F: marshalSearchSettings},
 	})
+}
+
+// SearchSettingsOverrider contains methods that are overridable.
+type SearchSettingsOverrider interface {
 }
 
 type SearchSettings struct {
@@ -29,13 +36,21 @@ var (
 	_ externglib.Objector = (*SearchSettings)(nil)
 )
 
+func classInitSearchSettingser(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapSearchSettings(obj *externglib.Object) *SearchSettings {
 	return &SearchSettings{
 		Object: obj,
 	}
 }
 
-func marshalSearchSettingser(p uintptr) (interface{}, error) {
+func marshalSearchSettings(p uintptr) (interface{}, error) {
 	return wrapSearchSettings(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -65,7 +80,7 @@ func (settings *SearchSettings) AtWordBoundaries() bool {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(settings.Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
 
 	_cret = C.gtk_source_search_settings_get_at_word_boundaries(_arg0)
 	runtime.KeepAlive(settings)
@@ -87,7 +102,7 @@ func (settings *SearchSettings) CaseSensitive() bool {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(settings.Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
 
 	_cret = C.gtk_source_search_settings_get_case_sensitive(_arg0)
 	runtime.KeepAlive(settings)
@@ -109,7 +124,7 @@ func (settings *SearchSettings) RegexEnabled() bool {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(settings.Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
 
 	_cret = C.gtk_source_search_settings_get_regex_enabled(_arg0)
 	runtime.KeepAlive(settings)
@@ -136,7 +151,7 @@ func (settings *SearchSettings) SearchText() string {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(settings.Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
 
 	_cret = C.gtk_source_search_settings_get_search_text(_arg0)
 	runtime.KeepAlive(settings)
@@ -158,7 +173,7 @@ func (settings *SearchSettings) WrapAround() bool {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(settings.Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
 
 	_cret = C.gtk_source_search_settings_get_wrap_around(_arg0)
 	runtime.KeepAlive(settings)
@@ -185,7 +200,7 @@ func (settings *SearchSettings) SetAtWordBoundaries(atWordBoundaries bool) {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _arg1 C.gboolean                 // out
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(settings.Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
 	if atWordBoundaries {
 		_arg1 = C.TRUE
 	}
@@ -205,7 +220,7 @@ func (settings *SearchSettings) SetCaseSensitive(caseSensitive bool) {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _arg1 C.gboolean                 // out
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(settings.Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
 	if caseSensitive {
 		_arg1 = C.TRUE
 	}
@@ -232,7 +247,7 @@ func (settings *SearchSettings) SetRegexEnabled(regexEnabled bool) {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _arg1 C.gboolean                 // out
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(settings.Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
 	if regexEnabled {
 		_arg1 = C.TRUE
 	}
@@ -258,7 +273,7 @@ func (settings *SearchSettings) SetSearchText(searchText string) {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(settings.Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
 	if searchText != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(searchText)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -282,7 +297,7 @@ func (settings *SearchSettings) SetWrapAround(wrapAround bool) {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _arg1 C.gboolean                 // out
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(settings.Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
 	if wrapAround {
 		_arg1 = C.TRUE
 	}

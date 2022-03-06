@@ -14,10 +14,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcestyleschememanager.go.
+var GTypeStyleSchemeManager = externglib.Type(C.gtk_source_style_scheme_manager_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_style_scheme_manager_get_type()), F: marshalStyleSchemeManagerer},
+		{T: GTypeStyleSchemeManager, F: marshalStyleSchemeManager},
 	})
+}
+
+// StyleSchemeManagerOverrider contains methods that are overridable.
+type StyleSchemeManagerOverrider interface {
 }
 
 type StyleSchemeManager struct {
@@ -29,13 +36,21 @@ var (
 	_ externglib.Objector = (*StyleSchemeManager)(nil)
 )
 
+func classInitStyleSchemeManagerer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapStyleSchemeManager(obj *externglib.Object) *StyleSchemeManager {
 	return &StyleSchemeManager{
 		Object: obj,
 	}
 }
 
-func marshalStyleSchemeManagerer(p uintptr) (interface{}, error) {
+func marshalStyleSchemeManager(p uintptr) (interface{}, error) {
 	return wrapStyleSchemeManager(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -71,7 +86,7 @@ func (manager *StyleSchemeManager) AppendSearchPath(path string) {
 	var _arg0 *C.GtkSourceStyleSchemeManager // out
 	var _arg1 *C.gchar                       // out
 
-	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(path)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -86,7 +101,7 @@ func (manager *StyleSchemeManager) AppendSearchPath(path string) {
 func (manager *StyleSchemeManager) ForceRescan() {
 	var _arg0 *C.GtkSourceStyleSchemeManager // out
 
-	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 
 	C.gtk_source_style_scheme_manager_force_rescan(_arg0)
 	runtime.KeepAlive(manager)
@@ -108,7 +123,7 @@ func (manager *StyleSchemeManager) Scheme(schemeId string) *StyleScheme {
 	var _arg1 *C.gchar                       // out
 	var _cret *C.GtkSourceStyleScheme        // in
 
-	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(schemeId)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -138,7 +153,7 @@ func (manager *StyleSchemeManager) SchemeIDs() []string {
 	var _arg0 *C.GtkSourceStyleSchemeManager // out
 	var _cret **C.gchar                      // in
 
-	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 
 	_cret = C.gtk_source_style_scheme_manager_get_scheme_ids(_arg0)
 	runtime.KeepAlive(manager)
@@ -176,7 +191,7 @@ func (manager *StyleSchemeManager) SearchPath() []string {
 	var _arg0 *C.GtkSourceStyleSchemeManager // out
 	var _cret **C.gchar                      // in
 
-	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 
 	_cret = C.gtk_source_style_scheme_manager_get_search_path(_arg0)
 	runtime.KeepAlive(manager)
@@ -212,7 +227,7 @@ func (manager *StyleSchemeManager) PrependSearchPath(path string) {
 	var _arg0 *C.GtkSourceStyleSchemeManager // out
 	var _arg1 *C.gchar                       // out
 
-	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(path)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -232,7 +247,7 @@ func (manager *StyleSchemeManager) SetSearchPath(path []string) {
 	var _arg0 *C.GtkSourceStyleSchemeManager // out
 	var _arg1 **C.gchar                      // out
 
-	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceStyleSchemeManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 	{
 		_arg1 = (**C.gchar)(C.calloc(C.size_t((len(path) + 1)), C.size_t(unsafe.Sizeof(uint(0)))))
 		defer C.free(unsafe.Pointer(_arg1))

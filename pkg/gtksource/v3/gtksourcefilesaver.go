@@ -20,16 +20,23 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern void _gotk4_gio2_AsyncReadyCallback(GObject*, GAsyncResult*, gpointer);
+// extern void _gotk4_gio2_FileProgressCallback(goffset, goffset, gpointer);
 // extern void callbackDelete(gpointer);
-// void _gotk4_gio2_AsyncReadyCallback(GObject*, GAsyncResult*, gpointer);
-// void _gotk4_gio2_FileProgressCallback(goffset, goffset, gpointer);
 import "C"
+
+// glib.Type values for gtksourcefilesaver.go.
+var (
+	GTypeFileSaverError = externglib.Type(C.gtk_source_file_saver_error_get_type())
+	GTypeFileSaverFlags = externglib.Type(C.gtk_source_file_saver_flags_get_type())
+	GTypeFileSaver      = externglib.Type(C.gtk_source_file_saver_get_type())
+)
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_file_saver_error_get_type()), F: marshalFileSaverError},
-		{T: externglib.Type(C.gtk_source_file_saver_flags_get_type()), F: marshalFileSaverFlags},
-		{T: externglib.Type(C.gtk_source_file_saver_get_type()), F: marshalFileSaverer},
+		{T: GTypeFileSaverError, F: marshalFileSaverError},
+		{T: GTypeFileSaverFlags, F: marshalFileSaverFlags},
+		{T: GTypeFileSaver, F: marshalFileSaver},
 	})
 }
 
@@ -115,6 +122,10 @@ func (f FileSaverFlags) Has(other FileSaverFlags) bool {
 	return (f & other) == other
 }
 
+// FileSaverOverrider contains methods that are overridable.
+type FileSaverOverrider interface {
+}
+
 type FileSaver struct {
 	_ [0]func() // equal guard
 	*externglib.Object
@@ -124,13 +135,21 @@ var (
 	_ externglib.Objector = (*FileSaver)(nil)
 )
 
+func classInitFileSaverer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapFileSaver(obj *externglib.Object) *FileSaver {
 	return &FileSaver{
 		Object: obj,
 	}
 }
 
-func marshalFileSaverer(p uintptr) (interface{}, error) {
+func marshalFileSaver(p uintptr) (interface{}, error) {
 	return wrapFileSaver(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -154,8 +173,8 @@ func NewFileSaver(buffer *Buffer, file *File) *FileSaver {
 	var _arg2 *C.GtkSourceFile      // out
 	var _cret *C.GtkSourceFileSaver // in
 
-	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
-	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 
 	_cret = C.gtk_source_file_saver_new(_arg1, _arg2)
 	runtime.KeepAlive(buffer)
@@ -192,9 +211,9 @@ func NewFileSaverWithTarget(buffer *Buffer, file *File, targetLocation gio.Filer
 	var _arg3 *C.GFile              // out
 	var _cret *C.GtkSourceFileSaver // in
 
-	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
-	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
-	_arg3 = (*C.GFile)(unsafe.Pointer(targetLocation.Native()))
+	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
+	_arg3 = (*C.GFile)(unsafe.Pointer(externglib.InternObject(targetLocation).Native()))
 
 	_cret = C.gtk_source_file_saver_new_with_target(_arg1, _arg2, _arg3)
 	runtime.KeepAlive(buffer)
@@ -216,7 +235,7 @@ func (saver *FileSaver) Buffer() *Buffer {
 	var _arg0 *C.GtkSourceFileSaver // out
 	var _cret *C.GtkSourceBuffer    // in
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 
 	_cret = C.gtk_source_file_saver_get_buffer(_arg0)
 	runtime.KeepAlive(saver)
@@ -236,7 +255,7 @@ func (saver *FileSaver) CompressionType() CompressionType {
 	var _arg0 *C.GtkSourceFileSaver      // out
 	var _cret C.GtkSourceCompressionType // in
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 
 	_cret = C.gtk_source_file_saver_get_compression_type(_arg0)
 	runtime.KeepAlive(saver)
@@ -256,7 +275,7 @@ func (saver *FileSaver) Encoding() *Encoding {
 	var _arg0 *C.GtkSourceFileSaver // out
 	var _cret *C.GtkSourceEncoding  // in
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 
 	_cret = C.gtk_source_file_saver_get_encoding(_arg0)
 	runtime.KeepAlive(saver)
@@ -276,7 +295,7 @@ func (saver *FileSaver) File() *File {
 	var _arg0 *C.GtkSourceFileSaver // out
 	var _cret *C.GtkSourceFile      // in
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 
 	_cret = C.gtk_source_file_saver_get_file(_arg0)
 	runtime.KeepAlive(saver)
@@ -296,7 +315,7 @@ func (saver *FileSaver) Flags() FileSaverFlags {
 	var _arg0 *C.GtkSourceFileSaver     // out
 	var _cret C.GtkSourceFileSaverFlags // in
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 
 	_cret = C.gtk_source_file_saver_get_flags(_arg0)
 	runtime.KeepAlive(saver)
@@ -316,7 +335,7 @@ func (saver *FileSaver) Location() gio.Filer {
 	var _arg0 *C.GtkSourceFileSaver // out
 	var _cret *C.GFile              // in
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 
 	_cret = C.gtk_source_file_saver_get_location(_arg0)
 	runtime.KeepAlive(saver)
@@ -352,7 +371,7 @@ func (saver *FileSaver) NewlineType() NewlineType {
 	var _arg0 *C.GtkSourceFileSaver  // out
 	var _cret C.GtkSourceNewlineType // in
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 
 	_cret = C.gtk_source_file_saver_get_newline_type(_arg0)
 	runtime.KeepAlive(saver)
@@ -386,7 +405,7 @@ func (saver *FileSaver) SaveAsync(ctx context.Context, ioPriority int, progressC
 	var _arg6 C.GAsyncReadyCallback // out
 	var _arg7 C.gpointer
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 	{
 		cancellable := gcancel.GCancellableFromContext(ctx)
 		defer runtime.KeepAlive(cancellable)
@@ -430,8 +449,8 @@ func (saver *FileSaver) SaveFinish(result gio.AsyncResulter) error {
 	var _arg1 *C.GAsyncResult       // out
 	var _cerr *C.GError             // in
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
-	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(result.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
+	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(externglib.InternObject(result).Native()))
 
 	C.gtk_source_file_saver_save_finish(_arg0, _arg1, &_cerr)
 	runtime.KeepAlive(saver)
@@ -457,7 +476,7 @@ func (saver *FileSaver) SetCompressionType(compressionType CompressionType) {
 	var _arg0 *C.GtkSourceFileSaver      // out
 	var _arg1 C.GtkSourceCompressionType // out
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 	_arg1 = C.GtkSourceCompressionType(compressionType)
 
 	C.gtk_source_file_saver_set_compression_type(_arg0, _arg1)
@@ -476,7 +495,7 @@ func (saver *FileSaver) SetEncoding(encoding *Encoding) {
 	var _arg0 *C.GtkSourceFileSaver // out
 	var _arg1 *C.GtkSourceEncoding  // out
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 	if encoding != nil {
 		_arg1 = (*C.GtkSourceEncoding)(gextras.StructNative(unsafe.Pointer(encoding)))
 	}
@@ -494,7 +513,7 @@ func (saver *FileSaver) SetFlags(flags FileSaverFlags) {
 	var _arg0 *C.GtkSourceFileSaver     // out
 	var _arg1 C.GtkSourceFileSaverFlags // out
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 	_arg1 = C.GtkSourceFileSaverFlags(flags)
 
 	C.gtk_source_file_saver_set_flags(_arg0, _arg1)
@@ -513,7 +532,7 @@ func (saver *FileSaver) SetNewlineType(newlineType NewlineType) {
 	var _arg0 *C.GtkSourceFileSaver  // out
 	var _arg1 C.GtkSourceNewlineType // out
 
-	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(saver.Native()))
+	_arg0 = (*C.GtkSourceFileSaver)(unsafe.Pointer(externglib.InternObject(saver).Native()))
 	_arg1 = C.GtkSourceNewlineType(newlineType)
 
 	C.gtk_source_file_saver_set_newline_type(_arg0, _arg1)

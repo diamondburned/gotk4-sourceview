@@ -16,10 +16,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcecompletionwords.go.
+var GTypeCompletionWords = externglib.Type(C.gtk_source_completion_words_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_completion_words_get_type()), F: marshalCompletionWordser},
+		{T: GTypeCompletionWords, F: marshalCompletionWords},
 	})
+}
+
+// CompletionWordsOverrider contains methods that are overridable.
+type CompletionWordsOverrider interface {
 }
 
 type CompletionWords struct {
@@ -33,6 +40,14 @@ var (
 	_ externglib.Objector = (*CompletionWords)(nil)
 )
 
+func classInitCompletionWordser(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapCompletionWords(obj *externglib.Object) *CompletionWords {
 	return &CompletionWords{
 		Object: obj,
@@ -42,7 +57,7 @@ func wrapCompletionWords(obj *externglib.Object) *CompletionWords {
 	}
 }
 
-func marshalCompletionWordser(p uintptr) (interface{}, error) {
+func marshalCompletionWords(p uintptr) (interface{}, error) {
 	return wrapCompletionWords(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -65,7 +80,7 @@ func NewCompletionWords(name string, icon *gdkpixbuf.Pixbuf) *CompletionWords {
 		defer C.free(unsafe.Pointer(_arg1))
 	}
 	if icon != nil {
-		_arg2 = (*C.GdkPixbuf)(unsafe.Pointer(icon.Native()))
+		_arg2 = (*C.GdkPixbuf)(unsafe.Pointer(externglib.InternObject(icon).Native()))
 	}
 
 	_cret = C.gtk_source_completion_words_new(_arg1, _arg2)
@@ -89,8 +104,8 @@ func (words *CompletionWords) Register(buffer *gtk.TextBuffer) {
 	var _arg0 *C.GtkSourceCompletionWords // out
 	var _arg1 *C.GtkTextBuffer            // out
 
-	_arg0 = (*C.GtkSourceCompletionWords)(unsafe.Pointer(words.Native()))
-	_arg1 = (*C.GtkTextBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceCompletionWords)(unsafe.Pointer(externglib.InternObject(words).Native()))
+	_arg1 = (*C.GtkTextBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	C.gtk_source_completion_words_register(_arg0, _arg1)
 	runtime.KeepAlive(words)
@@ -107,8 +122,8 @@ func (words *CompletionWords) Unregister(buffer *gtk.TextBuffer) {
 	var _arg0 *C.GtkSourceCompletionWords // out
 	var _arg1 *C.GtkTextBuffer            // out
 
-	_arg0 = (*C.GtkSourceCompletionWords)(unsafe.Pointer(words.Native()))
-	_arg1 = (*C.GtkTextBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceCompletionWords)(unsafe.Pointer(externglib.InternObject(words).Native()))
+	_arg1 = (*C.GtkTextBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	C.gtk_source_completion_words_unregister(_arg0, _arg1)
 	runtime.KeepAlive(words)

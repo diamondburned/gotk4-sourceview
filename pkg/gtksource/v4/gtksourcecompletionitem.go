@@ -16,10 +16,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcecompletionitem.go.
+var GTypeCompletionItem = externglib.Type(C.gtk_source_completion_item_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_completion_item_get_type()), F: marshalCompletionItemmer},
+		{T: GTypeCompletionItem, F: marshalCompletionItem},
 	})
+}
+
+// CompletionItemOverrider contains methods that are overridable.
+type CompletionItemOverrider interface {
 }
 
 type CompletionItem struct {
@@ -33,6 +40,14 @@ var (
 	_ externglib.Objector = (*CompletionItem)(nil)
 )
 
+func classInitCompletionItemmer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapCompletionItem(obj *externglib.Object) *CompletionItem {
 	return &CompletionItem{
 		Object: obj,
@@ -42,7 +57,7 @@ func wrapCompletionItem(obj *externglib.Object) *CompletionItem {
 	}
 }
 
-func marshalCompletionItemmer(p uintptr) (interface{}, error) {
+func marshalCompletionItem(p uintptr) (interface{}, error) {
 	return wrapCompletionItem(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -73,9 +88,9 @@ func (item *CompletionItem) SetGIcon(gicon gio.Iconner) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.GIcon                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(item.Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
 	if gicon != nil {
-		_arg1 = (*C.GIcon)(unsafe.Pointer(gicon.Native()))
+		_arg1 = (*C.GIcon)(unsafe.Pointer(externglib.InternObject(gicon).Native()))
 	}
 
 	C.gtk_source_completion_item_set_gicon(_arg0, _arg1)
@@ -91,9 +106,9 @@ func (item *CompletionItem) SetIcon(icon *gdkpixbuf.Pixbuf) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.GdkPixbuf               // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(item.Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
 	if icon != nil {
-		_arg1 = (*C.GdkPixbuf)(unsafe.Pointer(icon.Native()))
+		_arg1 = (*C.GdkPixbuf)(unsafe.Pointer(externglib.InternObject(icon).Native()))
 	}
 
 	C.gtk_source_completion_item_set_icon(_arg0, _arg1)
@@ -109,7 +124,7 @@ func (item *CompletionItem) SetIconName(iconName string) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(item.Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
 	if iconName != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(iconName)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -128,7 +143,7 @@ func (item *CompletionItem) SetInfo(info string) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(item.Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
 	if info != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(info)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -147,7 +162,7 @@ func (item *CompletionItem) SetLabel(label string) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(item.Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
 	if label != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(label)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -166,7 +181,7 @@ func (item *CompletionItem) SetMarkup(markup string) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(item.Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
 	if markup != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(markup)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -185,7 +200,7 @@ func (item *CompletionItem) SetText(text string) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(item.Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
 	if text != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(text)))
 		defer C.free(unsafe.Pointer(_arg1))

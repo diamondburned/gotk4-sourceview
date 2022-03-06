@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"unsafe"
 
+	"github.com/diamondburned/gotk4/pkg/core/gbox"
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
 	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
@@ -14,18 +15,20 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern void _gotk4_gtksource3_CompletionContextClass_cancelled(GtkSourceCompletionContext*);
+// extern void _gotk4_gtksource3_CompletionContext_ConnectCancelled(gpointer, guintptr);
 import "C"
+
+// glib.Type values for gtksourcecompletioncontext.go.
+var GTypeCompletionContext = externglib.Type(C.gtk_source_completion_context_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_completion_context_get_type()), F: marshalCompletionContexter},
+		{T: GTypeCompletionContext, F: marshalCompletionContext},
 	})
 }
 
 // CompletionContextOverrider contains methods that are overridable.
-//
-// As of right now, interface overriding and subclassing is not supported
-// yet, so the interface currently has no use.
 type CompletionContextOverrider interface {
 	Cancelled()
 }
@@ -37,6 +40,30 @@ type CompletionContext struct {
 
 var ()
 
+func classInitCompletionContexter(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+	goval := gbox.Get(uintptr(data))
+	pclass := (*C.GtkSourceCompletionContextClass)(unsafe.Pointer(gclassPtr))
+	// gclass := (*C.GTypeClass)(unsafe.Pointer(gclassPtr))
+	// pclass := (*C.GtkSourceCompletionContextClass)(unsafe.Pointer(C.g_type_class_peek_parent(gclass)))
+
+	if _, ok := goval.(interface{ Cancelled() }); ok {
+		pclass.cancelled = (*[0]byte)(C._gotk4_gtksource3_CompletionContextClass_cancelled)
+	}
+}
+
+//export _gotk4_gtksource3_CompletionContextClass_cancelled
+func _gotk4_gtksource3_CompletionContextClass_cancelled(arg0 *C.GtkSourceCompletionContext) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(interface{ Cancelled() })
+
+	iface.Cancelled()
+}
+
 func wrapCompletionContext(obj *externglib.Object) *CompletionContext {
 	return &CompletionContext{
 		InitiallyUnowned: externglib.InitiallyUnowned{
@@ -45,15 +72,31 @@ func wrapCompletionContext(obj *externglib.Object) *CompletionContext {
 	}
 }
 
-func marshalCompletionContexter(p uintptr) (interface{}, error) {
+func marshalCompletionContext(p uintptr) (interface{}, error) {
 	return wrapCompletionContext(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
-// ConnectCancelled: emitted when the current population of proposals has been
+//export _gotk4_gtksource3_CompletionContext_ConnectCancelled
+func _gotk4_gtksource3_CompletionContext_ConnectCancelled(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
+}
+
+// ConnectCancelled is emitted when the current population of proposals has been
 // cancelled. Providers adding proposals asynchronously should connect to this
 // signal to know when to cancel running proposal queries.
 func (context *CompletionContext) ConnectCancelled(f func()) externglib.SignalHandle {
-	return context.Connect("cancelled", f)
+	return externglib.ConnectGeneratedClosure(context, "cancelled", false, unsafe.Pointer(C._gotk4_gtksource3_CompletionContext_ConnectCancelled), f)
 }
 
 // AddProposals providers can use this function to add proposals to the
@@ -75,13 +118,13 @@ func (context *CompletionContext) AddProposals(provider CompletionProviderer, pr
 	var _arg2 *C.GList                       // out
 	var _arg3 C.gboolean                     // out
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(context.Native()))
-	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(provider.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
+	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(provider).Native()))
 	if proposals != nil {
 		for i := len(proposals) - 1; i >= 0; i-- {
 			src := proposals[i]
 			var dst *C.GtkSourceCompletionProposal // out
-			dst = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(src.Native()))
+			dst = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(src).Native()))
 			_arg2 = C.g_list_prepend(_arg2, C.gpointer(unsafe.Pointer(dst)))
 		}
 		defer C.g_list_free(_arg2)
@@ -107,7 +150,7 @@ func (context *CompletionContext) Activation() CompletionActivation {
 	var _arg0 *C.GtkSourceCompletionContext   // out
 	var _cret C.GtkSourceCompletionActivation // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(context.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
 
 	_cret = C.gtk_source_completion_context_get_activation(_arg0)
 	runtime.KeepAlive(context)
@@ -132,7 +175,7 @@ func (context *CompletionContext) Iter() (*gtk.TextIter, bool) {
 	var _arg1 C.GtkTextIter                 // in
 	var _cret C.gboolean                    // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(context.Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
 
 	_cret = C.gtk_source_completion_context_get_iter(_arg0, &_arg1)
 	runtime.KeepAlive(context)

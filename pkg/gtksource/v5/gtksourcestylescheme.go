@@ -14,10 +14,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcestylescheme.go.
+var GTypeStyleScheme = externglib.Type(C.gtk_source_style_scheme_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_style_scheme_get_type()), F: marshalStyleSchemer},
+		{T: GTypeStyleScheme, F: marshalStyleScheme},
 	})
+}
+
+// StyleSchemeOverrider contains methods that are overridable.
+type StyleSchemeOverrider interface {
 }
 
 type StyleScheme struct {
@@ -29,13 +36,21 @@ var (
 	_ externglib.Objector = (*StyleScheme)(nil)
 )
 
+func classInitStyleSchemer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapStyleScheme(obj *externglib.Object) *StyleScheme {
 	return &StyleScheme{
 		Object: obj,
 	}
 }
 
-func marshalStyleSchemer(p uintptr) (interface{}, error) {
+func marshalStyleScheme(p uintptr) (interface{}, error) {
 	return wrapStyleScheme(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -48,7 +63,7 @@ func (scheme *StyleScheme) Authors() []string {
 	var _arg0 *C.GtkSourceStyleScheme // out
 	var _cret **C.gchar               // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(scheme.Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
 
 	_cret = C.gtk_source_style_scheme_get_authors(_arg0)
 	runtime.KeepAlive(scheme)
@@ -82,7 +97,7 @@ func (scheme *StyleScheme) Description() string {
 	var _arg0 *C.GtkSourceStyleScheme // out
 	var _cret *C.gchar                // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(scheme.Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
 
 	_cret = C.gtk_source_style_scheme_get_description(_arg0)
 	runtime.KeepAlive(scheme)
@@ -105,7 +120,7 @@ func (scheme *StyleScheme) Filename() string {
 	var _arg0 *C.GtkSourceStyleScheme // out
 	var _cret *C.gchar                // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(scheme.Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
 
 	_cret = C.gtk_source_style_scheme_get_filename(_arg0)
 	runtime.KeepAlive(scheme)
@@ -127,7 +142,7 @@ func (scheme *StyleScheme) ID() string {
 	var _arg0 *C.GtkSourceStyleScheme // out
 	var _cret *C.gchar                // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(scheme.Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
 
 	_cret = C.gtk_source_style_scheme_get_id(_arg0)
 	runtime.KeepAlive(scheme)
@@ -147,7 +162,7 @@ func (scheme *StyleScheme) Name() string {
 	var _arg0 *C.GtkSourceStyleScheme // out
 	var _cret *C.gchar                // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(scheme.Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
 
 	_cret = C.gtk_source_style_scheme_get_name(_arg0)
 	runtime.KeepAlive(scheme)
@@ -174,7 +189,7 @@ func (scheme *StyleScheme) Style(styleId string) *Style {
 	var _arg1 *C.gchar                // out
 	var _cret *C.GtkSourceStyle       // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(scheme.Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(styleId)))
 	defer C.free(unsafe.Pointer(_arg1))
 

@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"unsafe"
 
+	"github.com/diamondburned/gotk4/pkg/core/gbox"
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
 	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
@@ -14,18 +15,26 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern void _gotk4_gtksource3_BufferClass_bracket_matched(GtkSourceBuffer*, GtkTextIter*, GtkSourceBracketMatchType);
+// extern void _gotk4_gtksource3_BufferClass_redo(GtkSourceBuffer*);
+// extern void _gotk4_gtksource3_BufferClass_undo(GtkSourceBuffer*);
+// extern void _gotk4_gtksource3_Buffer_ConnectBracketMatched(gpointer, GtkTextIter*, GtkSourceBracketMatchType, guintptr);
+// extern void _gotk4_gtksource3_Buffer_ConnectHighlightUpdated(gpointer, GtkTextIter*, GtkTextIter*, guintptr);
+// extern void _gotk4_gtksource3_Buffer_ConnectRedo(gpointer, guintptr);
+// extern void _gotk4_gtksource3_Buffer_ConnectSourceMarkUpdated(gpointer, GtkTextMark*, guintptr);
+// extern void _gotk4_gtksource3_Buffer_ConnectUndo(gpointer, guintptr);
 import "C"
+
+// glib.Type values for gtksourcebuffer.go.
+var GTypeBuffer = externglib.Type(C.gtk_source_buffer_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_buffer_get_type()), F: marshalBufferer},
+		{T: GTypeBuffer, F: marshalBuffer},
 	})
 }
 
 // BufferOverrider contains methods that are overridable.
-//
-// As of right now, interface overriding and subclassing is not supported
-// yet, so the interface currently has no use.
 type BufferOverrider interface {
 	// The function takes the following parameters:
 	//
@@ -55,6 +64,64 @@ var (
 	_ externglib.Objector = (*Buffer)(nil)
 )
 
+func classInitBufferer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+	goval := gbox.Get(uintptr(data))
+	pclass := (*C.GtkSourceBufferClass)(unsafe.Pointer(gclassPtr))
+	// gclass := (*C.GTypeClass)(unsafe.Pointer(gclassPtr))
+	// pclass := (*C.GtkSourceBufferClass)(unsafe.Pointer(C.g_type_class_peek_parent(gclass)))
+
+	if _, ok := goval.(interface {
+		BracketMatched(iter *gtk.TextIter, state BracketMatchType)
+	}); ok {
+		pclass.bracket_matched = (*[0]byte)(C._gotk4_gtksource3_BufferClass_bracket_matched)
+	}
+
+	if _, ok := goval.(interface{ Redo() }); ok {
+		pclass.redo = (*[0]byte)(C._gotk4_gtksource3_BufferClass_redo)
+	}
+
+	if _, ok := goval.(interface{ Undo() }); ok {
+		pclass.undo = (*[0]byte)(C._gotk4_gtksource3_BufferClass_undo)
+	}
+}
+
+//export _gotk4_gtksource3_BufferClass_bracket_matched
+func _gotk4_gtksource3_BufferClass_bracket_matched(arg0 *C.GtkSourceBuffer, arg1 *C.GtkTextIter, arg2 C.GtkSourceBracketMatchType) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(interface {
+		BracketMatched(iter *gtk.TextIter, state BracketMatchType)
+	})
+
+	var _iter *gtk.TextIter     // out
+	var _state BracketMatchType // out
+
+	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
+	_state = BracketMatchType(arg2)
+
+	iface.BracketMatched(_iter, _state)
+}
+
+//export _gotk4_gtksource3_BufferClass_redo
+func _gotk4_gtksource3_BufferClass_redo(arg0 *C.GtkSourceBuffer) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(interface{ Redo() })
+
+	iface.Redo()
+}
+
+//export _gotk4_gtksource3_BufferClass_undo
+func _gotk4_gtksource3_BufferClass_undo(arg0 *C.GtkSourceBuffer) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(interface{ Undo() })
+
+	iface.Undo()
+}
+
 func wrapBuffer(obj *externglib.Object) *Buffer {
 	return &Buffer{
 		TextBuffer: gtk.TextBuffer{
@@ -63,8 +130,32 @@ func wrapBuffer(obj *externglib.Object) *Buffer {
 	}
 }
 
-func marshalBufferer(p uintptr) (interface{}, error) {
+func marshalBuffer(p uintptr) (interface{}, error) {
 	return wrapBuffer(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+}
+
+//export _gotk4_gtksource3_Buffer_ConnectBracketMatched
+func _gotk4_gtksource3_Buffer_ConnectBracketMatched(arg0 C.gpointer, arg1 *C.GtkTextIter, arg2 C.GtkSourceBracketMatchType, arg3 C.guintptr) {
+	var f func(iter *gtk.TextIter, state BracketMatchType)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg3))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(iter *gtk.TextIter, state BracketMatchType))
+	}
+
+	var _iter *gtk.TextIter     // out
+	var _state BracketMatchType // out
+
+	if arg1 != nil {
+		_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
+	}
+	_state = BracketMatchType(arg2)
+
+	f(_iter, _state)
 }
 
 // ConnectBracketMatched: iter is set to a valid iterator pointing to the
@@ -76,31 +167,110 @@ func marshalBufferer(p uintptr) (interface{}, error) {
 //
 // A use-case for this signal is to show messages in a Statusbar.
 func (buffer *Buffer) ConnectBracketMatched(f func(iter *gtk.TextIter, state BracketMatchType)) externglib.SignalHandle {
-	return buffer.Connect("bracket-matched", f)
+	return externglib.ConnectGeneratedClosure(buffer, "bracket-matched", false, unsafe.Pointer(C._gotk4_gtksource3_Buffer_ConnectBracketMatched), f)
+}
+
+//export _gotk4_gtksource3_Buffer_ConnectHighlightUpdated
+func _gotk4_gtksource3_Buffer_ConnectHighlightUpdated(arg0 C.gpointer, arg1 *C.GtkTextIter, arg2 *C.GtkTextIter, arg3 C.guintptr) {
+	var f func(start, end *gtk.TextIter)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg3))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(start, end *gtk.TextIter))
+	}
+
+	var _start *gtk.TextIter // out
+	var _end *gtk.TextIter   // out
+
+	_start = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
+	_end = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg2)))
+
+	f(_start, _end)
 }
 
 // ConnectHighlightUpdated signal is emitted when the syntax highlighting and
 // [context classes][context-classes] are updated in a certain region of the
 // buffer.
 func (buffer *Buffer) ConnectHighlightUpdated(f func(start, end *gtk.TextIter)) externglib.SignalHandle {
-	return buffer.Connect("highlight-updated", f)
+	return externglib.ConnectGeneratedClosure(buffer, "highlight-updated", false, unsafe.Pointer(C._gotk4_gtksource3_Buffer_ConnectHighlightUpdated), f)
+}
+
+//export _gotk4_gtksource3_Buffer_ConnectRedo
+func _gotk4_gtksource3_Buffer_ConnectRedo(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
 }
 
 // ConnectRedo signal is emitted to redo the last undo operation.
 func (buffer *Buffer) ConnectRedo(f func()) externglib.SignalHandle {
-	return buffer.Connect("redo", f)
+	return externglib.ConnectGeneratedClosure(buffer, "redo", false, unsafe.Pointer(C._gotk4_gtksource3_Buffer_ConnectRedo), f)
+}
+
+//export _gotk4_gtksource3_Buffer_ConnectSourceMarkUpdated
+func _gotk4_gtksource3_Buffer_ConnectSourceMarkUpdated(arg0 C.gpointer, arg1 *C.GtkTextMark, arg2 C.guintptr) {
+	var f func(mark *gtk.TextMark)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(mark *gtk.TextMark))
+	}
+
+	var _mark *gtk.TextMark // out
+
+	{
+		obj := externglib.Take(unsafe.Pointer(arg1))
+		_mark = &gtk.TextMark{
+			Object: obj,
+		}
+	}
+
+	f(_mark)
 }
 
 // ConnectSourceMarkUpdated signal is emitted each time a mark is added to,
 // moved or removed from the buffer.
-func (buffer *Buffer) ConnectSourceMarkUpdated(f func(mark gtk.TextMark)) externglib.SignalHandle {
-	return buffer.Connect("source-mark-updated", f)
+func (buffer *Buffer) ConnectSourceMarkUpdated(f func(mark *gtk.TextMark)) externglib.SignalHandle {
+	return externglib.ConnectGeneratedClosure(buffer, "source-mark-updated", false, unsafe.Pointer(C._gotk4_gtksource3_Buffer_ConnectSourceMarkUpdated), f)
+}
+
+//export _gotk4_gtksource3_Buffer_ConnectUndo
+func _gotk4_gtksource3_Buffer_ConnectUndo(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
 }
 
 // ConnectUndo signal is emitted to undo the last user action which modified the
 // buffer.
 func (buffer *Buffer) ConnectUndo(f func()) externglib.SignalHandle {
-	return buffer.Connect("undo", f)
+	return externglib.ConnectGeneratedClosure(buffer, "undo", false, unsafe.Pointer(C._gotk4_gtksource3_Buffer_ConnectUndo), f)
 }
 
 // NewBuffer creates a new source buffer.
@@ -118,7 +288,7 @@ func NewBuffer(table *gtk.TextTagTable) *Buffer {
 	var _cret *C.GtkSourceBuffer // in
 
 	if table != nil {
-		_arg1 = (*C.GtkTextTagTable)(unsafe.Pointer(table.Native()))
+		_arg1 = (*C.GtkTextTagTable)(unsafe.Pointer(externglib.InternObject(table).Native()))
 	}
 
 	_cret = C.gtk_source_buffer_new(_arg1)
@@ -148,7 +318,7 @@ func NewBufferWithLanguage(language *Language) *Buffer {
 	var _arg1 *C.GtkSourceLanguage // out
 	var _cret *C.GtkSourceBuffer   // in
 
-	_arg1 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+	_arg1 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 
 	_cret = C.gtk_source_buffer_new_with_language(_arg1)
 	runtime.KeepAlive(language)
@@ -179,7 +349,7 @@ func (buffer *Buffer) BackwardIterToSourceMark(iter *gtk.TextIter, category stri
 	var _arg2 *C.gchar           // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	if category != "" {
 		_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
@@ -210,7 +380,7 @@ func (buffer *Buffer) BackwardIterToSourceMark(iter *gtk.TextIter, category stri
 func (buffer *Buffer) BeginNotUndoableAction() {
 	var _arg0 *C.GtkSourceBuffer // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	C.gtk_source_buffer_begin_not_undoable_action(_arg0)
 	runtime.KeepAlive(buffer)
@@ -227,7 +397,7 @@ func (buffer *Buffer) CanRedo() bool {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_can_redo(_arg0)
 	runtime.KeepAlive(buffer)
@@ -251,7 +421,7 @@ func (buffer *Buffer) CanUndo() bool {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_can_undo(_arg0)
 	runtime.KeepAlive(buffer)
@@ -279,7 +449,7 @@ func (buffer *Buffer) ChangeCase(caseType ChangeCaseType, start, end *gtk.TextIt
 	var _arg2 *C.GtkTextIter            // out
 	var _arg3 *C.GtkTextIter            // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = C.GtkSourceChangeCaseType(caseType)
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg3 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
@@ -322,7 +492,7 @@ func (buffer *Buffer) CreateSourceMark(name, category string, where *gtk.TextIte
 	var _arg3 *C.GtkTextIter     // out
 	var _cret *C.GtkSourceMark   // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	if name != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(name)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -350,7 +520,7 @@ func (buffer *Buffer) CreateSourceMark(name, category string, where *gtk.TextIte
 func (buffer *Buffer) EndNotUndoableAction() {
 	var _arg0 *C.GtkSourceBuffer // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	C.gtk_source_buffer_end_not_undoable_action(_arg0)
 	runtime.KeepAlive(buffer)
@@ -373,7 +543,7 @@ func (buffer *Buffer) EnsureHighlight(start, end *gtk.TextIter) {
 	var _arg1 *C.GtkTextIter     // out
 	var _arg2 *C.GtkTextIter     // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 
@@ -402,7 +572,7 @@ func (buffer *Buffer) ForwardIterToSourceMark(iter *gtk.TextIter, category strin
 	var _arg2 *C.gchar           // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	if category != "" {
 		_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
@@ -441,7 +611,7 @@ func (buffer *Buffer) ContextClassesAtIter(iter *gtk.TextIter) []string {
 	var _arg1 *C.GtkTextIter     // out
 	var _cret **C.gchar          // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 
 	_cret = C.gtk_source_buffer_get_context_classes_at_iter(_arg0, _arg1)
@@ -480,7 +650,7 @@ func (buffer *Buffer) HighlightMatchingBrackets() bool {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_highlight_matching_brackets(_arg0)
 	runtime.KeepAlive(buffer)
@@ -505,7 +675,7 @@ func (buffer *Buffer) HighlightSyntax() bool {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_highlight_syntax(_arg0)
 	runtime.KeepAlive(buffer)
@@ -527,7 +697,7 @@ func (buffer *Buffer) ImplicitTrailingNewline() bool {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_implicit_trailing_newline(_arg0)
 	runtime.KeepAlive(buffer)
@@ -553,7 +723,7 @@ func (buffer *Buffer) Language() *Language {
 	var _arg0 *C.GtkSourceBuffer   // out
 	var _cret *C.GtkSourceLanguage // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_language(_arg0)
 	runtime.KeepAlive(buffer)
@@ -578,7 +748,7 @@ func (buffer *Buffer) MaxUndoLevels() int {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _cret C.gint             // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_max_undo_levels(_arg0)
 	runtime.KeepAlive(buffer)
@@ -608,7 +778,7 @@ func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []M
 	var _arg2 *C.gchar           // out
 	var _cret *C.GSList          // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	if category != "" {
 		_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
@@ -651,7 +821,7 @@ func (buffer *Buffer) SourceMarksAtLine(line int, category string) []Mark {
 	var _arg2 *C.gchar           // out
 	var _cret *C.GSList          // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = C.gint(line)
 	if category != "" {
 		_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
@@ -688,7 +858,7 @@ func (buffer *Buffer) StyleScheme() *StyleScheme {
 	var _arg0 *C.GtkSourceBuffer      // out
 	var _cret *C.GtkSourceStyleScheme // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_style_scheme(_arg0)
 	runtime.KeepAlive(buffer)
@@ -714,7 +884,7 @@ func (buffer *Buffer) UndoManager() UndoManagerer {
 	var _arg0 *C.GtkSourceBuffer      // out
 	var _cret *C.GtkSourceUndoManager // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_undo_manager(_arg0)
 	runtime.KeepAlive(buffer)
@@ -764,7 +934,7 @@ func (buffer *Buffer) IterBackwardToContextClassToggle(iter *gtk.TextIter, conte
 	var _arg2 *C.gchar           // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(contextClass)))
 	defer C.free(unsafe.Pointer(_arg2))
@@ -806,7 +976,7 @@ func (buffer *Buffer) IterForwardToContextClassToggle(iter *gtk.TextIter, contex
 	var _arg2 *C.gchar           // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(contextClass)))
 	defer C.free(unsafe.Pointer(_arg2))
@@ -844,7 +1014,7 @@ func (buffer *Buffer) IterHasContextClass(iter *gtk.TextIter, contextClass strin
 	var _arg2 *C.gchar           // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(contextClass)))
 	defer C.free(unsafe.Pointer(_arg2))
@@ -875,7 +1045,7 @@ func (buffer *Buffer) JoinLines(start, end *gtk.TextIter) {
 	var _arg1 *C.GtkTextIter     // out
 	var _arg2 *C.GtkTextIter     // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 
@@ -892,7 +1062,7 @@ func (buffer *Buffer) JoinLines(start, end *gtk.TextIter) {
 func (buffer *Buffer) Redo() {
 	var _arg0 *C.GtkSourceBuffer // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	C.gtk_source_buffer_redo(_arg0)
 	runtime.KeepAlive(buffer)
@@ -913,7 +1083,7 @@ func (buffer *Buffer) RemoveSourceMarks(start, end *gtk.TextIter, category strin
 	var _arg2 *C.GtkTextIter     // out
 	var _arg3 *C.gchar           // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 	if category != "" {
@@ -941,7 +1111,7 @@ func (buffer *Buffer) SetHighlightMatchingBrackets(highlight bool) {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 C.gboolean         // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	if highlight {
 		_arg1 = C.TRUE
 	}
@@ -969,7 +1139,7 @@ func (buffer *Buffer) SetHighlightSyntax(highlight bool) {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 C.gboolean         // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	if highlight {
 		_arg1 = C.TRUE
 	}
@@ -1003,7 +1173,7 @@ func (buffer *Buffer) SetImplicitTrailingNewline(implicitTrailingNewline bool) {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 C.gboolean         // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	if implicitTrailingNewline {
 		_arg1 = C.TRUE
 	}
@@ -1029,9 +1199,9 @@ func (buffer *Buffer) SetLanguage(language *Language) {
 	var _arg0 *C.GtkSourceBuffer   // out
 	var _arg1 *C.GtkSourceLanguage // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	if language != nil {
-		_arg1 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+		_arg1 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 	}
 
 	C.gtk_source_buffer_set_language(_arg0, _arg1)
@@ -1055,7 +1225,7 @@ func (buffer *Buffer) SetMaxUndoLevels(maxUndoLevels int) {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 C.gint             // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = C.gint(maxUndoLevels)
 
 	C.gtk_source_buffer_set_max_undo_levels(_arg0, _arg1)
@@ -1086,9 +1256,9 @@ func (buffer *Buffer) SetStyleScheme(scheme *StyleScheme) {
 	var _arg0 *C.GtkSourceBuffer      // out
 	var _arg1 *C.GtkSourceStyleScheme // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	if scheme != nil {
-		_arg1 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(scheme.Native()))
+		_arg1 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
 	}
 
 	C.gtk_source_buffer_set_style_scheme(_arg0, _arg1)
@@ -1107,9 +1277,9 @@ func (buffer *Buffer) SetUndoManager(manager UndoManagerer) {
 	var _arg0 *C.GtkSourceBuffer      // out
 	var _arg1 *C.GtkSourceUndoManager // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	if manager != nil {
-		_arg1 = (*C.GtkSourceUndoManager)(unsafe.Pointer(manager.Native()))
+		_arg1 = (*C.GtkSourceUndoManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 	}
 
 	C.gtk_source_buffer_set_undo_manager(_arg0, _arg1)
@@ -1133,7 +1303,7 @@ func (buffer *Buffer) SortLines(start, end *gtk.TextIter, flags SortFlags, colum
 	var _arg3 C.GtkSourceSortFlags // out
 	var _arg4 C.gint               // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 	_arg3 = C.GtkSourceSortFlags(flags)
@@ -1155,7 +1325,7 @@ func (buffer *Buffer) SortLines(start, end *gtk.TextIter, flags SortFlags, colum
 func (buffer *Buffer) Undo() {
 	var _arg0 *C.GtkSourceBuffer // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	C.gtk_source_buffer_undo(_arg0)
 	runtime.KeepAlive(buffer)

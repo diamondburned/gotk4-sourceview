@@ -15,10 +15,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcestyleschemechooserbutton.go.
+var GTypeStyleSchemeChooserButton = externglib.Type(C.gtk_source_style_scheme_chooser_button_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_style_scheme_chooser_button_get_type()), F: marshalStyleSchemeChooserButtonner},
+		{T: GTypeStyleSchemeChooserButton, F: marshalStyleSchemeChooserButton},
 	})
+}
+
+// StyleSchemeChooserButtonOverrider contains methods that are overridable.
+type StyleSchemeChooserButtonOverrider interface {
 }
 
 type StyleSchemeChooserButton struct {
@@ -33,6 +40,14 @@ var (
 	_ externglib.Objector = (*StyleSchemeChooserButton)(nil)
 	_ gtk.Binner          = (*StyleSchemeChooserButton)(nil)
 )
+
+func classInitStyleSchemeChooserButtonner(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
 
 func wrapStyleSchemeChooserButton(obj *externglib.Object) *StyleSchemeChooserButton {
 	return &StyleSchemeChooserButton{
@@ -79,7 +94,7 @@ func wrapStyleSchemeChooserButton(obj *externglib.Object) *StyleSchemeChooserBut
 	}
 }
 
-func marshalStyleSchemeChooserButtonner(p uintptr) (interface{}, error) {
+func marshalStyleSchemeChooserButton(p uintptr) (interface{}, error) {
 	return wrapStyleSchemeChooserButton(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 

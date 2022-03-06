@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"unsafe"
 
+	"github.com/diamondburned/gotk4/pkg/core/gbox"
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
 	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
@@ -15,18 +16,32 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern void _gotk4_gtksource5_ViewClass_line_mark_activated(GtkSourceView*, GtkTextIter*, guint, GdkModifierType, gint);
+// extern void _gotk4_gtksource5_ViewClass_move_lines(GtkSourceView*, gboolean);
+// extern void _gotk4_gtksource5_ViewClass_move_words(GtkSourceView*, gint);
+// extern void _gotk4_gtksource5_ViewClass_push_snippet(GtkSourceView*, GtkSourceSnippet*, GtkTextIter*);
+// extern void _gotk4_gtksource5_ViewClass_show_completion(GtkSourceView*);
+// extern void _gotk4_gtksource5_View_ConnectChangeCase(gpointer, GtkSourceChangeCaseType, guintptr);
+// extern void _gotk4_gtksource5_View_ConnectChangeNumber(gpointer, gint, guintptr);
+// extern void _gotk4_gtksource5_View_ConnectJoinLines(gpointer, guintptr);
+// extern void _gotk4_gtksource5_View_ConnectLineMarkActivated(gpointer, GtkTextIter*, guint, GdkModifierType, gint, guintptr);
+// extern void _gotk4_gtksource5_View_ConnectMoveLines(gpointer, gboolean, guintptr);
+// extern void _gotk4_gtksource5_View_ConnectMoveToMatchingBracket(gpointer, gboolean, guintptr);
+// extern void _gotk4_gtksource5_View_ConnectMoveWords(gpointer, gint, guintptr);
+// extern void _gotk4_gtksource5_View_ConnectShowCompletion(gpointer, guintptr);
+// extern void _gotk4_gtksource5_View_ConnectSmartHomeEnd(gpointer, GtkTextIter*, gint, guintptr);
 import "C"
+
+// glib.Type values for gtksourceview.go.
+var GTypeView = externglib.Type(C.gtk_source_view_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_view_get_type()), F: marshalViewer},
+		{T: GTypeView, F: marshalView},
 	})
 }
 
 // ViewOverrider contains methods that are overridable.
-//
-// As of right now, interface overriding and subclassing is not supported
-// yet, so the interface currently has no use.
 type ViewOverrider interface {
 	// The function takes the following parameters:
 	//
@@ -67,6 +82,114 @@ var (
 	_ externglib.Objector = (*View)(nil)
 )
 
+func classInitViewer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+	goval := gbox.Get(uintptr(data))
+	pclass := (*C.GtkSourceViewClass)(unsafe.Pointer(gclassPtr))
+	// gclass := (*C.GTypeClass)(unsafe.Pointer(gclassPtr))
+	// pclass := (*C.GtkSourceViewClass)(unsafe.Pointer(C.g_type_class_peek_parent(gclass)))
+
+	if _, ok := goval.(interface {
+		LineMarkActivated(iter *gtk.TextIter, button uint, state gdk.ModifierType, nPresses int)
+	}); ok {
+		pclass.line_mark_activated = (*[0]byte)(C._gotk4_gtksource5_ViewClass_line_mark_activated)
+	}
+
+	if _, ok := goval.(interface{ MoveLines(down bool) }); ok {
+		pclass.move_lines = (*[0]byte)(C._gotk4_gtksource5_ViewClass_move_lines)
+	}
+
+	if _, ok := goval.(interface{ MoveWords(step int) }); ok {
+		pclass.move_words = (*[0]byte)(C._gotk4_gtksource5_ViewClass_move_words)
+	}
+
+	if _, ok := goval.(interface {
+		PushSnippet(snippet *Snippet, location *gtk.TextIter)
+	}); ok {
+		pclass.push_snippet = (*[0]byte)(C._gotk4_gtksource5_ViewClass_push_snippet)
+	}
+
+	if _, ok := goval.(interface{ ShowCompletion() }); ok {
+		pclass.show_completion = (*[0]byte)(C._gotk4_gtksource5_ViewClass_show_completion)
+	}
+}
+
+//export _gotk4_gtksource5_ViewClass_line_mark_activated
+func _gotk4_gtksource5_ViewClass_line_mark_activated(arg0 *C.GtkSourceView, arg1 *C.GtkTextIter, arg2 C.guint, arg3 C.GdkModifierType, arg4 C.gint) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(interface {
+		LineMarkActivated(iter *gtk.TextIter, button uint, state gdk.ModifierType, nPresses int)
+	})
+
+	var _iter *gtk.TextIter     // out
+	var _button uint            // out
+	var _state gdk.ModifierType // out
+	var _nPresses int           // out
+
+	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
+	_button = uint(arg2)
+	_state = gdk.ModifierType(arg3)
+	_nPresses = int(arg4)
+
+	iface.LineMarkActivated(_iter, _button, _state, _nPresses)
+}
+
+//export _gotk4_gtksource5_ViewClass_move_lines
+func _gotk4_gtksource5_ViewClass_move_lines(arg0 *C.GtkSourceView, arg1 C.gboolean) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(interface{ MoveLines(down bool) })
+
+	var _down bool // out
+
+	if arg1 != 0 {
+		_down = true
+	}
+
+	iface.MoveLines(_down)
+}
+
+//export _gotk4_gtksource5_ViewClass_move_words
+func _gotk4_gtksource5_ViewClass_move_words(arg0 *C.GtkSourceView, arg1 C.gint) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(interface{ MoveWords(step int) })
+
+	var _step int // out
+
+	_step = int(arg1)
+
+	iface.MoveWords(_step)
+}
+
+//export _gotk4_gtksource5_ViewClass_push_snippet
+func _gotk4_gtksource5_ViewClass_push_snippet(arg0 *C.GtkSourceView, arg1 *C.GtkSourceSnippet, arg2 *C.GtkTextIter) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(interface {
+		PushSnippet(snippet *Snippet, location *gtk.TextIter)
+	})
+
+	var _snippet *Snippet       // out
+	var _location *gtk.TextIter // out
+
+	_snippet = wrapSnippet(externglib.Take(unsafe.Pointer(arg1)))
+	if arg2 != nil {
+		_location = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg2)))
+	}
+
+	iface.PushSnippet(_snippet, _location)
+}
+
+//export _gotk4_gtksource5_ViewClass_show_completion
+func _gotk4_gtksource5_ViewClass_show_completion(arg0 *C.GtkSourceView) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(interface{ ShowCompletion() })
+
+	iface.ShowCompletion()
+}
+
 func wrapView(obj *externglib.Object) *View {
 	return &View{
 		TextView: gtk.TextView{
@@ -93,32 +216,136 @@ func wrapView(obj *externglib.Object) *View {
 	}
 }
 
-func marshalViewer(p uintptr) (interface{}, error) {
+func marshalView(p uintptr) (interface{}, error) {
 	return wrapView(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+}
+
+//export _gotk4_gtksource5_View_ConnectChangeCase
+func _gotk4_gtksource5_View_ConnectChangeCase(arg0 C.gpointer, arg1 C.GtkSourceChangeCaseType, arg2 C.guintptr) {
+	var f func(caseType ChangeCaseType)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(caseType ChangeCaseType))
+	}
+
+	var _caseType ChangeCaseType // out
+
+	_caseType = ChangeCaseType(arg1)
+
+	f(_caseType)
 }
 
 // ConnectChangeCase: keybinding signal to change case of the text at the
 // current cursor position.
 func (view *View) ConnectChangeCase(f func(caseType ChangeCaseType)) externglib.SignalHandle {
-	return view.Connect("change-case", f)
+	return externglib.ConnectGeneratedClosure(view, "change-case", false, unsafe.Pointer(C._gotk4_gtksource5_View_ConnectChangeCase), f)
+}
+
+//export _gotk4_gtksource5_View_ConnectChangeNumber
+func _gotk4_gtksource5_View_ConnectChangeNumber(arg0 C.gpointer, arg1 C.gint, arg2 C.guintptr) {
+	var f func(count int)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(count int))
+	}
+
+	var _count int // out
+
+	_count = int(arg1)
+
+	f(_count)
 }
 
 // ConnectChangeNumber: keybinding signal to edit a number at the current cursor
 // position.
 func (view *View) ConnectChangeNumber(f func(count int)) externglib.SignalHandle {
-	return view.Connect("change-number", f)
+	return externglib.ConnectGeneratedClosure(view, "change-number", false, unsafe.Pointer(C._gotk4_gtksource5_View_ConnectChangeNumber), f)
+}
+
+//export _gotk4_gtksource5_View_ConnectJoinLines
+func _gotk4_gtksource5_View_ConnectJoinLines(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
 }
 
 // ConnectJoinLines: keybinding signal to join the lines currently selected.
 func (view *View) ConnectJoinLines(f func()) externglib.SignalHandle {
-	return view.Connect("join-lines", f)
+	return externglib.ConnectGeneratedClosure(view, "join-lines", false, unsafe.Pointer(C._gotk4_gtksource5_View_ConnectJoinLines), f)
 }
 
-// ConnectLineMarkActivated: emitted when a line mark has been activated (for
+//export _gotk4_gtksource5_View_ConnectLineMarkActivated
+func _gotk4_gtksource5_View_ConnectLineMarkActivated(arg0 C.gpointer, arg1 *C.GtkTextIter, arg2 C.guint, arg3 C.GdkModifierType, arg4 C.gint, arg5 C.guintptr) {
+	var f func(iter *gtk.TextIter, button uint, state gdk.ModifierType, nPresses int)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg5))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(iter *gtk.TextIter, button uint, state gdk.ModifierType, nPresses int))
+	}
+
+	var _iter *gtk.TextIter     // out
+	var _button uint            // out
+	var _state gdk.ModifierType // out
+	var _nPresses int           // out
+
+	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
+	_button = uint(arg2)
+	_state = gdk.ModifierType(arg3)
+	_nPresses = int(arg4)
+
+	f(_iter, _button, _state, _nPresses)
+}
+
+// ConnectLineMarkActivated is emitted when a line mark has been activated (for
 // instance when there was a button press in the line marks gutter). You can use
 // iter to determine on which line the activation took place.
 func (view *View) ConnectLineMarkActivated(f func(iter *gtk.TextIter, button uint, state gdk.ModifierType, nPresses int)) externglib.SignalHandle {
-	return view.Connect("line-mark-activated", f)
+	return externglib.ConnectGeneratedClosure(view, "line-mark-activated", false, unsafe.Pointer(C._gotk4_gtksource5_View_ConnectLineMarkActivated), f)
+}
+
+//export _gotk4_gtksource5_View_ConnectMoveLines
+func _gotk4_gtksource5_View_ConnectMoveLines(arg0 C.gpointer, arg1 C.gboolean, arg2 C.guintptr) {
+	var f func(down bool)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(down bool))
+	}
+
+	var _down bool // out
+
+	if arg1 != 0 {
+		_down = true
+	}
+
+	f(_down)
 }
 
 // ConnectMoveLines signal is a keybinding which gets emitted when the user
@@ -126,20 +353,78 @@ func (view *View) ConnectLineMarkActivated(f func(iter *gtk.TextIter, button uin
 // moves the currently selected lines, or the current line up or down by one
 // line.
 func (view *View) ConnectMoveLines(f func(down bool)) externglib.SignalHandle {
-	return view.Connect("move-lines", f)
+	return externglib.ConnectGeneratedClosure(view, "move-lines", false, unsafe.Pointer(C._gotk4_gtksource5_View_ConnectMoveLines), f)
+}
+
+//export _gotk4_gtksource5_View_ConnectMoveToMatchingBracket
+func _gotk4_gtksource5_View_ConnectMoveToMatchingBracket(arg0 C.gpointer, arg1 C.gboolean, arg2 C.guintptr) {
+	var f func(extendSelection bool)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(extendSelection bool))
+	}
+
+	var _extendSelection bool // out
+
+	if arg1 != 0 {
+		_extendSelection = true
+	}
+
+	f(_extendSelection)
 }
 
 // ConnectMoveToMatchingBracket: keybinding signal to move the cursor to the
 // matching bracket.
 func (view *View) ConnectMoveToMatchingBracket(f func(extendSelection bool)) externglib.SignalHandle {
-	return view.Connect("move-to-matching-bracket", f)
+	return externglib.ConnectGeneratedClosure(view, "move-to-matching-bracket", false, unsafe.Pointer(C._gotk4_gtksource5_View_ConnectMoveToMatchingBracket), f)
+}
+
+//export _gotk4_gtksource5_View_ConnectMoveWords
+func _gotk4_gtksource5_View_ConnectMoveWords(arg0 C.gpointer, arg1 C.gint, arg2 C.guintptr) {
+	var f func(count int)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(count int))
+	}
+
+	var _count int // out
+
+	_count = int(arg1)
+
+	f(_count)
 }
 
 // ConnectMoveWords signal is a keybinding which gets emitted when the user
 // initiates moving a word. The default binding key is Alt+Left/Right Arrow and
 // moves the current selection, or the current word by one word.
 func (view *View) ConnectMoveWords(f func(count int)) externglib.SignalHandle {
-	return view.Connect("move-words", f)
+	return externglib.ConnectGeneratedClosure(view, "move-words", false, unsafe.Pointer(C._gotk4_gtksource5_View_ConnectMoveWords), f)
+}
+
+//export _gotk4_gtksource5_View_ConnectShowCompletion
+func _gotk4_gtksource5_View_ConnectShowCompletion(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
 }
 
 // ConnectShowCompletion signal is a key binding signal which gets emitted when
@@ -153,15 +438,37 @@ func (view *View) ConnectMoveWords(f func(count int)) externglib.SignalHandle {
 // g_signal_emit_by_name() if they need to activate the completion by another
 // means, for example with another key binding or a menu entry.
 func (view *View) ConnectShowCompletion(f func()) externglib.SignalHandle {
-	return view.Connect("show-completion", f)
+	return externglib.ConnectGeneratedClosure(view, "show-completion", false, unsafe.Pointer(C._gotk4_gtksource5_View_ConnectShowCompletion), f)
 }
 
-// ConnectSmartHomeEnd: emitted when a the cursor was moved according to the
+//export _gotk4_gtksource5_View_ConnectSmartHomeEnd
+func _gotk4_gtksource5_View_ConnectSmartHomeEnd(arg0 C.gpointer, arg1 *C.GtkTextIter, arg2 C.gint, arg3 C.guintptr) {
+	var f func(iter *gtk.TextIter, count int)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg3))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(iter *gtk.TextIter, count int))
+	}
+
+	var _iter *gtk.TextIter // out
+	var _count int          // out
+
+	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
+	_count = int(arg2)
+
+	f(_iter, _count)
+}
+
+// ConnectSmartHomeEnd is emitted when a the cursor was moved according to the
 // smart home end setting. The signal is emitted after the cursor is moved, but
 // during the GtkTextView::move-cursor action. This can be used to find out
 // whether the cursor was moved by a normal home/end or by a smart home/end.
 func (view *View) ConnectSmartHomeEnd(f func(iter *gtk.TextIter, count int)) externglib.SignalHandle {
-	return view.Connect("smart-home-end", f)
+	return externglib.ConnectGeneratedClosure(view, "smart-home-end", false, unsafe.Pointer(C._gotk4_gtksource5_View_ConnectSmartHomeEnd), f)
 }
 
 // NewView creates a new SourceView.
@@ -203,7 +510,7 @@ func NewViewWithBuffer(buffer *Buffer) *View {
 	var _arg1 *C.GtkSourceBuffer // out
 	var _cret *C.GtkWidget       // in
 
-	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_view_new_with_buffer(_arg1)
 	runtime.KeepAlive(buffer)
@@ -225,7 +532,7 @@ func (view *View) AutoIndent() bool {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_auto_indent(_arg0)
 	runtime.KeepAlive(view)
@@ -250,7 +557,7 @@ func (view *View) BackgroundPattern() BackgroundPatternType {
 	var _arg0 *C.GtkSourceView                 // out
 	var _cret C.GtkSourceBackgroundPatternType // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_background_pattern(_arg0)
 	runtime.KeepAlive(view)
@@ -274,7 +581,7 @@ func (view *View) Completion() *Completion {
 	var _arg0 *C.GtkSourceView       // out
 	var _cret *C.GtkSourceCompletion // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_completion(_arg0)
 	runtime.KeepAlive(view)
@@ -299,7 +606,7 @@ func (view *View) EnableSnippets() bool {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_enable_snippets(_arg0)
 	runtime.KeepAlive(view)
@@ -331,7 +638,7 @@ func (view *View) Gutter(windowType gtk.TextWindowType) *Gutter {
 	var _arg1 C.GtkTextWindowType // out
 	var _cret *C.GtkSourceGutter  // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg1 = C.GtkTextWindowType(windowType)
 
 	_cret = C.gtk_source_view_get_gutter(_arg0, _arg1)
@@ -355,7 +662,7 @@ func (view *View) HighlightCurrentLine() bool {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_highlight_current_line(_arg0)
 	runtime.KeepAlive(view)
@@ -381,7 +688,7 @@ func (view *View) Hover() *Hover {
 	var _arg0 *C.GtkSourceView  // out
 	var _cret *C.GtkSourceHover // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_hover(_arg0)
 	runtime.KeepAlive(view)
@@ -404,7 +711,7 @@ func (view *View) IndentOnTab() bool {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_indent_on_tab(_arg0)
 	runtime.KeepAlive(view)
@@ -429,7 +736,7 @@ func (view *View) IndentWidth() int {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.gint           // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_indent_width(_arg0)
 	runtime.KeepAlive(view)
@@ -451,7 +758,7 @@ func (view *View) Indenter() Indenterer {
 	var _arg0 *C.GtkSourceView     // out
 	var _cret *C.GtkSourceIndenter // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_indenter(_arg0)
 	runtime.KeepAlive(view)
@@ -489,7 +796,7 @@ func (view *View) InsertSpacesInsteadOfTabs() bool {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_insert_spaces_instead_of_tabs(_arg0)
 	runtime.KeepAlive(view)
@@ -521,7 +828,7 @@ func (view *View) MarkAttributes(category string, priority *int) *MarkAttributes
 	var _arg2 *C.gint                    // out
 	var _cret *C.GtkSourceMarkAttributes // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = (*C.gint)(unsafe.Pointer(priority))
@@ -548,7 +855,7 @@ func (view *View) RightMarginPosition() uint {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.guint          // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_right_margin_position(_arg0)
 	runtime.KeepAlive(view)
@@ -570,7 +877,7 @@ func (view *View) ShowLineMarks() bool {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_show_line_marks(_arg0)
 	runtime.KeepAlive(view)
@@ -594,7 +901,7 @@ func (view *View) ShowLineNumbers() bool {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_show_line_numbers(_arg0)
 	runtime.KeepAlive(view)
@@ -618,7 +925,7 @@ func (view *View) ShowRightMargin() bool {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_show_right_margin(_arg0)
 	runtime.KeepAlive(view)
@@ -643,7 +950,7 @@ func (view *View) SmartBackspace() bool {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.gboolean       // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_smart_backspace(_arg0)
 	runtime.KeepAlive(view)
@@ -668,7 +975,7 @@ func (view *View) SmartHomeEnd() SmartHomeEndType {
 	var _arg0 *C.GtkSourceView            // out
 	var _cret C.GtkSourceSmartHomeEndType // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_smart_home_end(_arg0)
 	runtime.KeepAlive(view)
@@ -692,7 +999,7 @@ func (view *View) SpaceDrawer() *SpaceDrawer {
 	var _arg0 *C.GtkSourceView        // out
 	var _cret *C.GtkSourceSpaceDrawer // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_space_drawer(_arg0)
 	runtime.KeepAlive(view)
@@ -714,7 +1021,7 @@ func (view *View) TabWidth() uint {
 	var _arg0 *C.GtkSourceView // out
 	var _cret C.guint          // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_view_get_tab_width(_arg0)
 	runtime.KeepAlive(view)
@@ -742,7 +1049,7 @@ func (view *View) VisualColumn(iter *gtk.TextIter) uint {
 	var _arg1 *C.GtkTextIter   // out
 	var _cret C.guint          // in
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 
 	_cret = C.gtk_source_view_get_visual_column(_arg0, _arg1)
@@ -769,7 +1076,7 @@ func (view *View) IndentLines(start, end *gtk.TextIter) {
 	var _arg1 *C.GtkTextIter   // out
 	var _arg2 *C.GtkTextIter   // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 
@@ -795,8 +1102,8 @@ func (view *View) PushSnippet(snippet *Snippet, location *gtk.TextIter) {
 	var _arg1 *C.GtkSourceSnippet // out
 	var _arg2 *C.GtkTextIter      // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
-	_arg1 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
+	_arg1 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 	if location != nil {
 		_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(location)))
 	}
@@ -822,7 +1129,7 @@ func (view *View) SetAutoIndent(enable bool) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.gboolean       // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	if enable {
 		_arg1 = C.TRUE
 	}
@@ -843,7 +1150,7 @@ func (view *View) SetBackgroundPattern(backgroundPattern BackgroundPatternType) 
 	var _arg0 *C.GtkSourceView                 // out
 	var _arg1 C.GtkSourceBackgroundPatternType // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg1 = C.GtkSourceBackgroundPatternType(backgroundPattern)
 
 	C.gtk_source_view_set_background_pattern(_arg0, _arg1)
@@ -865,7 +1172,7 @@ func (view *View) SetEnableSnippets(enableSnippets bool) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.gboolean       // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	if enableSnippets {
 		_arg1 = C.TRUE
 	}
@@ -886,7 +1193,7 @@ func (view *View) SetHighlightCurrentLine(highlight bool) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.gboolean       // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	if highlight {
 		_arg1 = C.TRUE
 	}
@@ -914,7 +1221,7 @@ func (view *View) SetIndentOnTab(enable bool) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.gboolean       // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	if enable {
 		_arg1 = C.TRUE
 	}
@@ -951,7 +1258,7 @@ func (view *View) SetIndentWidth(width int) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.gint           // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg1 = C.gint(width)
 
 	C.gtk_source_view_set_indent_width(_arg0, _arg1)
@@ -972,9 +1279,9 @@ func (view *View) SetIndenter(indenter Indenterer) {
 	var _arg0 *C.GtkSourceView     // out
 	var _arg1 *C.GtkSourceIndenter // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	if indenter != nil {
-		_arg1 = (*C.GtkSourceIndenter)(unsafe.Pointer(indenter.Native()))
+		_arg1 = (*C.GtkSourceIndenter)(unsafe.Pointer(externglib.InternObject(indenter).Native()))
 	}
 
 	C.gtk_source_view_set_indenter(_arg0, _arg1)
@@ -994,7 +1301,7 @@ func (view *View) SetInsertSpacesInsteadOfTabs(enable bool) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.gboolean       // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	if enable {
 		_arg1 = C.TRUE
 	}
@@ -1018,10 +1325,10 @@ func (view *View) SetMarkAttributes(category string, attributes *MarkAttributes,
 	var _arg2 *C.GtkSourceMarkAttributes // out
 	var _arg3 C.gint                     // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
 	defer C.free(unsafe.Pointer(_arg1))
-	_arg2 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
+	_arg2 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
 	_arg3 = C.gint(priority)
 
 	C.gtk_source_view_set_mark_attributes(_arg0, _arg1, _arg2, _arg3)
@@ -1042,7 +1349,7 @@ func (view *View) SetRightMarginPosition(pos uint) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.guint          // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg1 = C.guint(pos)
 
 	C.gtk_source_view_set_right_margin_position(_arg0, _arg1)
@@ -1060,7 +1367,7 @@ func (view *View) SetShowLineMarks(show bool) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.gboolean       // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	if show {
 		_arg1 = C.TRUE
 	}
@@ -1080,7 +1387,7 @@ func (view *View) SetShowLineNumbers(show bool) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.gboolean       // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	if show {
 		_arg1 = C.TRUE
 	}
@@ -1100,7 +1407,7 @@ func (view *View) SetShowRightMargin(show bool) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.gboolean       // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	if show {
 		_arg1 = C.TRUE
 	}
@@ -1121,7 +1428,7 @@ func (view *View) SetSmartBackspace(smartBackspace bool) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.gboolean       // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	if smartBackspace {
 		_arg1 = C.TRUE
 	}
@@ -1142,7 +1449,7 @@ func (view *View) SetSmartHomeEnd(smartHomeEnd SmartHomeEndType) {
 	var _arg0 *C.GtkSourceView            // out
 	var _arg1 C.GtkSourceSmartHomeEndType // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg1 = C.GtkSourceSmartHomeEndType(smartHomeEnd)
 
 	C.gtk_source_view_set_smart_home_end(_arg0, _arg1)
@@ -1162,7 +1469,7 @@ func (view *View) SetTabWidth(width uint) {
 	var _arg0 *C.GtkSourceView // out
 	var _arg1 C.guint          // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg1 = C.guint(width)
 
 	C.gtk_source_view_set_tab_width(_arg0, _arg1)
@@ -1183,7 +1490,7 @@ func (view *View) UnindentLines(start, end *gtk.TextIter) {
 	var _arg1 *C.GtkTextIter   // out
 	var _arg2 *C.GtkTextIter   // out
 
-	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 

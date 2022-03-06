@@ -12,12 +12,20 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern void _gotk4_gtksource5_SnippetContext_ConnectChanged(gpointer, guintptr);
 import "C"
+
+// glib.Type values for gtksourcesnippetcontext.go.
+var GTypeSnippetContext = externglib.Type(C.gtk_source_snippet_context_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_snippet_context_get_type()), F: marshalSnippetContexter},
+		{T: GTypeSnippetContext, F: marshalSnippetContext},
 	})
+}
+
+// SnippetContextOverrider contains methods that are overridable.
+type SnippetContextOverrider interface {
 }
 
 type SnippetContext struct {
@@ -29,21 +37,45 @@ var (
 	_ externglib.Objector = (*SnippetContext)(nil)
 )
 
+func classInitSnippetContexter(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapSnippetContext(obj *externglib.Object) *SnippetContext {
 	return &SnippetContext{
 		Object: obj,
 	}
 }
 
-func marshalSnippetContexter(p uintptr) (interface{}, error) {
+func marshalSnippetContext(p uintptr) (interface{}, error) {
 	return wrapSnippetContext(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+}
+
+//export _gotk4_gtksource5_SnippetContext_ConnectChanged
+func _gotk4_gtksource5_SnippetContext_ConnectChanged(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
 }
 
 // ConnectChanged: "changed" signal is emitted when a change has been discovered
 // in one of the chunks of the snippet which has caused a variable or other
 // dynamic data within the context to have changed.
 func (self *SnippetContext) ConnectChanged(f func()) externglib.SignalHandle {
-	return self.Connect("changed", f)
+	return externglib.ConnectGeneratedClosure(self, "changed", false, unsafe.Pointer(C._gotk4_gtksource5_SnippetContext_ConnectChanged), f)
 }
 
 // NewSnippetContext creates a new SourceSnippetContext.
@@ -71,7 +103,7 @@ func NewSnippetContext() *SnippetContext {
 func (self *SnippetContext) ClearVariables() {
 	var _arg0 *C.GtkSourceSnippetContext // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	C.gtk_source_snippet_context_clear_variables(_arg0)
 	runtime.KeepAlive(self)
@@ -86,7 +118,7 @@ func (self *SnippetContext) Expand(input string) string {
 	var _arg1 *C.gchar                   // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(input)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -117,7 +149,7 @@ func (self *SnippetContext) Variable(key string) string {
 	var _arg1 *C.gchar                   // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(key)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -150,7 +182,7 @@ func (self *SnippetContext) SetConstant(key, value string) {
 	var _arg1 *C.gchar                   // out
 	var _arg2 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(key)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(value)))
@@ -168,7 +200,7 @@ func (self *SnippetContext) SetLinePrefix(linePrefix string) {
 	var _arg0 *C.GtkSourceSnippetContext // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(linePrefix)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -183,7 +215,7 @@ func (self *SnippetContext) SetTabWidth(tabWidth int) {
 	var _arg0 *C.GtkSourceSnippetContext // out
 	var _arg1 C.gint                     // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = C.gint(tabWidth)
 
 	C.gtk_source_snippet_context_set_tab_width(_arg0, _arg1)
@@ -197,7 +229,7 @@ func (self *SnippetContext) SetUseSpaces(useSpaces bool) {
 	var _arg0 *C.GtkSourceSnippetContext // out
 	var _arg1 C.gboolean                 // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	if useSpaces {
 		_arg1 = C.TRUE
 	}
@@ -221,7 +253,7 @@ func (self *SnippetContext) SetVariable(key, value string) {
 	var _arg1 *C.gchar                   // out
 	var _arg2 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(key)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(value)))

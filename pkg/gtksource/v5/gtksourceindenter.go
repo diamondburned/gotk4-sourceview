@@ -15,18 +15,19 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern gboolean _gotk4_gtksource5_IndenterInterface_is_trigger(GtkSourceIndenter*, GtkSourceView*, GtkTextIter*, GdkModifierType, guint);
 import "C"
+
+// glib.Type values for gtksourceindenter.go.
+var GTypeIndenter = externglib.Type(C.gtk_source_indenter_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_indenter_get_type()), F: marshalIndenterer},
+		{T: GTypeIndenter, F: marshalIndenter},
 	})
 }
 
 // IndenterOverrider contains methods that are overridable.
-//
-// As of right now, interface overriding and subclassing is not supported
-// yet, so the interface currently has no use.
 type IndenterOverrider interface {
 	// IsTrigger: this function is used to determine if a key pressed should
 	// cause the indenter to automatically indent.
@@ -72,13 +73,42 @@ type Indenterer interface {
 
 var _ Indenterer = (*Indenter)(nil)
 
+func ifaceInitIndenterer(gifacePtr, data C.gpointer) {
+	iface := (*C.GtkSourceIndenterInterface)(unsafe.Pointer(gifacePtr))
+	iface.is_trigger = (*[0]byte)(C._gotk4_gtksource5_IndenterInterface_is_trigger)
+}
+
+//export _gotk4_gtksource5_IndenterInterface_is_trigger
+func _gotk4_gtksource5_IndenterInterface_is_trigger(arg0 *C.GtkSourceIndenter, arg1 *C.GtkSourceView, arg2 *C.GtkTextIter, arg3 C.GdkModifierType, arg4 C.guint) (cret C.gboolean) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(IndenterOverrider)
+
+	var _view *View             // out
+	var _location *gtk.TextIter // out
+	var _state gdk.ModifierType // out
+	var _keyval uint            // out
+
+	_view = wrapView(externglib.Take(unsafe.Pointer(arg1)))
+	_location = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg2)))
+	_state = gdk.ModifierType(arg3)
+	_keyval = uint(arg4)
+
+	ok := iface.IsTrigger(_view, _location, _state, _keyval)
+
+	if ok {
+		cret = C.TRUE
+	}
+
+	return cret
+}
+
 func wrapIndenter(obj *externglib.Object) *Indenter {
 	return &Indenter{
 		Object: obj,
 	}
 }
 
-func marshalIndenterer(p uintptr) (interface{}, error) {
+func marshalIndenter(p uintptr) (interface{}, error) {
 	return wrapIndenter(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -111,8 +141,8 @@ func (self *Indenter) IsTrigger(view *View, location *gtk.TextIter, state gdk.Mo
 	var _arg4 C.guint              // out
 	var _cret C.gboolean           // in
 
-	_arg0 = (*C.GtkSourceIndenter)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceIndenter)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(location)))
 	_arg3 = C.GdkModifierType(state)
 	_arg4 = C.guint(keyval)

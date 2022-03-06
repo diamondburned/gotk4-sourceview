@@ -17,12 +17,21 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern gchar* _gotk4_gtksource4_MarkAttributes_ConnectQueryTooltipMarkup(gpointer, GtkSourceMark*, guintptr);
+// extern gchar* _gotk4_gtksource4_MarkAttributes_ConnectQueryTooltipText(gpointer, GtkSourceMark*, guintptr);
 import "C"
+
+// glib.Type values for gtksourcemarkattributes.go.
+var GTypeMarkAttributes = externglib.Type(C.gtk_source_mark_attributes_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_mark_attributes_get_type()), F: marshalMarkAttributesser},
+		{T: GTypeMarkAttributes, F: marshalMarkAttributes},
 	})
+}
+
+// MarkAttributesOverrider contains methods that are overridable.
+type MarkAttributesOverrider interface {
 }
 
 type MarkAttributes struct {
@@ -34,26 +43,82 @@ var (
 	_ externglib.Objector = (*MarkAttributes)(nil)
 )
 
+func classInitMarkAttributesser(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapMarkAttributes(obj *externglib.Object) *MarkAttributes {
 	return &MarkAttributes{
 		Object: obj,
 	}
 }
 
-func marshalMarkAttributesser(p uintptr) (interface{}, error) {
+func marshalMarkAttributes(p uintptr) (interface{}, error) {
 	return wrapMarkAttributes(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+}
+
+//export _gotk4_gtksource4_MarkAttributes_ConnectQueryTooltipMarkup
+func _gotk4_gtksource4_MarkAttributes_ConnectQueryTooltipMarkup(arg0 C.gpointer, arg1 *C.GtkSourceMark, arg2 C.guintptr) (cret *C.gchar) {
+	var f func(mark *Mark) (utf8 string)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(mark *Mark) (utf8 string))
+	}
+
+	var _mark *Mark // out
+
+	_mark = wrapMark(externglib.Take(unsafe.Pointer(arg1)))
+
+	utf8 := f(_mark)
+
+	cret = (*C.gchar)(unsafe.Pointer(C.CString(utf8)))
+
+	return cret
 }
 
 // ConnectQueryTooltipMarkup: code should connect to this signal to provide a
 // tooltip for given mark. The tooltip can contain a markup.
-func (attributes *MarkAttributes) ConnectQueryTooltipMarkup(f func(mark Mark) string) externglib.SignalHandle {
-	return attributes.Connect("query-tooltip-markup", f)
+func (attributes *MarkAttributes) ConnectQueryTooltipMarkup(f func(mark *Mark) (utf8 string)) externglib.SignalHandle {
+	return externglib.ConnectGeneratedClosure(attributes, "query-tooltip-markup", false, unsafe.Pointer(C._gotk4_gtksource4_MarkAttributes_ConnectQueryTooltipMarkup), f)
+}
+
+//export _gotk4_gtksource4_MarkAttributes_ConnectQueryTooltipText
+func _gotk4_gtksource4_MarkAttributes_ConnectQueryTooltipText(arg0 C.gpointer, arg1 *C.GtkSourceMark, arg2 C.guintptr) (cret *C.gchar) {
+	var f func(mark *Mark) (utf8 string)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(mark *Mark) (utf8 string))
+	}
+
+	var _mark *Mark // out
+
+	_mark = wrapMark(externglib.Take(unsafe.Pointer(arg1)))
+
+	utf8 := f(_mark)
+
+	cret = (*C.gchar)(unsafe.Pointer(C.CString(utf8)))
+
+	return cret
 }
 
 // ConnectQueryTooltipText: code should connect to this signal to provide a
 // tooltip for given mark. The tooltip should be just a plain text.
-func (attributes *MarkAttributes) ConnectQueryTooltipText(f func(mark Mark) string) externglib.SignalHandle {
-	return attributes.Connect("query-tooltip-text", f)
+func (attributes *MarkAttributes) ConnectQueryTooltipText(f func(mark *Mark) (utf8 string)) externglib.SignalHandle {
+	return externglib.ConnectGeneratedClosure(attributes, "query-tooltip-text", false, unsafe.Pointer(C._gotk4_gtksource4_MarkAttributes_ConnectQueryTooltipText), f)
 }
 
 // NewMarkAttributes creates a new source mark attributes.
@@ -86,7 +151,7 @@ func (attributes *MarkAttributes) Background() (*gdk.RGBA, bool) {
 	var _arg1 C.GdkRGBA                  // in
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_background(_arg0, &_arg1)
 	runtime.KeepAlive(attributes)
@@ -113,7 +178,7 @@ func (attributes *MarkAttributes) GIcon() gio.Iconner {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _cret *C.GIcon                   // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_gicon(_arg0)
 	runtime.KeepAlive(attributes)
@@ -153,7 +218,7 @@ func (attributes *MarkAttributes) IconName() string {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_icon_name(_arg0)
 	runtime.KeepAlive(attributes)
@@ -177,7 +242,7 @@ func (attributes *MarkAttributes) Pixbuf() *gdkpixbuf.Pixbuf {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _cret *C.GdkPixbuf               // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_pixbuf(_arg0)
 	runtime.KeepAlive(attributes)
@@ -217,8 +282,8 @@ func (attributes *MarkAttributes) TooltipMarkup(mark *Mark) string {
 	var _arg1 *C.GtkSourceMark           // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
-	_arg1 = (*C.GtkSourceMark)(unsafe.Pointer(mark.Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg1 = (*C.GtkSourceMark)(unsafe.Pointer(externglib.InternObject(mark).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_tooltip_markup(_arg0, _arg1)
 	runtime.KeepAlive(attributes)
@@ -249,8 +314,8 @@ func (attributes *MarkAttributes) TooltipText(mark *Mark) string {
 	var _arg1 *C.GtkSourceMark           // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
-	_arg1 = (*C.GtkSourceMark)(unsafe.Pointer(mark.Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg1 = (*C.GtkSourceMark)(unsafe.Pointer(externglib.InternObject(mark).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_tooltip_text(_arg0, _arg1)
 	runtime.KeepAlive(attributes)
@@ -285,8 +350,8 @@ func (attributes *MarkAttributes) RenderIcon(widget gtk.Widgetter, size int) *gd
 	var _arg2 C.gint                     // out
 	var _cret *C.GdkPixbuf               // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
-	_arg1 = (*C.GtkWidget)(unsafe.Pointer(widget.Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg1 = (*C.GtkWidget)(unsafe.Pointer(externglib.InternObject(widget).Native()))
 	_arg2 = C.gint(size)
 
 	_cret = C.gtk_source_mark_attributes_render_icon(_arg0, _arg1, _arg2)
@@ -321,7 +386,7 @@ func (attributes *MarkAttributes) SetBackground(background *gdk.RGBA) {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 *C.GdkRGBA                 // out
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
 	_arg1 = (*C.GdkRGBA)(gextras.StructNative(unsafe.Pointer(background)))
 
 	C.gtk_source_mark_attributes_set_background(_arg0, _arg1)
@@ -339,8 +404,8 @@ func (attributes *MarkAttributes) SetGIcon(gicon gio.Iconner) {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 *C.GIcon                   // out
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
-	_arg1 = (*C.GIcon)(unsafe.Pointer(gicon.Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg1 = (*C.GIcon)(unsafe.Pointer(externglib.InternObject(gicon).Native()))
 
 	C.gtk_source_mark_attributes_set_gicon(_arg0, _arg1)
 	runtime.KeepAlive(attributes)
@@ -357,7 +422,7 @@ func (attributes *MarkAttributes) SetIconName(iconName string) {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(iconName)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -376,8 +441,8 @@ func (attributes *MarkAttributes) SetPixbuf(pixbuf *gdkpixbuf.Pixbuf) {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 *C.GdkPixbuf               // out
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(attributes.Native()))
-	_arg1 = (*C.GdkPixbuf)(unsafe.Pointer(pixbuf.Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg1 = (*C.GdkPixbuf)(unsafe.Pointer(externglib.InternObject(pixbuf).Native()))
 
 	C.gtk_source_mark_attributes_set_pixbuf(_arg0, _arg1)
 	runtime.KeepAlive(attributes)

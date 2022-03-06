@@ -12,18 +12,28 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern gboolean _gotk4_gtksource4_UndoManagerIface_can_redo(GtkSourceUndoManager*);
+// extern gboolean _gotk4_gtksource4_UndoManagerIface_can_undo(GtkSourceUndoManager*);
+// extern void _gotk4_gtksource4_UndoManagerIface_begin_not_undoable_action(GtkSourceUndoManager*);
+// extern void _gotk4_gtksource4_UndoManagerIface_can_redo_changed(GtkSourceUndoManager*);
+// extern void _gotk4_gtksource4_UndoManagerIface_can_undo_changed(GtkSourceUndoManager*);
+// extern void _gotk4_gtksource4_UndoManagerIface_end_not_undoable_action(GtkSourceUndoManager*);
+// extern void _gotk4_gtksource4_UndoManagerIface_redo(GtkSourceUndoManager*);
+// extern void _gotk4_gtksource4_UndoManagerIface_undo(GtkSourceUndoManager*);
+// extern void _gotk4_gtksource4_UndoManager_ConnectCanRedoChanged(gpointer, guintptr);
+// extern void _gotk4_gtksource4_UndoManager_ConnectCanUndoChanged(gpointer, guintptr);
 import "C"
+
+// glib.Type values for gtksourceundomanager.go.
+var GTypeUndoManager = externglib.Type(C.gtk_source_undo_manager_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_undo_manager_get_type()), F: marshalUndoManagerer},
+		{T: GTypeUndoManager, F: marshalUndoManager},
 	})
 }
 
 // UndoManagerOverrider contains methods that are overridable.
-//
-// As of right now, interface overriding and subclassing is not supported
-// yet, so the interface currently has no use.
 type UndoManagerOverrider interface {
 	// BeginNotUndoableAction: begin a not undoable action on the buffer. All
 	// changes between this call and the call to
@@ -89,9 +99,102 @@ type UndoManagerer interface {
 	Redo()
 	// Undo: perform a single undo.
 	Undo()
+
+	// Can-redo-changed is emitted when the ability to redo has changed.
+	ConnectCanRedoChanged(func()) externglib.SignalHandle
+	// Can-undo-changed is emitted when the ability to undo has changed.
+	ConnectCanUndoChanged(func()) externglib.SignalHandle
 }
 
 var _ UndoManagerer = (*UndoManager)(nil)
+
+func ifaceInitUndoManagerer(gifacePtr, data C.gpointer) {
+	iface := (*C.GtkSourceUndoManagerIface)(unsafe.Pointer(gifacePtr))
+	iface.begin_not_undoable_action = (*[0]byte)(C._gotk4_gtksource4_UndoManagerIface_begin_not_undoable_action)
+	iface.can_redo = (*[0]byte)(C._gotk4_gtksource4_UndoManagerIface_can_redo)
+	iface.can_redo_changed = (*[0]byte)(C._gotk4_gtksource4_UndoManagerIface_can_redo_changed)
+	iface.can_undo = (*[0]byte)(C._gotk4_gtksource4_UndoManagerIface_can_undo)
+	iface.can_undo_changed = (*[0]byte)(C._gotk4_gtksource4_UndoManagerIface_can_undo_changed)
+	iface.end_not_undoable_action = (*[0]byte)(C._gotk4_gtksource4_UndoManagerIface_end_not_undoable_action)
+	iface.redo = (*[0]byte)(C._gotk4_gtksource4_UndoManagerIface_redo)
+	iface.undo = (*[0]byte)(C._gotk4_gtksource4_UndoManagerIface_undo)
+}
+
+//export _gotk4_gtksource4_UndoManagerIface_begin_not_undoable_action
+func _gotk4_gtksource4_UndoManagerIface_begin_not_undoable_action(arg0 *C.GtkSourceUndoManager) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(UndoManagerOverrider)
+
+	iface.BeginNotUndoableAction()
+}
+
+//export _gotk4_gtksource4_UndoManagerIface_can_redo
+func _gotk4_gtksource4_UndoManagerIface_can_redo(arg0 *C.GtkSourceUndoManager) (cret C.gboolean) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(UndoManagerOverrider)
+
+	ok := iface.CanRedo()
+
+	if ok {
+		cret = C.TRUE
+	}
+
+	return cret
+}
+
+//export _gotk4_gtksource4_UndoManagerIface_can_redo_changed
+func _gotk4_gtksource4_UndoManagerIface_can_redo_changed(arg0 *C.GtkSourceUndoManager) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(UndoManagerOverrider)
+
+	iface.CanRedoChanged()
+}
+
+//export _gotk4_gtksource4_UndoManagerIface_can_undo
+func _gotk4_gtksource4_UndoManagerIface_can_undo(arg0 *C.GtkSourceUndoManager) (cret C.gboolean) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(UndoManagerOverrider)
+
+	ok := iface.CanUndo()
+
+	if ok {
+		cret = C.TRUE
+	}
+
+	return cret
+}
+
+//export _gotk4_gtksource4_UndoManagerIface_can_undo_changed
+func _gotk4_gtksource4_UndoManagerIface_can_undo_changed(arg0 *C.GtkSourceUndoManager) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(UndoManagerOverrider)
+
+	iface.CanUndoChanged()
+}
+
+//export _gotk4_gtksource4_UndoManagerIface_end_not_undoable_action
+func _gotk4_gtksource4_UndoManagerIface_end_not_undoable_action(arg0 *C.GtkSourceUndoManager) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(UndoManagerOverrider)
+
+	iface.EndNotUndoableAction()
+}
+
+//export _gotk4_gtksource4_UndoManagerIface_redo
+func _gotk4_gtksource4_UndoManagerIface_redo(arg0 *C.GtkSourceUndoManager) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(UndoManagerOverrider)
+
+	iface.Redo()
+}
+
+//export _gotk4_gtksource4_UndoManagerIface_undo
+func _gotk4_gtksource4_UndoManagerIface_undo(arg0 *C.GtkSourceUndoManager) {
+	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
+	iface := goval.(UndoManagerOverrider)
+
+	iface.Undo()
+}
 
 func wrapUndoManager(obj *externglib.Object) *UndoManager {
 	return &UndoManager{
@@ -99,18 +202,50 @@ func wrapUndoManager(obj *externglib.Object) *UndoManager {
 	}
 }
 
-func marshalUndoManagerer(p uintptr) (interface{}, error) {
+func marshalUndoManager(p uintptr) (interface{}, error) {
 	return wrapUndoManager(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
-// ConnectCanRedoChanged: emitted when the ability to redo has changed.
-func (manager *UndoManager) ConnectCanRedoChanged(f func()) externglib.SignalHandle {
-	return manager.Connect("can-redo-changed", f)
+//export _gotk4_gtksource4_UndoManager_ConnectCanRedoChanged
+func _gotk4_gtksource4_UndoManager_ConnectCanRedoChanged(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
 }
 
-// ConnectCanUndoChanged: emitted when the ability to undo has changed.
+// ConnectCanRedoChanged is emitted when the ability to redo has changed.
+func (manager *UndoManager) ConnectCanRedoChanged(f func()) externglib.SignalHandle {
+	return externglib.ConnectGeneratedClosure(manager, "can-redo-changed", false, unsafe.Pointer(C._gotk4_gtksource4_UndoManager_ConnectCanRedoChanged), f)
+}
+
+//export _gotk4_gtksource4_UndoManager_ConnectCanUndoChanged
+func _gotk4_gtksource4_UndoManager_ConnectCanUndoChanged(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
+}
+
+// ConnectCanUndoChanged is emitted when the ability to undo has changed.
 func (manager *UndoManager) ConnectCanUndoChanged(f func()) externglib.SignalHandle {
-	return manager.Connect("can-undo-changed", f)
+	return externglib.ConnectGeneratedClosure(manager, "can-undo-changed", false, unsafe.Pointer(C._gotk4_gtksource4_UndoManager_ConnectCanUndoChanged), f)
 }
 
 // BeginNotUndoableAction: begin a not undoable action on the buffer. All
@@ -120,7 +255,7 @@ func (manager *UndoManager) ConnectCanUndoChanged(f func()) externglib.SignalHan
 func (manager *UndoManager) BeginNotUndoableAction() {
 	var _arg0 *C.GtkSourceUndoManager // out
 
-	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 
 	C.gtk_source_undo_manager_begin_not_undoable_action(_arg0)
 	runtime.KeepAlive(manager)
@@ -136,7 +271,7 @@ func (manager *UndoManager) CanRedo() bool {
 	var _arg0 *C.GtkSourceUndoManager // out
 	var _cret C.gboolean              // in
 
-	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 
 	_cret = C.gtk_source_undo_manager_can_redo(_arg0)
 	runtime.KeepAlive(manager)
@@ -154,7 +289,7 @@ func (manager *UndoManager) CanRedo() bool {
 func (manager *UndoManager) CanRedoChanged() {
 	var _arg0 *C.GtkSourceUndoManager // out
 
-	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 
 	C.gtk_source_undo_manager_can_redo_changed(_arg0)
 	runtime.KeepAlive(manager)
@@ -170,7 +305,7 @@ func (manager *UndoManager) CanUndo() bool {
 	var _arg0 *C.GtkSourceUndoManager // out
 	var _cret C.gboolean              // in
 
-	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 
 	_cret = C.gtk_source_undo_manager_can_undo(_arg0)
 	runtime.KeepAlive(manager)
@@ -188,7 +323,7 @@ func (manager *UndoManager) CanUndo() bool {
 func (manager *UndoManager) CanUndoChanged() {
 	var _arg0 *C.GtkSourceUndoManager // out
 
-	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 
 	C.gtk_source_undo_manager_can_undo_changed(_arg0)
 	runtime.KeepAlive(manager)
@@ -198,7 +333,7 @@ func (manager *UndoManager) CanUndoChanged() {
 func (manager *UndoManager) EndNotUndoableAction() {
 	var _arg0 *C.GtkSourceUndoManager // out
 
-	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 
 	C.gtk_source_undo_manager_end_not_undoable_action(_arg0)
 	runtime.KeepAlive(manager)
@@ -210,7 +345,7 @@ func (manager *UndoManager) EndNotUndoableAction() {
 func (manager *UndoManager) Redo() {
 	var _arg0 *C.GtkSourceUndoManager // out
 
-	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 
 	C.gtk_source_undo_manager_redo(_arg0)
 	runtime.KeepAlive(manager)
@@ -222,7 +357,7 @@ func (manager *UndoManager) Redo() {
 func (manager *UndoManager) Undo() {
 	var _arg0 *C.GtkSourceUndoManager // out
 
-	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(manager.Native()))
+	_arg0 = (*C.GtkSourceUndoManager)(unsafe.Pointer(externglib.InternObject(manager).Native()))
 
 	C.gtk_source_undo_manager_undo(_arg0)
 	runtime.KeepAlive(manager)

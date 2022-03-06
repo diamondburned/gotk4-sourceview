@@ -14,10 +14,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcestyleschemechooserwidget.go.
+var GTypeStyleSchemeChooserWidget = externglib.Type(C.gtk_source_style_scheme_chooser_widget_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_style_scheme_chooser_widget_get_type()), F: marshalStyleSchemeChooserWidgetter},
+		{T: GTypeStyleSchemeChooserWidget, F: marshalStyleSchemeChooserWidget},
 	})
+}
+
+// StyleSchemeChooserWidgetOverrider contains methods that are overridable.
+type StyleSchemeChooserWidgetOverrider interface {
 }
 
 type StyleSchemeChooserWidget struct {
@@ -32,6 +39,14 @@ var (
 	_ gtk.Widgetter       = (*StyleSchemeChooserWidget)(nil)
 	_ externglib.Objector = (*StyleSchemeChooserWidget)(nil)
 )
+
+func classInitStyleSchemeChooserWidgetter(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
 
 func wrapStyleSchemeChooserWidget(obj *externglib.Object) *StyleSchemeChooserWidget {
 	return &StyleSchemeChooserWidget{
@@ -57,7 +72,7 @@ func wrapStyleSchemeChooserWidget(obj *externglib.Object) *StyleSchemeChooserWid
 	}
 }
 
-func marshalStyleSchemeChooserWidgetter(p uintptr) (interface{}, error) {
+func marshalStyleSchemeChooserWidget(p uintptr) (interface{}, error) {
 	return wrapStyleSchemeChooserWidget(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 

@@ -17,10 +17,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcegutterlines.go.
+var GTypeGutterLines = externglib.Type(C.gtk_source_gutter_lines_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_gutter_lines_get_type()), F: marshalGutterLinesser},
+		{T: GTypeGutterLines, F: marshalGutterLines},
 	})
+}
+
+// GutterLinesOverrider contains methods that are overridable.
+type GutterLinesOverrider interface {
 }
 
 type GutterLines struct {
@@ -32,13 +39,21 @@ var (
 	_ externglib.Objector = (*GutterLines)(nil)
 )
 
+func classInitGutterLinesser(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapGutterLines(obj *externglib.Object) *GutterLines {
 	return &GutterLines{
 		Object: obj,
 	}
 }
 
-func marshalGutterLinesser(p uintptr) (interface{}, error) {
+func marshalGutterLines(p uintptr) (interface{}, error) {
 	return wrapGutterLines(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -58,7 +73,7 @@ func (lines *GutterLines) AddClass(line uint, name string) {
 	var _arg1 C.guint                 // out
 	var _arg2 *C.gchar                // out
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 	_arg1 = C.guint(line)
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(name)))
 	defer C.free(unsafe.Pointer(_arg2))
@@ -86,7 +101,7 @@ func (lines *GutterLines) AddQclass(line uint, qname glib.Quark) {
 	var _arg1 C.guint                 // out
 	var _arg2 C.GQuark                // out
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 	_arg1 = C.guint(line)
 	_arg2 = C.guint32(qname)
 
@@ -106,7 +121,7 @@ func (lines *GutterLines) Buffer() *gtk.TextBuffer {
 	var _arg0 *C.GtkSourceGutterLines // out
 	var _cret *C.GtkTextBuffer        // in
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 
 	_cret = C.gtk_source_gutter_lines_get_buffer(_arg0)
 	runtime.KeepAlive(lines)
@@ -134,7 +149,7 @@ func (lines *GutterLines) First() uint {
 	var _arg0 *C.GtkSourceGutterLines // out
 	var _cret C.guint                 // in
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 
 	_cret = C.gtk_source_gutter_lines_get_first(_arg0)
 	runtime.KeepAlive(lines)
@@ -161,7 +176,7 @@ func (lines *GutterLines) IterAtLine(line uint) *gtk.TextIter {
 	var _arg1 C.GtkTextIter           // in
 	var _arg2 C.guint                 // out
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 	_arg2 = C.guint(line)
 
 	C.gtk_source_gutter_lines_get_iter_at_line(_arg0, &_arg1, _arg2)
@@ -186,7 +201,7 @@ func (lines *GutterLines) Last() uint {
 	var _arg0 *C.GtkSourceGutterLines // out
 	var _cret C.guint                 // in
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 
 	_cret = C.gtk_source_gutter_lines_get_last(_arg0)
 	runtime.KeepAlive(lines)
@@ -219,7 +234,7 @@ func (lines *GutterLines) LineYrange(line uint, mode GutterRendererAlignmentMode
 	var _arg3 C.gint                                 // in
 	var _arg4 C.gint                                 // in
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 	_arg1 = C.guint(line)
 	_arg2 = C.GtkSourceGutterRendererAlignmentMode(mode)
 
@@ -247,7 +262,7 @@ func (lines *GutterLines) View() *gtk.TextView {
 	var _arg0 *C.GtkSourceGutterLines // out
 	var _cret *C.GtkTextView          // in
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 
 	_cret = C.gtk_source_gutter_lines_get_view(_arg0)
 	runtime.KeepAlive(lines)
@@ -304,7 +319,7 @@ func (lines *GutterLines) HasClass(line uint, name string) bool {
 	var _arg2 *C.gchar                // out
 	var _cret C.gboolean              // in
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 	_arg1 = C.guint(line)
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(name)))
 	defer C.free(unsafe.Pointer(_arg2))
@@ -341,7 +356,7 @@ func (lines *GutterLines) HasQclass(line uint, qname glib.Quark) bool {
 	var _arg2 C.GQuark                // out
 	var _cret C.gboolean              // in
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 	_arg1 = C.guint(line)
 	_arg2 = C.guint32(qname)
 
@@ -374,7 +389,7 @@ func (lines *GutterLines) IsCursor(line uint) bool {
 	var _arg1 C.guint                 // out
 	var _cret C.gboolean              // in
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 	_arg1 = C.guint(line)
 
 	_cret = C.gtk_source_gutter_lines_is_cursor(_arg0, _arg1)
@@ -406,7 +421,7 @@ func (lines *GutterLines) IsPrelit(line uint) bool {
 	var _arg1 C.guint                 // out
 	var _cret C.gboolean              // in
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 	_arg1 = C.guint(line)
 
 	_cret = C.gtk_source_gutter_lines_is_prelit(_arg0, _arg1)
@@ -438,7 +453,7 @@ func (lines *GutterLines) IsSelected(line uint) bool {
 	var _arg1 C.guint                 // out
 	var _cret C.gboolean              // in
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 	_arg1 = C.guint(line)
 
 	_cret = C.gtk_source_gutter_lines_is_selected(_arg0, _arg1)
@@ -470,7 +485,7 @@ func (lines *GutterLines) RemoveClass(line uint, name string) {
 	var _arg1 C.guint                 // out
 	var _arg2 *C.gchar                // out
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 	_arg1 = C.guint(line)
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(name)))
 	defer C.free(unsafe.Pointer(_arg2))
@@ -494,7 +509,7 @@ func (lines *GutterLines) RemoveQclass(line uint, qname glib.Quark) {
 	var _arg1 C.guint                 // out
 	var _arg2 C.GQuark                // out
 
-	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(lines.Native()))
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(externglib.InternObject(lines).Native()))
 	_arg1 = C.guint(line)
 	_arg2 = C.guint32(qname)
 

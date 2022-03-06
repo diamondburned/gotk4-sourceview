@@ -19,10 +19,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcecompletioncell.go.
+var GTypeCompletionCell = externglib.Type(C.gtk_source_completion_cell_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_completion_cell_get_type()), F: marshalCompletionCeller},
+		{T: GTypeCompletionCell, F: marshalCompletionCell},
 	})
+}
+
+// CompletionCellOverrider contains methods that are overridable.
+type CompletionCellOverrider interface {
 }
 
 type CompletionCell struct {
@@ -33,6 +40,14 @@ type CompletionCell struct {
 var (
 	_ gtk.Widgetter = (*CompletionCell)(nil)
 )
+
+func classInitCompletionCeller(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
 
 func wrapCompletionCell(obj *externglib.Object) *CompletionCell {
 	return &CompletionCell{
@@ -54,7 +69,7 @@ func wrapCompletionCell(obj *externglib.Object) *CompletionCell {
 	}
 }
 
-func marshalCompletionCeller(p uintptr) (interface{}, error) {
+func marshalCompletionCell(p uintptr) (interface{}, error) {
 	return wrapCompletionCell(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -64,7 +79,7 @@ func (self *CompletionCell) Column() CompletionColumn {
 	var _arg0 *C.GtkSourceCompletionCell  // out
 	var _cret C.GtkSourceCompletionColumn // in
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_cell_get_column(_arg0)
 	runtime.KeepAlive(self)
@@ -86,7 +101,7 @@ func (self *CompletionCell) GetWidget() gtk.Widgetter {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _cret *C.GtkWidget               // in
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_cell_get_widget(_arg0)
 	runtime.KeepAlive(self)
@@ -119,8 +134,8 @@ func (self *CompletionCell) SetGIcon(gicon gio.Iconner) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.GIcon                   // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GIcon)(unsafe.Pointer(gicon.Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GIcon)(unsafe.Pointer(externglib.InternObject(gicon).Native()))
 
 	C.gtk_source_completion_cell_set_gicon(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -133,7 +148,7 @@ func (self *CompletionCell) SetIconName(iconName string) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.char                    // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = (*C.char)(unsafe.Pointer(C.CString(iconName)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -148,7 +163,7 @@ func (self *CompletionCell) SetMarkup(markup string) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.char                    // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = (*C.char)(unsafe.Pointer(C.CString(markup)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -163,8 +178,8 @@ func (self *CompletionCell) SetPaintable(paintable gdk.Paintabler) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.GdkPaintable            // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GdkPaintable)(unsafe.Pointer(paintable.Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GdkPaintable)(unsafe.Pointer(externglib.InternObject(paintable).Native()))
 
 	C.gtk_source_completion_cell_set_paintable(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -177,7 +192,7 @@ func (self *CompletionCell) SetText(text string) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.char                    // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = (*C.char)(unsafe.Pointer(C.CString(text)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -196,7 +211,7 @@ func (self *CompletionCell) SetTextWithAttributes(text string, attrs *pango.Attr
 	var _arg1 *C.char                    // out
 	var _arg2 *C.PangoAttrList           // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = (*C.char)(unsafe.Pointer(C.CString(text)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = (*C.PangoAttrList)(gextras.StructNative(unsafe.Pointer(attrs)))
@@ -213,8 +228,8 @@ func (self *CompletionCell) SetWidget(child gtk.Widgetter) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.GtkWidget               // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GtkWidget)(unsafe.Pointer(child.Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkWidget)(unsafe.Pointer(externglib.InternObject(child).Native()))
 
 	C.gtk_source_completion_cell_set_widget(_arg0, _arg1)
 	runtime.KeepAlive(self)

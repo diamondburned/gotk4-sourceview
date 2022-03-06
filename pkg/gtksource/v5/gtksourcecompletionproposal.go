@@ -13,10 +13,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcecompletionproposal.go.
+var GTypeCompletionProposal = externglib.Type(C.gtk_source_completion_proposal_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_completion_proposal_get_type()), F: marshalCompletionProposaller},
+		{T: GTypeCompletionProposal, F: marshalCompletionProposal},
 	})
+}
+
+// CompletionProposalOverrider contains methods that are overridable.
+type CompletionProposalOverrider interface {
 }
 
 type CompletionProposal struct {
@@ -37,13 +44,16 @@ type CompletionProposaller interface {
 
 var _ CompletionProposaller = (*CompletionProposal)(nil)
 
+func ifaceInitCompletionProposaller(gifacePtr, data C.gpointer) {
+}
+
 func wrapCompletionProposal(obj *externglib.Object) *CompletionProposal {
 	return &CompletionProposal{
 		Object: obj,
 	}
 }
 
-func marshalCompletionProposaller(p uintptr) (interface{}, error) {
+func marshalCompletionProposal(p uintptr) (interface{}, error) {
 	return wrapCompletionProposal(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 

@@ -15,9 +15,12 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcetypes.go.
+var GTypeEncoding = externglib.Type(C.gtk_source_encoding_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_encoding_get_type()), F: marshalEncoding},
+		{T: GTypeEncoding, F: marshalEncoding},
 	})
 }
 

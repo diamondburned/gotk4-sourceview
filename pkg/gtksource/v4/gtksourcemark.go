@@ -15,10 +15,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcemark.go.
+var GTypeMark = externglib.Type(C.gtk_source_mark_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_mark_get_type()), F: marshalMarker},
+		{T: GTypeMark, F: marshalMark},
 	})
+}
+
+// MarkOverrider contains methods that are overridable.
+type MarkOverrider interface {
 }
 
 type Mark struct {
@@ -30,6 +37,14 @@ var (
 	_ externglib.Objector = (*Mark)(nil)
 )
 
+func classInitMarker(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapMark(obj *externglib.Object) *Mark {
 	return &Mark{
 		TextMark: gtk.TextMark{
@@ -38,7 +53,7 @@ func wrapMark(obj *externglib.Object) *Mark {
 	}
 }
 
-func marshalMarker(p uintptr) (interface{}, error) {
+func marshalMark(p uintptr) (interface{}, error) {
 	return wrapMark(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -93,7 +108,7 @@ func (mark *Mark) Category() string {
 	var _arg0 *C.GtkSourceMark // out
 	var _cret *C.gchar         // in
 
-	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(mark.Native()))
+	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(externglib.InternObject(mark).Native()))
 
 	_cret = C.gtk_source_mark_get_category(_arg0)
 	runtime.KeepAlive(mark)
@@ -123,7 +138,7 @@ func (mark *Mark) Next(category string) *Mark {
 	var _arg1 *C.gchar         // out
 	var _cret *C.GtkSourceMark // in
 
-	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(mark.Native()))
+	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(externglib.InternObject(mark).Native()))
 	if category != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -160,7 +175,7 @@ func (mark *Mark) Prev(category string) *Mark {
 	var _arg1 *C.gchar         // out
 	var _cret *C.GtkSourceMark // in
 
-	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(mark.Native()))
+	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(externglib.InternObject(mark).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
 	defer C.free(unsafe.Pointer(_arg1))
 

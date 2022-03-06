@@ -17,10 +17,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcecompletioninfo.go.
+var GTypeCompletionInfo = externglib.Type(C.gtk_source_completion_info_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_completion_info_get_type()), F: marshalCompletionInfor},
+		{T: GTypeCompletionInfo, F: marshalCompletionInfo},
 	})
+}
+
+// CompletionInfoOverrider contains methods that are overridable.
+type CompletionInfoOverrider interface {
 }
 
 type CompletionInfo struct {
@@ -31,6 +38,14 @@ type CompletionInfo struct {
 var (
 	_ gtk.Binner = (*CompletionInfo)(nil)
 )
+
+func classInitCompletionInfor(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
 
 func wrapCompletionInfo(obj *externglib.Object) *CompletionInfo {
 	return &CompletionInfo{
@@ -55,7 +70,7 @@ func wrapCompletionInfo(obj *externglib.Object) *CompletionInfo {
 	}
 }
 
-func marshalCompletionInfor(p uintptr) (interface{}, error) {
+func marshalCompletionInfo(p uintptr) (interface{}, error) {
 	return wrapCompletionInfo(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -89,8 +104,8 @@ func (info *CompletionInfo) MoveToIter(view *gtk.TextView, iter *gtk.TextIter) {
 	var _arg1 *C.GtkTextView             // out
 	var _arg2 *C.GtkTextIter             // out
 
-	_arg0 = (*C.GtkSourceCompletionInfo)(unsafe.Pointer(info.Native()))
-	_arg1 = (*C.GtkTextView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceCompletionInfo)(unsafe.Pointer(externglib.InternObject(info).Native()))
+	_arg1 = (*C.GtkTextView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 	if iter != nil {
 		_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	}

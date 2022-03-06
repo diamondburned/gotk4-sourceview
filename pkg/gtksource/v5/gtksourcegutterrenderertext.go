@@ -15,10 +15,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcegutterrenderertext.go.
+var GTypeGutterRendererText = externglib.Type(C.gtk_source_gutter_renderer_text_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_gutter_renderer_text_get_type()), F: marshalGutterRendererTexter},
+		{T: GTypeGutterRendererText, F: marshalGutterRendererText},
 	})
+}
+
+// GutterRendererTextOverrider contains methods that are overridable.
+type GutterRendererTextOverrider interface {
 }
 
 type GutterRendererText struct {
@@ -29,6 +36,14 @@ type GutterRendererText struct {
 var (
 	_ GutterRendererer = (*GutterRendererText)(nil)
 )
+
+func classInitGutterRendererTexter(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
 
 func wrapGutterRendererText(obj *externglib.Object) *GutterRendererText {
 	return &GutterRendererText{
@@ -52,7 +67,7 @@ func wrapGutterRendererText(obj *externglib.Object) *GutterRendererText {
 	}
 }
 
-func marshalGutterRendererTexter(p uintptr) (interface{}, error) {
+func marshalGutterRendererText(p uintptr) (interface{}, error) {
 	return wrapGutterRendererText(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -94,7 +109,7 @@ func (renderer *GutterRendererText) Measure(text string) (width int, height int)
 	var _arg2 C.gint                         // in
 	var _arg3 C.gint                         // in
 
-	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(renderer.Native()))
+	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(text)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -131,7 +146,7 @@ func (renderer *GutterRendererText) MeasureMarkup(markup string) (width int, hei
 	var _arg2 C.gint                         // in
 	var _arg3 C.gint                         // in
 
-	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(renderer.Native()))
+	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(markup)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -158,7 +173,7 @@ func (renderer *GutterRendererText) SetMarkup(markup string, length int) {
 	var _arg1 *C.gchar                       // out
 	var _arg2 C.gint                         // out
 
-	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(renderer.Native()))
+	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(markup)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = C.gint(length)
@@ -179,7 +194,7 @@ func (renderer *GutterRendererText) SetText(text string, length int) {
 	var _arg1 *C.gchar                       // out
 	var _arg2 C.gint                         // out
 
-	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(renderer.Native()))
+	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(text)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = C.gint(length)

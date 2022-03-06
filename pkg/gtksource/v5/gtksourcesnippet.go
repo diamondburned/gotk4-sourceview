@@ -14,10 +14,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcesnippet.go.
+var GTypeSnippet = externglib.Type(C.gtk_source_snippet_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_snippet_get_type()), F: marshalSnippetter},
+		{T: GTypeSnippet, F: marshalSnippet},
 	})
+}
+
+// SnippetOverrider contains methods that are overridable.
+type SnippetOverrider interface {
 }
 
 type Snippet struct {
@@ -29,13 +36,21 @@ var (
 	_ externglib.Objector = (*Snippet)(nil)
 )
 
+func classInitSnippetter(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapSnippet(obj *externglib.Object) *Snippet {
 	return &Snippet{
 		Object: obj,
 	}
 }
 
-func marshalSnippetter(p uintptr) (interface{}, error) {
+func marshalSnippet(p uintptr) (interface{}, error) {
 	return wrapSnippet(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -87,8 +102,8 @@ func (snippet *Snippet) AddChunk(chunk *SnippetChunk) {
 	var _arg0 *C.GtkSourceSnippet      // out
 	var _arg1 *C.GtkSourceSnippetChunk // out
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
-	_arg1 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
+	_arg1 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 
 	C.gtk_source_snippet_add_chunk(_arg0, _arg1)
 	runtime.KeepAlive(snippet)
@@ -105,7 +120,7 @@ func (snippet *Snippet) Copy() *Snippet {
 	var _arg0 *C.GtkSourceSnippet // out
 	var _cret *C.GtkSourceSnippet // in
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 
 	_cret = C.gtk_source_snippet_copy(_arg0)
 	runtime.KeepAlive(snippet)
@@ -127,7 +142,7 @@ func (snippet *Snippet) Context() *SnippetContext {
 	var _arg0 *C.GtkSourceSnippet        // out
 	var _cret *C.GtkSourceSnippetContext // in
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 
 	_cret = C.gtk_source_snippet_get_context(_arg0)
 	runtime.KeepAlive(snippet)
@@ -149,7 +164,7 @@ func (snippet *Snippet) Description() string {
 	var _arg0 *C.GtkSourceSnippet // out
 	var _cret *C.gchar            // in
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 
 	_cret = C.gtk_source_snippet_get_description(_arg0)
 	runtime.KeepAlive(snippet)
@@ -172,7 +187,7 @@ func (snippet *Snippet) FocusPosition() int {
 	var _arg0 *C.GtkSourceSnippet // out
 	var _cret C.gint              // in
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 
 	_cret = C.gtk_source_snippet_get_focus_position(_arg0)
 	runtime.KeepAlive(snippet)
@@ -197,7 +212,7 @@ func (snippet *Snippet) LanguageID() string {
 	var _arg0 *C.GtkSourceSnippet // out
 	var _cret *C.gchar            // in
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 
 	_cret = C.gtk_source_snippet_get_language_id(_arg0)
 	runtime.KeepAlive(snippet)
@@ -221,7 +236,7 @@ func (snippet *Snippet) NChunks() uint {
 	var _arg0 *C.GtkSourceSnippet // out
 	var _cret C.guint             // in
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 
 	_cret = C.gtk_source_snippet_get_n_chunks(_arg0)
 	runtime.KeepAlive(snippet)
@@ -241,7 +256,7 @@ func (snippet *Snippet) Name() string {
 	var _arg0 *C.GtkSourceSnippet // out
 	var _cret *C.gchar            // in
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 
 	_cret = C.gtk_source_snippet_get_name(_arg0)
 	runtime.KeepAlive(snippet)
@@ -268,7 +283,7 @@ func (snippet *Snippet) NthChunk(nth uint) *SnippetChunk {
 	var _arg1 C.guint                  // out
 	var _cret *C.GtkSourceSnippetChunk // in
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 	_arg1 = C.guint(nth)
 
 	_cret = C.gtk_source_snippet_get_nth_chunk(_arg0, _arg1)
@@ -293,7 +308,7 @@ func (snippet *Snippet) Trigger() string {
 	var _arg0 *C.GtkSourceSnippet // out
 	var _cret *C.gchar            // in
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 
 	_cret = C.gtk_source_snippet_get_trigger(_arg0)
 	runtime.KeepAlive(snippet)
@@ -317,7 +332,7 @@ func (snippet *Snippet) SetDescription(description string) {
 	var _arg0 *C.GtkSourceSnippet // out
 	var _arg1 *C.gchar            // out
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(description)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -338,7 +353,7 @@ func (snippet *Snippet) SetLanguageID(languageId string) {
 	var _arg0 *C.GtkSourceSnippet // out
 	var _arg1 *C.gchar            // out
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(languageId)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -357,7 +372,7 @@ func (snippet *Snippet) SetName(name string) {
 	var _arg0 *C.GtkSourceSnippet // out
 	var _arg1 *C.gchar            // out
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(name)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -376,7 +391,7 @@ func (snippet *Snippet) SetTrigger(trigger string) {
 	var _arg0 *C.GtkSourceSnippet // out
 	var _arg1 *C.gchar            // out
 
-	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(snippet.Native()))
+	_arg0 = (*C.GtkSourceSnippet)(unsafe.Pointer(externglib.InternObject(snippet).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(trigger)))
 	defer C.free(unsafe.Pointer(_arg1))
 

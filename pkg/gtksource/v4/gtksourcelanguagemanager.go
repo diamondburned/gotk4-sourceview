@@ -14,10 +14,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcelanguagemanager.go.
+var GTypeLanguageManager = externglib.Type(C.gtk_source_language_manager_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_language_manager_get_type()), F: marshalLanguageManagerer},
+		{T: GTypeLanguageManager, F: marshalLanguageManager},
 	})
+}
+
+// LanguageManagerOverrider contains methods that are overridable.
+type LanguageManagerOverrider interface {
 }
 
 type LanguageManager struct {
@@ -29,13 +36,21 @@ var (
 	_ externglib.Objector = (*LanguageManager)(nil)
 )
 
+func classInitLanguageManagerer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapLanguageManager(obj *externglib.Object) *LanguageManager {
 	return &LanguageManager{
 		Object: obj,
 	}
 }
 
-func marshalLanguageManagerer(p uintptr) (interface{}, error) {
+func marshalLanguageManager(p uintptr) (interface{}, error) {
 	return wrapLanguageManager(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -76,7 +91,7 @@ func (lm *LanguageManager) Language(id string) *Language {
 	var _arg1 *C.gchar                    // out
 	var _cret *C.GtkSourceLanguage        // in
 
-	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(lm.Native()))
+	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(externglib.InternObject(lm).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(id)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -106,7 +121,7 @@ func (lm *LanguageManager) LanguageIDs() []string {
 	var _arg0 *C.GtkSourceLanguageManager // out
 	var _cret **C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(lm.Native()))
+	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(externglib.InternObject(lm).Native()))
 
 	_cret = C.gtk_source_language_manager_get_language_ids(_arg0)
 	runtime.KeepAlive(lm)
@@ -143,7 +158,7 @@ func (lm *LanguageManager) SearchPath() []string {
 	var _arg0 *C.GtkSourceLanguageManager // out
 	var _cret **C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(lm.Native()))
+	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(externglib.InternObject(lm).Native()))
 
 	_cret = C.gtk_source_language_manager_get_search_path(_arg0)
 	runtime.KeepAlive(lm)
@@ -216,7 +231,7 @@ func (lm *LanguageManager) GuessLanguage(filename, contentType string) *Language
 	var _arg2 *C.gchar                    // out
 	var _cret *C.GtkSourceLanguage        // in
 
-	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(lm.Native()))
+	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(externglib.InternObject(lm).Native()))
 	if filename != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(filename)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -256,7 +271,7 @@ func (lm *LanguageManager) SetSearchPath(dirs []string) {
 	var _arg0 *C.GtkSourceLanguageManager // out
 	var _arg1 **C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(lm.Native()))
+	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(externglib.InternObject(lm).Native()))
 	{
 		_arg1 = (**C.gchar)(C.calloc(C.size_t((len(dirs) + 1)), C.size_t(unsafe.Sizeof(uint(0)))))
 		defer C.free(unsafe.Pointer(_arg1))

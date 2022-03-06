@@ -15,10 +15,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcesnippetmanager.go.
+var GTypeSnippetManager = externglib.Type(C.gtk_source_snippet_manager_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_snippet_manager_get_type()), F: marshalSnippetManagerer},
+		{T: GTypeSnippetManager, F: marshalSnippetManager},
 	})
+}
+
+// SnippetManagerOverrider contains methods that are overridable.
+type SnippetManagerOverrider interface {
 }
 
 type SnippetManager struct {
@@ -30,13 +37,21 @@ var (
 	_ externglib.Objector = (*SnippetManager)(nil)
 )
 
+func classInitSnippetManagerer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapSnippetManager(obj *externglib.Object) *SnippetManager {
 	return &SnippetManager{
 		Object: obj,
 	}
 }
 
-func marshalSnippetManagerer(p uintptr) (interface{}, error) {
+func marshalSnippetManager(p uintptr) (interface{}, error) {
 	return wrapSnippetManager(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -51,7 +66,7 @@ func (self *SnippetManager) SearchPath() []string {
 	var _arg0 *C.GtkSourceSnippetManager // out
 	var _cret **C.gchar                  // in
 
-	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_snippet_manager_get_search_path(_arg0)
 	runtime.KeepAlive(self)
@@ -95,7 +110,7 @@ func (self *SnippetManager) Snippet(group, languageId, trigger string) *Snippet 
 	var _arg3 *C.gchar                   // out
 	var _cret *C.GtkSourceSnippet        // in
 
-	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	if group != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(group)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -135,7 +150,7 @@ func (self *SnippetManager) ListGroups() []string {
 	var _arg0 *C.GtkSourceSnippetManager // out
 	var _cret **C.gchar                  // in
 
-	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_snippet_manager_list_groups(_arg0)
 	runtime.KeepAlive(self)
@@ -186,7 +201,7 @@ func (self *SnippetManager) ListMatching(group, languageId, triggerPrefix string
 	var _arg3 *C.gchar                   // out
 	var _cret *C.GListModel              // in
 
-	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	if group != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(group)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -246,7 +261,7 @@ func (self *SnippetManager) SetSearchPath(dirs []string) {
 	var _arg0 *C.GtkSourceSnippetManager // out
 	var _arg1 **C.gchar                  // out
 
-	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	{
 		_arg1 = (**C.gchar)(C.calloc(C.size_t((len(dirs) + 1)), C.size_t(unsafe.Sizeof(uint(0)))))
 		defer C.free(unsafe.Pointer(_arg1))

@@ -14,12 +14,23 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern void _gotk4_gtksource5_Completion_ConnectHide(gpointer, guintptr);
+// extern void _gotk4_gtksource5_Completion_ConnectProviderAdded(gpointer, GtkSourceCompletionProvider*, guintptr);
+// extern void _gotk4_gtksource5_Completion_ConnectProviderRemoved(gpointer, GtkSourceCompletionProvider*, guintptr);
+// extern void _gotk4_gtksource5_Completion_ConnectShow(gpointer, guintptr);
 import "C"
+
+// glib.Type values for gtksourcecompletion.go.
+var GTypeCompletion = externglib.Type(C.gtk_source_completion_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_completion_get_type()), F: marshalCompletioner},
+		{T: GTypeCompletion, F: marshalCompletion},
 	})
+}
+
+// CompletionOverrider contains methods that are overridable.
+type CompletionOverrider interface {
 }
 
 type Completion struct {
@@ -31,38 +42,150 @@ var (
 	_ externglib.Objector = (*Completion)(nil)
 )
 
+func classInitCompletioner(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapCompletion(obj *externglib.Object) *Completion {
 	return &Completion{
 		Object: obj,
 	}
 }
 
-func marshalCompletioner(p uintptr) (interface{}, error) {
+func marshalCompletion(p uintptr) (interface{}, error) {
 	return wrapCompletion(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+}
+
+//export _gotk4_gtksource5_Completion_ConnectHide
+func _gotk4_gtksource5_Completion_ConnectHide(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
 }
 
 // ConnectHide: "hide" signal is emitted when the completion window should be
 // hidden.
 func (self *Completion) ConnectHide(f func()) externglib.SignalHandle {
-	return self.Connect("hide", f)
+	return externglib.ConnectGeneratedClosure(self, "hide", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectHide), f)
+}
+
+//export _gotk4_gtksource5_Completion_ConnectProviderAdded
+func _gotk4_gtksource5_Completion_ConnectProviderAdded(arg0 C.gpointer, arg1 *C.GtkSourceCompletionProvider, arg2 C.guintptr) {
+	var f func(provider CompletionProviderer)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(provider CompletionProviderer))
+	}
+
+	var _provider CompletionProviderer // out
+
+	{
+		objptr := unsafe.Pointer(arg1)
+		if objptr == nil {
+			panic("object of type gtksource.CompletionProviderer is nil")
+		}
+
+		object := externglib.Take(objptr)
+		casted := object.WalkCast(func(obj externglib.Objector) bool {
+			_, ok := obj.(CompletionProviderer)
+			return ok
+		})
+		rv, ok := casted.(CompletionProviderer)
+		if !ok {
+			panic("no marshaler for " + object.TypeFromInstance().String() + " matching gtksource.CompletionProviderer")
+		}
+		_provider = rv
+	}
+
+	f(_provider)
 }
 
 // ConnectProviderAdded: "provided-added" signal is emitted when a new provider
 // is added to the completion.
 func (self *Completion) ConnectProviderAdded(f func(provider CompletionProviderer)) externglib.SignalHandle {
-	return self.Connect("provider-added", f)
+	return externglib.ConnectGeneratedClosure(self, "provider-added", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectProviderAdded), f)
+}
+
+//export _gotk4_gtksource5_Completion_ConnectProviderRemoved
+func _gotk4_gtksource5_Completion_ConnectProviderRemoved(arg0 C.gpointer, arg1 *C.GtkSourceCompletionProvider, arg2 C.guintptr) {
+	var f func(provider CompletionProviderer)
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func(provider CompletionProviderer))
+	}
+
+	var _provider CompletionProviderer // out
+
+	{
+		objptr := unsafe.Pointer(arg1)
+		if objptr == nil {
+			panic("object of type gtksource.CompletionProviderer is nil")
+		}
+
+		object := externglib.Take(objptr)
+		casted := object.WalkCast(func(obj externglib.Objector) bool {
+			_, ok := obj.(CompletionProviderer)
+			return ok
+		})
+		rv, ok := casted.(CompletionProviderer)
+		if !ok {
+			panic("no marshaler for " + object.TypeFromInstance().String() + " matching gtksource.CompletionProviderer")
+		}
+		_provider = rv
+	}
+
+	f(_provider)
 }
 
 // ConnectProviderRemoved: "provided-removed" signal is emitted when a provider
 // has been removed from the completion.
 func (self *Completion) ConnectProviderRemoved(f func(provider CompletionProviderer)) externglib.SignalHandle {
-	return self.Connect("provider-removed", f)
+	return externglib.ConnectGeneratedClosure(self, "provider-removed", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectProviderRemoved), f)
+}
+
+//export _gotk4_gtksource5_Completion_ConnectShow
+func _gotk4_gtksource5_Completion_ConnectShow(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
 }
 
 // ConnectShow: "show" signal is emitted when the completion window should be
 // shown.
 func (self *Completion) ConnectShow(f func()) externglib.SignalHandle {
-	return self.Connect("show", f)
+	return externglib.ConnectGeneratedClosure(self, "show", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectShow), f)
 }
 
 // AddProvider adds an SourceCompletionProvider to the list of providers to be
@@ -76,8 +199,8 @@ func (self *Completion) AddProvider(provider CompletionProviderer) {
 	var _arg0 *C.GtkSourceCompletion         // out
 	var _arg1 *C.GtkSourceCompletionProvider // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(provider.Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(provider).Native()))
 
 	C.gtk_source_completion_add_provider(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -87,7 +210,7 @@ func (self *Completion) AddProvider(provider CompletionProviderer) {
 func (self *Completion) BlockInteractive() {
 	var _arg0 *C.GtkSourceCompletion // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	C.gtk_source_completion_block_interactive(_arg0)
 	runtime.KeepAlive(self)
@@ -103,7 +226,7 @@ func (self *Completion) Buffer() *Buffer {
 	var _arg0 *C.GtkSourceCompletion // out
 	var _cret *C.GtkSourceBuffer     // in
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_get_buffer(_arg0)
 	runtime.KeepAlive(self)
@@ -121,7 +244,7 @@ func (self *Completion) PageSize() uint {
 	var _arg0 *C.GtkSourceCompletion // out
 	var _cret C.guint                // in
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_get_page_size(_arg0)
 	runtime.KeepAlive(self)
@@ -143,7 +266,7 @@ func (self *Completion) View() *View {
 	var _arg0 *C.GtkSourceCompletion // out
 	var _cret *C.GtkSourceView       // in
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_get_view(_arg0)
 	runtime.KeepAlive(self)
@@ -161,7 +284,7 @@ func (self *Completion) View() *View {
 func (self *Completion) Hide() {
 	var _arg0 *C.GtkSourceCompletion // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	C.gtk_source_completion_hide(_arg0)
 	runtime.KeepAlive(self)
@@ -178,8 +301,8 @@ func (self *Completion) RemoveProvider(provider CompletionProviderer) {
 	var _arg0 *C.GtkSourceCompletion         // out
 	var _arg1 *C.GtkSourceCompletionProvider // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(provider.Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(provider).Native()))
 
 	C.gtk_source_completion_remove_provider(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -192,7 +315,7 @@ func (self *Completion) SetPageSize(pageSize uint) {
 	var _arg0 *C.GtkSourceCompletion // out
 	var _arg1 C.guint                // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	_arg1 = C.guint(pageSize)
 
 	C.gtk_source_completion_set_page_size(_arg0, _arg1)
@@ -207,7 +330,7 @@ func (self *Completion) SetPageSize(pageSize uint) {
 func (self *Completion) Show() {
 	var _arg0 *C.GtkSourceCompletion // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	C.gtk_source_completion_show(_arg0)
 	runtime.KeepAlive(self)
@@ -216,7 +339,7 @@ func (self *Completion) Show() {
 func (self *Completion) UnblockInteractive() {
 	var _arg0 *C.GtkSourceCompletion // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
 
 	C.gtk_source_completion_unblock_interactive(_arg0)
 	runtime.KeepAlive(self)

@@ -14,10 +14,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcesnippetchunk.go.
+var GTypeSnippetChunk = externglib.Type(C.gtk_source_snippet_chunk_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_snippet_chunk_get_type()), F: marshalSnippetChunker},
+		{T: GTypeSnippetChunk, F: marshalSnippetChunk},
 	})
+}
+
+// SnippetChunkOverrider contains methods that are overridable.
+type SnippetChunkOverrider interface {
 }
 
 type SnippetChunk struct {
@@ -27,6 +34,14 @@ type SnippetChunk struct {
 
 var ()
 
+func classInitSnippetChunker(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapSnippetChunk(obj *externglib.Object) *SnippetChunk {
 	return &SnippetChunk{
 		InitiallyUnowned: externglib.InitiallyUnowned{
@@ -35,7 +50,7 @@ func wrapSnippetChunk(obj *externglib.Object) *SnippetChunk {
 	}
 }
 
-func marshalSnippetChunker(p uintptr) (interface{}, error) {
+func marshalSnippetChunk(p uintptr) (interface{}, error) {
 	return wrapSnippetChunk(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -66,7 +81,7 @@ func (chunk *SnippetChunk) Copy() *SnippetChunk {
 	var _arg0 *C.GtkSourceSnippetChunk // out
 	var _cret *C.GtkSourceSnippetChunk // in
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 
 	_cret = C.gtk_source_snippet_chunk_copy(_arg0)
 	runtime.KeepAlive(chunk)
@@ -88,7 +103,7 @@ func (chunk *SnippetChunk) Context() *SnippetContext {
 	var _arg0 *C.GtkSourceSnippetChunk   // out
 	var _cret *C.GtkSourceSnippetContext // in
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 
 	_cret = C.gtk_source_snippet_chunk_get_context(_arg0)
 	runtime.KeepAlive(chunk)
@@ -118,7 +133,7 @@ func (chunk *SnippetChunk) FocusPosition() int {
 	var _arg0 *C.GtkSourceSnippetChunk // out
 	var _cret C.gint                   // in
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 
 	_cret = C.gtk_source_snippet_chunk_get_focus_position(_arg0)
 	runtime.KeepAlive(chunk)
@@ -145,7 +160,7 @@ func (chunk *SnippetChunk) Spec() string {
 	var _arg0 *C.GtkSourceSnippetChunk // out
 	var _cret *C.gchar                 // in
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 
 	_cret = C.gtk_source_snippet_chunk_get_spec(_arg0)
 	runtime.KeepAlive(chunk)
@@ -172,7 +187,7 @@ func (chunk *SnippetChunk) Text() string {
 	var _arg0 *C.GtkSourceSnippetChunk // out
 	var _cret *C.gchar                 // in
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 
 	_cret = C.gtk_source_snippet_chunk_get_text(_arg0)
 	runtime.KeepAlive(chunk)
@@ -194,7 +209,7 @@ func (chunk *SnippetChunk) TextSet() bool {
 	var _arg0 *C.GtkSourceSnippetChunk // out
 	var _cret C.gboolean               // in
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 
 	_cret = C.gtk_source_snippet_chunk_get_text_set(_arg0)
 	runtime.KeepAlive(chunk)
@@ -214,7 +229,7 @@ func (chunk *SnippetChunk) TooltipText() string {
 	var _arg0 *C.GtkSourceSnippetChunk // out
 	var _cret *C.char                  // in
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 
 	_cret = C.gtk_source_snippet_chunk_get_tooltip_text(_arg0)
 	runtime.KeepAlive(chunk)
@@ -232,8 +247,8 @@ func (chunk *SnippetChunk) SetContext(context *SnippetContext) {
 	var _arg0 *C.GtkSourceSnippetChunk   // out
 	var _arg1 *C.GtkSourceSnippetContext // out
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
-	_arg1 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(context.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
+	_arg1 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
 
 	C.gtk_source_snippet_chunk_set_context(_arg0, _arg1)
 	runtime.KeepAlive(chunk)
@@ -258,7 +273,7 @@ func (chunk *SnippetChunk) SetFocusPosition(focusPosition int) {
 	var _arg0 *C.GtkSourceSnippetChunk // out
 	var _arg1 C.gint                   // out
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 	_arg1 = C.gint(focusPosition)
 
 	C.gtk_source_snippet_chunk_set_focus_position(_arg0, _arg1)
@@ -281,7 +296,7 @@ func (chunk *SnippetChunk) SetSpec(spec string) {
 	var _arg0 *C.GtkSourceSnippetChunk // out
 	var _arg1 *C.gchar                 // out
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(spec)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -303,7 +318,7 @@ func (chunk *SnippetChunk) SetText(text string) {
 	var _arg0 *C.GtkSourceSnippetChunk // out
 	var _arg1 *C.gchar                 // out
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(text)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -325,7 +340,7 @@ func (chunk *SnippetChunk) SetTextSet(textSet bool) {
 	var _arg0 *C.GtkSourceSnippetChunk // out
 	var _arg1 C.gboolean               // out
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 	if textSet {
 		_arg1 = C.TRUE
 	}
@@ -341,7 +356,7 @@ func (chunk *SnippetChunk) SetTooltipText(tooltipText string) {
 	var _arg0 *C.GtkSourceSnippetChunk // out
 	var _arg1 *C.char                  // out
 
-	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(chunk.Native()))
+	_arg0 = (*C.GtkSourceSnippetChunk)(unsafe.Pointer(externglib.InternObject(chunk).Native()))
 	_arg1 = (*C.char)(unsafe.Pointer(C.CString(tooltipText)))
 	defer C.free(unsafe.Pointer(_arg1))
 

@@ -15,10 +15,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourceprintcompositor.go.
+var GTypePrintCompositor = externglib.Type(C.gtk_source_print_compositor_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_print_compositor_get_type()), F: marshalPrintCompositorrer},
+		{T: GTypePrintCompositor, F: marshalPrintCompositor},
 	})
+}
+
+// PrintCompositorOverrider contains methods that are overridable.
+type PrintCompositorOverrider interface {
 }
 
 type PrintCompositor struct {
@@ -30,13 +37,21 @@ var (
 	_ externglib.Objector = (*PrintCompositor)(nil)
 )
 
+func classInitPrintCompositorrer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapPrintCompositor(obj *externglib.Object) *PrintCompositor {
 	return &PrintCompositor{
 		Object: obj,
 	}
 }
 
-func marshalPrintCompositorrer(p uintptr) (interface{}, error) {
+func marshalPrintCompositor(p uintptr) (interface{}, error) {
 	return wrapPrintCompositor(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -55,7 +70,7 @@ func NewPrintCompositor(buffer *Buffer) *PrintCompositor {
 	var _arg1 *C.GtkSourceBuffer          // out
 	var _cret *C.GtkSourcePrintCompositor // in
 
-	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_print_compositor_new(_arg1)
 	runtime.KeepAlive(buffer)
@@ -87,7 +102,7 @@ func NewPrintCompositorFromView(view *View) *PrintCompositor {
 	var _arg1 *C.GtkSourceView            // out
 	var _cret *C.GtkSourcePrintCompositor // in
 
-	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_print_compositor_new_from_view(_arg1)
 	runtime.KeepAlive(view)
@@ -131,8 +146,8 @@ func (compositor *PrintCompositor) DrawPage(context *gtk.PrintContext, pageNr in
 	var _arg1 *C.GtkPrintContext          // out
 	var _arg2 C.gint                      // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
-	_arg1 = (*C.GtkPrintContext)(unsafe.Pointer(context.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg1 = (*C.GtkPrintContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
 	_arg2 = C.gint(pageNr)
 
 	C.gtk_source_print_compositor_draw_page(_arg0, _arg1, _arg2)
@@ -153,7 +168,7 @@ func (compositor *PrintCompositor) BodyFontName() string {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret *C.gchar                    // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_body_font_name(_arg0)
 	runtime.KeepAlive(compositor)
@@ -181,7 +196,7 @@ func (compositor *PrintCompositor) BottomMargin(unit gtk.Unit) float64 {
 	var _arg1 C.GtkUnit                   // out
 	var _cret C.gdouble                   // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = C.GtkUnit(unit)
 
 	_cret = C.gtk_source_print_compositor_get_bottom_margin(_arg0, _arg1)
@@ -207,7 +222,7 @@ func (compositor *PrintCompositor) Buffer() *Buffer {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret *C.GtkSourceBuffer          // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_buffer(_arg0)
 	runtime.KeepAlive(compositor)
@@ -231,7 +246,7 @@ func (compositor *PrintCompositor) FooterFontName() string {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret *C.gchar                    // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_footer_font_name(_arg0)
 	runtime.KeepAlive(compositor)
@@ -256,7 +271,7 @@ func (compositor *PrintCompositor) HeaderFontName() string {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret *C.gchar                    // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_header_font_name(_arg0)
 	runtime.KeepAlive(compositor)
@@ -281,7 +296,7 @@ func (compositor *PrintCompositor) HighlightSyntax() bool {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.gboolean                  // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_highlight_syntax(_arg0)
 	runtime.KeepAlive(compositor)
@@ -310,7 +325,7 @@ func (compositor *PrintCompositor) LeftMargin(unit gtk.Unit) float64 {
 	var _arg1 C.GtkUnit                   // out
 	var _cret C.gdouble                   // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = C.GtkUnit(unit)
 
 	_cret = C.gtk_source_print_compositor_get_left_margin(_arg0, _arg1)
@@ -336,7 +351,7 @@ func (compositor *PrintCompositor) LineNumbersFontName() string {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret *C.gchar                    // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_line_numbers_font_name(_arg0)
 	runtime.KeepAlive(compositor)
@@ -361,7 +376,7 @@ func (compositor *PrintCompositor) NPages() int {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.gint                      // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_n_pages(_arg0)
 	runtime.KeepAlive(compositor)
@@ -384,7 +399,7 @@ func (compositor *PrintCompositor) PaginationProgress() float64 {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.gdouble                   // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_pagination_progress(_arg0)
 	runtime.KeepAlive(compositor)
@@ -409,7 +424,7 @@ func (compositor *PrintCompositor) PrintFooter() bool {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.gboolean                  // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_print_footer(_arg0)
 	runtime.KeepAlive(compositor)
@@ -436,7 +451,7 @@ func (compositor *PrintCompositor) PrintHeader() bool {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.gboolean                  // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_print_header(_arg0)
 	runtime.KeepAlive(compositor)
@@ -462,7 +477,7 @@ func (compositor *PrintCompositor) PrintLineNumbers() uint {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.guint                     // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_print_line_numbers(_arg0)
 	runtime.KeepAlive(compositor)
@@ -489,7 +504,7 @@ func (compositor *PrintCompositor) RightMargin(unit gtk.Unit) float64 {
 	var _arg1 C.GtkUnit                   // out
 	var _cret C.gdouble                   // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = C.GtkUnit(unit)
 
 	_cret = C.gtk_source_print_compositor_get_right_margin(_arg0, _arg1)
@@ -513,7 +528,7 @@ func (compositor *PrintCompositor) TabWidth() uint {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.guint                     // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_tab_width(_arg0)
 	runtime.KeepAlive(compositor)
@@ -540,7 +555,7 @@ func (compositor *PrintCompositor) TopMargin(unit gtk.Unit) float64 {
 	var _arg1 C.GtkUnit                   // out
 	var _cret C.gdouble                   // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = C.GtkUnit(unit)
 
 	_cret = C.gtk_source_print_compositor_get_top_margin(_arg0, _arg1)
@@ -564,7 +579,7 @@ func (compositor *PrintCompositor) WrapMode() gtk.WrapMode {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.GtkWrapMode               // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_wrap_mode(_arg0)
 	runtime.KeepAlive(compositor)
@@ -644,8 +659,8 @@ func (compositor *PrintCompositor) Paginate(context *gtk.PrintContext) bool {
 	var _arg1 *C.GtkPrintContext          // out
 	var _cret C.gboolean                  // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
-	_arg1 = (*C.GtkPrintContext)(unsafe.Pointer(context.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg1 = (*C.GtkPrintContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
 
 	_cret = C.gtk_source_print_compositor_paginate(_arg0, _arg1)
 	runtime.KeepAlive(compositor)
@@ -678,7 +693,7 @@ func (compositor *PrintCompositor) SetBodyFontName(fontName string) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(fontName)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -699,7 +714,7 @@ func (compositor *PrintCompositor) SetBottomMargin(margin float64, unit gtk.Unit
 	var _arg1 C.gdouble                   // out
 	var _arg2 C.GtkUnit                   // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = C.gdouble(margin)
 	_arg2 = C.GtkUnit(unit)
 
@@ -729,7 +744,7 @@ func (compositor *PrintCompositor) SetFooterFontName(fontName string) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	if fontName != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(fontName)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -757,7 +772,7 @@ func (compositor *PrintCompositor) SetFooterFormat(separator bool, left, center,
 	var _arg3 *C.gchar                    // out
 	var _arg4 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	if separator {
 		_arg1 = C.TRUE
 	}
@@ -802,7 +817,7 @@ func (compositor *PrintCompositor) SetHeaderFontName(fontName string) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	if fontName != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(fontName)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -851,7 +866,7 @@ func (compositor *PrintCompositor) SetHeaderFormat(separator bool, left, center,
 	var _arg3 *C.gchar                    // out
 	var _arg4 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	if separator {
 		_arg1 = C.TRUE
 	}
@@ -890,7 +905,7 @@ func (compositor *PrintCompositor) SetHighlightSyntax(highlight bool) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.gboolean                  // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	if highlight {
 		_arg1 = C.TRUE
 	}
@@ -912,7 +927,7 @@ func (compositor *PrintCompositor) SetLeftMargin(margin float64, unit gtk.Unit) 
 	var _arg1 C.gdouble                   // out
 	var _arg2 C.GtkUnit                   // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = C.gdouble(margin)
 	_arg2 = C.GtkUnit(unit)
 
@@ -942,7 +957,7 @@ func (compositor *PrintCompositor) SetLineNumbersFontName(fontName string) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	if fontName != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(fontName)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -971,7 +986,7 @@ func (compositor *PrintCompositor) SetPrintFooter(print bool) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.gboolean                  // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	if print {
 		_arg1 = C.TRUE
 	}
@@ -999,7 +1014,7 @@ func (compositor *PrintCompositor) SetPrintHeader(print bool) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.gboolean                  // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	if print {
 		_arg1 = C.TRUE
 	}
@@ -1026,7 +1041,7 @@ func (compositor *PrintCompositor) SetPrintLineNumbers(interval uint) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.guint                     // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = C.guint(interval)
 
 	C.gtk_source_print_compositor_set_print_line_numbers(_arg0, _arg1)
@@ -1046,7 +1061,7 @@ func (compositor *PrintCompositor) SetRightMargin(margin float64, unit gtk.Unit)
 	var _arg1 C.gdouble                   // out
 	var _arg2 C.GtkUnit                   // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = C.gdouble(margin)
 	_arg2 = C.GtkUnit(unit)
 
@@ -1069,7 +1084,7 @@ func (compositor *PrintCompositor) SetTabWidth(width uint) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.guint                     // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = C.guint(width)
 
 	C.gtk_source_print_compositor_set_tab_width(_arg0, _arg1)
@@ -1089,7 +1104,7 @@ func (compositor *PrintCompositor) SetTopMargin(margin float64, unit gtk.Unit) {
 	var _arg1 C.gdouble                   // out
 	var _arg2 C.GtkUnit                   // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = C.gdouble(margin)
 	_arg2 = C.GtkUnit(unit)
 
@@ -1112,7 +1127,7 @@ func (compositor *PrintCompositor) SetWrapMode(wrapMode gtk.WrapMode) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.GtkWrapMode               // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(compositor.Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
 	_arg1 = C.GtkWrapMode(wrapMode)
 
 	C.gtk_source_print_compositor_set_wrap_mode(_arg0, _arg1)

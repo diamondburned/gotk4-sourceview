@@ -15,10 +15,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcegutter.go.
+var GTypeGutter = externglib.Type(C.gtk_source_gutter_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_gutter_get_type()), F: marshalGutterer},
+		{T: GTypeGutter, F: marshalGutter},
 	})
+}
+
+// GutterOverrider contains methods that are overridable.
+type GutterOverrider interface {
 }
 
 type Gutter struct {
@@ -29,6 +36,14 @@ type Gutter struct {
 var (
 	_ gtk.Widgetter = (*Gutter)(nil)
 )
+
+func classInitGutterer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
 
 func wrapGutter(obj *externglib.Object) *Gutter {
 	return &Gutter{
@@ -50,7 +65,7 @@ func wrapGutter(obj *externglib.Object) *Gutter {
 	}
 }
 
-func marshalGutterer(p uintptr) (interface{}, error) {
+func marshalGutter(p uintptr) (interface{}, error) {
 	return wrapGutter(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -62,7 +77,7 @@ func (gutter *Gutter) View() *View {
 	var _arg0 *C.GtkSourceGutter // out
 	var _cret *C.GtkSourceView   // in
 
-	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(gutter.Native()))
+	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(externglib.InternObject(gutter).Native()))
 
 	_cret = C.gtk_source_gutter_get_view(_arg0)
 	runtime.KeepAlive(gutter)
@@ -93,8 +108,8 @@ func (gutter *Gutter) Insert(renderer GutterRendererer, position int) bool {
 	var _arg2 C.gint                     // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(gutter.Native()))
-	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(renderer.Native()))
+	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(externglib.InternObject(gutter).Native()))
+	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
 	_arg2 = C.gint(position)
 
 	_cret = C.gtk_source_gutter_insert(_arg0, _arg1, _arg2)
@@ -117,8 +132,8 @@ func (gutter *Gutter) Remove(renderer GutterRendererer) {
 	var _arg0 *C.GtkSourceGutter         // out
 	var _arg1 *C.GtkSourceGutterRenderer // out
 
-	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(gutter.Native()))
-	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(renderer.Native()))
+	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(externglib.InternObject(gutter).Native()))
+	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
 
 	C.gtk_source_gutter_remove(_arg0, _arg1)
 	runtime.KeepAlive(gutter)
@@ -137,8 +152,8 @@ func (gutter *Gutter) Reorder(renderer GutterRendererer, position int) {
 	var _arg1 *C.GtkSourceGutterRenderer // out
 	var _arg2 C.gint                     // out
 
-	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(gutter.Native()))
-	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(renderer.Native()))
+	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(externglib.InternObject(gutter).Native()))
+	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
 	_arg2 = C.gint(position)
 
 	C.gtk_source_gutter_reorder(_arg0, _arg1, _arg2)

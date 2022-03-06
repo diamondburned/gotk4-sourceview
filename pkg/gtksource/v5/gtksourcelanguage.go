@@ -14,10 +14,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcelanguage.go.
+var GTypeLanguage = externglib.Type(C.gtk_source_language_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_language_get_type()), F: marshalLanguager},
+		{T: GTypeLanguage, F: marshalLanguage},
 	})
+}
+
+// LanguageOverrider contains methods that are overridable.
+type LanguageOverrider interface {
 }
 
 type Language struct {
@@ -29,13 +36,21 @@ var (
 	_ externglib.Objector = (*Language)(nil)
 )
 
+func classInitLanguager(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapLanguage(obj *externglib.Object) *Language {
 	return &Language{
 		Object: obj,
 	}
 }
 
-func marshalLanguager(p uintptr) (interface{}, error) {
+func marshalLanguage(p uintptr) (interface{}, error) {
 	return wrapLanguage(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -53,7 +68,7 @@ func (language *Language) Globs() []string {
 	var _arg0 *C.GtkSourceLanguage // out
 	var _cret **C.gchar            // in
 
-	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 
 	_cret = C.gtk_source_language_get_globs(_arg0)
 	runtime.KeepAlive(language)
@@ -91,7 +106,7 @@ func (language *Language) Hidden() bool {
 	var _arg0 *C.GtkSourceLanguage // out
 	var _cret C.gboolean           // in
 
-	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 
 	_cret = C.gtk_source_language_get_hidden(_arg0)
 	runtime.KeepAlive(language)
@@ -116,7 +131,7 @@ func (language *Language) ID() string {
 	var _arg0 *C.GtkSourceLanguage // out
 	var _cret *C.gchar             // in
 
-	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 
 	_cret = C.gtk_source_language_get_id(_arg0)
 	runtime.KeepAlive(language)
@@ -144,7 +159,7 @@ func (language *Language) Metadata(name string) string {
 	var _arg1 *C.gchar             // out
 	var _cret *C.gchar             // in
 
-	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(name)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -175,7 +190,7 @@ func (language *Language) MIMETypes() []string {
 	var _arg0 *C.GtkSourceLanguage // out
 	var _cret **C.gchar            // in
 
-	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 
 	_cret = C.gtk_source_language_get_mime_types(_arg0)
 	runtime.KeepAlive(language)
@@ -214,7 +229,7 @@ func (language *Language) Name() string {
 	var _arg0 *C.GtkSourceLanguage // out
 	var _cret *C.gchar             // in
 
-	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 
 	_cret = C.gtk_source_language_get_name(_arg0)
 	runtime.KeepAlive(language)
@@ -238,7 +253,7 @@ func (language *Language) Section() string {
 	var _arg0 *C.GtkSourceLanguage // out
 	var _cret *C.gchar             // in
 
-	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 
 	_cret = C.gtk_source_language_get_section(_arg0)
 	runtime.KeepAlive(language)
@@ -269,7 +284,7 @@ func (language *Language) StyleFallback(styleId string) string {
 	var _arg1 *C.gchar             // out
 	var _cret *C.gchar             // in
 
-	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(styleId)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -298,7 +313,7 @@ func (language *Language) StyleIDs() []string {
 	var _arg0 *C.GtkSourceLanguage // out
 	var _cret **C.gchar            // in
 
-	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 
 	_cret = C.gtk_source_language_get_style_ids(_arg0)
 	runtime.KeepAlive(language)
@@ -345,7 +360,7 @@ func (language *Language) StyleName(styleId string) string {
 	var _arg1 *C.gchar             // out
 	var _cret *C.gchar             // in
 
-	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(language.Native()))
+	_arg0 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(styleId)))
 	defer C.free(unsafe.Pointer(_arg1))
 

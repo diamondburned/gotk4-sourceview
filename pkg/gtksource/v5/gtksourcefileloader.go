@@ -19,15 +19,21 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern void _gotk4_gio2_AsyncReadyCallback(GObject*, GAsyncResult*, gpointer);
+// extern void _gotk4_gio2_FileProgressCallback(goffset, goffset, gpointer);
 // extern void callbackDelete(gpointer);
-// void _gotk4_gio2_AsyncReadyCallback(GObject*, GAsyncResult*, gpointer);
-// void _gotk4_gio2_FileProgressCallback(goffset, goffset, gpointer);
 import "C"
+
+// glib.Type values for gtksourcefileloader.go.
+var (
+	GTypeFileLoaderError = externglib.Type(C.gtk_source_file_loader_error_get_type())
+	GTypeFileLoader      = externglib.Type(C.gtk_source_file_loader_get_type())
+)
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_file_loader_error_get_type()), F: marshalFileLoaderError},
-		{T: externglib.Type(C.gtk_source_file_loader_get_type()), F: marshalFileLoaderer},
+		{T: GTypeFileLoaderError, F: marshalFileLoaderError},
+		{T: GTypeFileLoader, F: marshalFileLoader},
 	})
 }
 
@@ -64,6 +70,10 @@ func (f FileLoaderError) String() string {
 	}
 }
 
+// FileLoaderOverrider contains methods that are overridable.
+type FileLoaderOverrider interface {
+}
+
 type FileLoader struct {
 	_ [0]func() // equal guard
 	*externglib.Object
@@ -73,13 +83,21 @@ var (
 	_ externglib.Objector = (*FileLoader)(nil)
 )
 
+func classInitFileLoaderer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapFileLoader(obj *externglib.Object) *FileLoader {
 	return &FileLoader{
 		Object: obj,
 	}
 }
 
-func marshalFileLoaderer(p uintptr) (interface{}, error) {
+func marshalFileLoader(p uintptr) (interface{}, error) {
 	return wrapFileLoader(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -103,8 +121,8 @@ func NewFileLoader(buffer *Buffer, file *File) *FileLoader {
 	var _arg2 *C.GtkSourceFile       // out
 	var _cret *C.GtkSourceFileLoader // in
 
-	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
-	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
+	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
 
 	_cret = C.gtk_source_file_loader_new(_arg1, _arg2)
 	runtime.KeepAlive(buffer)
@@ -136,9 +154,9 @@ func NewFileLoaderFromStream(buffer *Buffer, file *File, stream gio.InputStreame
 	var _arg3 *C.GInputStream        // out
 	var _cret *C.GtkSourceFileLoader // in
 
-	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
-	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(file.Native()))
-	_arg3 = (*C.GInputStream)(unsafe.Pointer(stream.Native()))
+	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
+	_arg3 = (*C.GInputStream)(unsafe.Pointer(externglib.InternObject(stream).Native()))
 
 	_cret = C.gtk_source_file_loader_new_from_stream(_arg1, _arg2, _arg3)
 	runtime.KeepAlive(buffer)
@@ -160,7 +178,7 @@ func (loader *FileLoader) Buffer() *Buffer {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret *C.GtkSourceBuffer     // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(loader.Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_buffer(_arg0)
 	runtime.KeepAlive(loader)
@@ -180,7 +198,7 @@ func (loader *FileLoader) CompressionType() CompressionType {
 	var _arg0 *C.GtkSourceFileLoader     // out
 	var _cret C.GtkSourceCompressionType // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(loader.Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_compression_type(_arg0)
 	runtime.KeepAlive(loader)
@@ -200,7 +218,7 @@ func (loader *FileLoader) Encoding() *Encoding {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret *C.GtkSourceEncoding   // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(loader.Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_encoding(_arg0)
 	runtime.KeepAlive(loader)
@@ -220,7 +238,7 @@ func (loader *FileLoader) File() *File {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret *C.GtkSourceFile       // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(loader.Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_file(_arg0)
 	runtime.KeepAlive(loader)
@@ -240,7 +258,7 @@ func (loader *FileLoader) InputStream() gio.InputStreamer {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret *C.GInputStream        // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(loader.Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_input_stream(_arg0)
 	runtime.KeepAlive(loader)
@@ -275,7 +293,7 @@ func (loader *FileLoader) Location() gio.Filer {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret *C.GFile               // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(loader.Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_location(_arg0)
 	runtime.KeepAlive(loader)
@@ -310,7 +328,7 @@ func (loader *FileLoader) NewlineType() NewlineType {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret C.GtkSourceNewlineType // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(loader.Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_newline_type(_arg0)
 	runtime.KeepAlive(loader)
@@ -344,7 +362,7 @@ func (loader *FileLoader) LoadAsync(ctx context.Context, ioPriority int, progres
 	var _arg6 C.GAsyncReadyCallback // out
 	var _arg7 C.gpointer
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(loader.Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
 	{
 		cancellable := gcancel.GCancellableFromContext(ctx)
 		defer runtime.KeepAlive(cancellable)
@@ -385,8 +403,8 @@ func (loader *FileLoader) LoadFinish(result gio.AsyncResulter) error {
 	var _arg1 *C.GAsyncResult        // out
 	var _cerr *C.GError              // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(loader.Native()))
-	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(result.Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
+	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(externglib.InternObject(result).Native()))
 
 	C.gtk_source_file_loader_load_finish(_arg0, _arg1, &_cerr)
 	runtime.KeepAlive(loader)
@@ -420,7 +438,7 @@ func (loader *FileLoader) SetCandidateEncodings(candidateEncodings []*Encoding) 
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _arg1 *C.GSList              // out
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(loader.Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
 	for i := len(candidateEncodings) - 1; i >= 0; i-- {
 		src := candidateEncodings[i]
 		var dst *C.GtkSourceEncoding // out

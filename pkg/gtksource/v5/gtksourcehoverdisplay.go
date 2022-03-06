@@ -15,10 +15,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcehoverdisplay.go.
+var GTypeHoverDisplay = externglib.Type(C.gtk_source_hover_display_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_hover_display_get_type()), F: marshalHoverDisplayer},
+		{T: GTypeHoverDisplay, F: marshalHoverDisplay},
 	})
+}
+
+// HoverDisplayOverrider contains methods that are overridable.
+type HoverDisplayOverrider interface {
 }
 
 type HoverDisplay struct {
@@ -29,6 +36,14 @@ type HoverDisplay struct {
 var (
 	_ gtk.Widgetter = (*HoverDisplay)(nil)
 )
+
+func classInitHoverDisplayer(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
 
 func wrapHoverDisplay(obj *externglib.Object) *HoverDisplay {
 	return &HoverDisplay{
@@ -50,7 +65,7 @@ func wrapHoverDisplay(obj *externglib.Object) *HoverDisplay {
 	}
 }
 
-func marshalHoverDisplayer(p uintptr) (interface{}, error) {
+func marshalHoverDisplay(p uintptr) (interface{}, error) {
 	return wrapHoverDisplay(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -60,8 +75,8 @@ func (self *HoverDisplay) Append(child gtk.Widgetter) {
 	var _arg0 *C.GtkSourceHoverDisplay // out
 	var _arg1 *C.GtkWidget             // out
 
-	_arg0 = (*C.GtkSourceHoverDisplay)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GtkWidget)(unsafe.Pointer(child.Native()))
+	_arg0 = (*C.GtkSourceHoverDisplay)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkWidget)(unsafe.Pointer(externglib.InternObject(child).Native()))
 
 	C.gtk_source_hover_display_append(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -78,9 +93,9 @@ func (self *HoverDisplay) InsertAfter(child, sibling gtk.Widgetter) {
 	var _arg1 *C.GtkWidget             // out
 	var _arg2 *C.GtkWidget             // out
 
-	_arg0 = (*C.GtkSourceHoverDisplay)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GtkWidget)(unsafe.Pointer(child.Native()))
-	_arg2 = (*C.GtkWidget)(unsafe.Pointer(sibling.Native()))
+	_arg0 = (*C.GtkSourceHoverDisplay)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkWidget)(unsafe.Pointer(externglib.InternObject(child).Native()))
+	_arg2 = (*C.GtkWidget)(unsafe.Pointer(externglib.InternObject(sibling).Native()))
 
 	C.gtk_source_hover_display_insert_after(_arg0, _arg1, _arg2)
 	runtime.KeepAlive(self)
@@ -94,8 +109,8 @@ func (self *HoverDisplay) Prepend(child gtk.Widgetter) {
 	var _arg0 *C.GtkSourceHoverDisplay // out
 	var _arg1 *C.GtkWidget             // out
 
-	_arg0 = (*C.GtkSourceHoverDisplay)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GtkWidget)(unsafe.Pointer(child.Native()))
+	_arg0 = (*C.GtkSourceHoverDisplay)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkWidget)(unsafe.Pointer(externglib.InternObject(child).Native()))
 
 	C.gtk_source_hover_display_prepend(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -108,8 +123,8 @@ func (self *HoverDisplay) Remove(child gtk.Widgetter) {
 	var _arg0 *C.GtkSourceHoverDisplay // out
 	var _arg1 *C.GtkWidget             // out
 
-	_arg0 = (*C.GtkSourceHoverDisplay)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GtkWidget)(unsafe.Pointer(child.Native()))
+	_arg0 = (*C.GtkSourceHoverDisplay)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkWidget)(unsafe.Pointer(externglib.InternObject(child).Native()))
 
 	C.gtk_source_hover_display_remove(_arg0, _arg1)
 	runtime.KeepAlive(self)

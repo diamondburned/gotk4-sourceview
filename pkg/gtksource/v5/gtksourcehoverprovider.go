@@ -17,37 +17,18 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
-// void _gotk4_gio2_AsyncReadyCallback(GObject*, GAsyncResult*, gpointer);
+// extern gboolean _gotk4_gtksource5_HoverProviderInterface_populate(GtkSourceHoverProvider*, GtkSourceHoverContext*, GtkSourceHoverDisplay*, GError**);
+// extern gboolean _gotk4_gtksource5_HoverProviderInterface_populate_finish(GtkSourceHoverProvider*, GAsyncResult*, GError**);
+// extern void _gotk4_gio2_AsyncReadyCallback(GObject*, GAsyncResult*, gpointer);
 import "C"
+
+// glib.Type values for gtksourcehoverprovider.go.
+var GTypeHoverProvider = externglib.Type(C.gtk_source_hover_provider_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_hover_provider_get_type()), F: marshalHoverProviderer},
+		{T: GTypeHoverProvider, F: marshalHoverProvider},
 	})
-}
-
-// HoverProviderOverrider contains methods that are overridable.
-//
-// As of right now, interface overriding and subclassing is not supported
-// yet, so the interface currently has no use.
-type HoverProviderOverrider interface {
-	// The function takes the following parameters:
-	//
-	//    - context
-	//    - display
-	//
-	Populate(context *HoverContext, display *HoverDisplay) error
-	// The function takes the following parameters:
-	//
-	//    - ctx (optional)
-	//    - context
-	//    - display
-	//    - callback (optional)
-	//
-	PopulateAsync(ctx context.Context, context *HoverContext, display *HoverDisplay, callback gio.AsyncReadyCallback)
-	// The function takes the following parameters:
-	//
-	PopulateFinish(result gio.AsyncResulter) error
 }
 
 type HoverProvider struct {
@@ -75,7 +56,7 @@ func wrapHoverProvider(obj *externglib.Object) *HoverProvider {
 	}
 }
 
-func marshalHoverProviderer(p uintptr) (interface{}, error) {
+func marshalHoverProvider(p uintptr) (interface{}, error) {
 	return wrapHoverProvider(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -94,14 +75,14 @@ func (self *HoverProvider) PopulateAsync(ctx context.Context, context *HoverCont
 	var _arg4 C.GAsyncReadyCallback     // out
 	var _arg5 C.gpointer
 
-	_arg0 = (*C.GtkSourceHoverProvider)(unsafe.Pointer(self.Native()))
+	_arg0 = (*C.GtkSourceHoverProvider)(unsafe.Pointer(externglib.InternObject(self).Native()))
 	{
 		cancellable := gcancel.GCancellableFromContext(ctx)
 		defer runtime.KeepAlive(cancellable)
 		_arg3 = (*C.GCancellable)(unsafe.Pointer(cancellable.Native()))
 	}
-	_arg1 = (*C.GtkSourceHoverContext)(unsafe.Pointer(context.Native()))
-	_arg2 = (*C.GtkSourceHoverDisplay)(unsafe.Pointer(display.Native()))
+	_arg1 = (*C.GtkSourceHoverContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
+	_arg2 = (*C.GtkSourceHoverDisplay)(unsafe.Pointer(externglib.InternObject(display).Native()))
 	if callback != nil {
 		_arg4 = (*[0]byte)(C._gotk4_gio2_AsyncReadyCallback)
 		_arg5 = C.gpointer(gbox.AssignOnce(callback))
@@ -122,8 +103,8 @@ func (self *HoverProvider) PopulateFinish(result gio.AsyncResulter) error {
 	var _arg1 *C.GAsyncResult           // out
 	var _cerr *C.GError                 // in
 
-	_arg0 = (*C.GtkSourceHoverProvider)(unsafe.Pointer(self.Native()))
-	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(result.Native()))
+	_arg0 = (*C.GtkSourceHoverProvider)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(externglib.InternObject(result).Native()))
 
 	C.gtk_source_hover_provider_populate_finish(_arg0, _arg1, &_cerr)
 	runtime.KeepAlive(self)

@@ -15,10 +15,17 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
+// glib.Type values for gtksourcemap.go.
+var GTypeMap = externglib.Type(C.gtk_source_map_get_type())
+
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_map_get_type()), F: marshalMapper},
+		{T: GTypeMap, F: marshalMap},
 	})
+}
+
+// MapOverrider contains methods that are overridable.
+type MapOverrider interface {
 }
 
 type Map struct {
@@ -30,6 +37,14 @@ var (
 	_ gtk.Widgetter       = (*Map)(nil)
 	_ externglib.Objector = (*Map)(nil)
 )
+
+func classInitMapper(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
 
 func wrapMap(obj *externglib.Object) *Map {
 	return &Map{
@@ -59,7 +74,7 @@ func wrapMap(obj *externglib.Object) *Map {
 	}
 }
 
-func marshalMapper(p uintptr) (interface{}, error) {
+func marshalMap(p uintptr) (interface{}, error) {
 	return wrapMap(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -92,7 +107,7 @@ func (_map *Map) GetView() *View {
 	var _arg0 *C.GtkSourceMap  // out
 	var _cret *C.GtkSourceView // in
 
-	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(_map.Native()))
+	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(externglib.InternObject(_map).Native()))
 
 	_cret = C.gtk_source_map_get_view(_arg0)
 	runtime.KeepAlive(_map)
@@ -116,8 +131,8 @@ func (_map *Map) SetView(view *View) {
 	var _arg0 *C.GtkSourceMap  // out
 	var _arg1 *C.GtkSourceView // out
 
-	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(_map.Native()))
-	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(view.Native()))
+	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(externglib.InternObject(_map).Native()))
+	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
 
 	C.gtk_source_map_set_view(_arg0, _arg1)
 	runtime.KeepAlive(_map)

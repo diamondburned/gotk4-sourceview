@@ -19,13 +19,20 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
-// void _gotk4_gio2_AsyncReadyCallback(GObject*, GAsyncResult*, gpointer);
+// extern void _gotk4_gio2_AsyncReadyCallback(GObject*, GAsyncResult*, gpointer);
 import "C"
+
+// glib.Type values for gtksourcesearchcontext.go.
+var GTypeSearchContext = externglib.Type(C.gtk_source_search_context_get_type())
 
 func init() {
 	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: externglib.Type(C.gtk_source_search_context_get_type()), F: marshalSearchContexter},
+		{T: GTypeSearchContext, F: marshalSearchContext},
 	})
+}
+
+// SearchContextOverrider contains methods that are overridable.
+type SearchContextOverrider interface {
 }
 
 type SearchContext struct {
@@ -37,13 +44,21 @@ var (
 	_ externglib.Objector = (*SearchContext)(nil)
 )
 
+func classInitSearchContexter(gclassPtr, data C.gpointer) {
+	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+
+	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
+	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+
+}
+
 func wrapSearchContext(obj *externglib.Object) *SearchContext {
 	return &SearchContext{
 		Object: obj,
 	}
 }
 
-func marshalSearchContexter(p uintptr) (interface{}, error) {
+func marshalSearchContext(p uintptr) (interface{}, error) {
 	return wrapSearchContext(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
@@ -66,9 +81,9 @@ func NewSearchContext(buffer *Buffer, settings *SearchSettings) *SearchContext {
 	var _arg2 *C.GtkSourceSearchSettings // out
 	var _cret *C.GtkSourceSearchContext  // in
 
-	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(buffer.Native()))
+	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
 	if settings != nil {
-		_arg2 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(settings.Native()))
+		_arg2 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
 	}
 
 	_cret = C.gtk_source_search_context_new(_arg1, _arg2)
@@ -114,7 +129,7 @@ func (search *SearchContext) Backward(iter *gtk.TextIter) (matchStart *gtk.TextI
 	var _arg4 C.gboolean                // in
 	var _cret C.gboolean                // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 
 	_cret = C.gtk_source_search_context_backward(_arg0, _arg1, &_arg2, &_arg3, &_arg4)
@@ -162,7 +177,7 @@ func (search *SearchContext) BackwardAsync(ctx context.Context, iter *gtk.TextIt
 	var _arg3 C.GAsyncReadyCallback     // out
 	var _arg4 C.gpointer
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 	{
 		cancellable := gcancel.GCancellableFromContext(ctx)
 		defer runtime.KeepAlive(cancellable)
@@ -206,8 +221,8 @@ func (search *SearchContext) BackwardFinish(result gio.AsyncResulter) (matchStar
 	var _arg4 C.gboolean                // in
 	var _cerr *C.GError                 // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
-	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(result.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
+	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(externglib.InternObject(result).Native()))
 
 	C.gtk_source_search_context_backward_finish(_arg0, _arg1, &_arg2, &_arg3, &_arg4, &_cerr)
 	runtime.KeepAlive(search)
@@ -261,7 +276,7 @@ func (search *SearchContext) Forward(iter *gtk.TextIter) (matchStart *gtk.TextIt
 	var _arg4 C.gboolean                // in
 	var _cret C.gboolean                // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 
 	_cret = C.gtk_source_search_context_forward(_arg0, _arg1, &_arg2, &_arg3, &_arg4)
@@ -309,7 +324,7 @@ func (search *SearchContext) ForwardAsync(ctx context.Context, iter *gtk.TextIte
 	var _arg3 C.GAsyncReadyCallback     // out
 	var _arg4 C.gpointer
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 	{
 		cancellable := gcancel.GCancellableFromContext(ctx)
 		defer runtime.KeepAlive(cancellable)
@@ -353,8 +368,8 @@ func (search *SearchContext) ForwardFinish(result gio.AsyncResulter) (matchStart
 	var _arg4 C.gboolean                // in
 	var _cerr *C.GError                 // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
-	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(result.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
+	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(externglib.InternObject(result).Native()))
 
 	C.gtk_source_search_context_forward_finish(_arg0, _arg1, &_arg2, &_arg3, &_arg4, &_cerr)
 	runtime.KeepAlive(search)
@@ -385,7 +400,7 @@ func (search *SearchContext) Buffer() *Buffer {
 	var _arg0 *C.GtkSourceSearchContext // out
 	var _cret *C.GtkSourceBuffer        // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 
 	_cret = C.gtk_source_search_context_get_buffer(_arg0)
 	runtime.KeepAlive(search)
@@ -405,7 +420,7 @@ func (search *SearchContext) Highlight() bool {
 	var _arg0 *C.GtkSourceSearchContext // out
 	var _cret C.gboolean                // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 
 	_cret = C.gtk_source_search_context_get_highlight(_arg0)
 	runtime.KeepAlive(search)
@@ -427,7 +442,7 @@ func (search *SearchContext) MatchStyle() *Style {
 	var _arg0 *C.GtkSourceSearchContext // out
 	var _cret *C.GtkSourceStyle         // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 
 	_cret = C.gtk_source_search_context_get_match_style(_arg0)
 	runtime.KeepAlive(search)
@@ -461,7 +476,7 @@ func (search *SearchContext) OccurrencePosition(matchStart, matchEnd *gtk.TextIt
 	var _arg2 *C.GtkTextIter            // out
 	var _cret C.gint                    // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(matchStart)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(matchEnd)))
 
@@ -489,7 +504,7 @@ func (search *SearchContext) OccurrencesCount() int {
 	var _arg0 *C.GtkSourceSearchContext // out
 	var _cret C.gint                    // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 
 	_cret = C.gtk_source_search_context_get_occurrences_count(_arg0)
 	runtime.KeepAlive(search)
@@ -515,7 +530,7 @@ func (search *SearchContext) RegexError() error {
 	var _arg0 *C.GtkSourceSearchContext // out
 	var _cret *C.GError                 // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 
 	_cret = C.gtk_source_search_context_get_regex_error(_arg0)
 	runtime.KeepAlive(search)
@@ -537,7 +552,7 @@ func (search *SearchContext) Settings() *SearchSettings {
 	var _arg0 *C.GtkSourceSearchContext  // out
 	var _cret *C.GtkSourceSearchSettings // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 
 	_cret = C.gtk_source_search_context_get_settings(_arg0)
 	runtime.KeepAlive(search)
@@ -574,7 +589,7 @@ func (search *SearchContext) Replace(matchStart, matchEnd *gtk.TextIter, replace
 	var _arg4 C.gint                    // out
 	var _cerr *C.GError                 // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(matchStart)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(matchEnd)))
 	_arg3 = (*C.gchar)(unsafe.Pointer(C.CString(replace)))
@@ -620,7 +635,7 @@ func (search *SearchContext) ReplaceAll(replace string, replaceLength int) (uint
 	var _cret C.guint                   // in
 	var _cerr *C.GError                 // in
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(replace)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = C.gint(replaceLength)
@@ -651,7 +666,7 @@ func (search *SearchContext) SetHighlight(highlight bool) {
 	var _arg0 *C.GtkSourceSearchContext // out
 	var _arg1 C.gboolean                // out
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 	if highlight {
 		_arg1 = C.TRUE
 	}
@@ -673,9 +688,9 @@ func (search *SearchContext) SetMatchStyle(matchStyle *Style) {
 	var _arg0 *C.GtkSourceSearchContext // out
 	var _arg1 *C.GtkSourceStyle         // out
 
-	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(search.Native()))
+	_arg0 = (*C.GtkSourceSearchContext)(unsafe.Pointer(externglib.InternObject(search).Native()))
 	if matchStyle != nil {
-		_arg1 = (*C.GtkSourceStyle)(unsafe.Pointer(matchStyle.Native()))
+		_arg1 = (*C.GtkSourceStyle)(unsafe.Pointer(externglib.InternObject(matchStyle).Native()))
 	}
 
 	C.gtk_source_search_context_set_match_style(_arg0, _arg1)
