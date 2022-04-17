@@ -533,7 +533,7 @@ func (buffer *Buffer) Language() *Language {
 //
 //    - sList: a newly allocated List.
 //
-func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []Mark {
+func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []*Mark {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 *C.GtkTextIter     // out
 	var _arg2 *C.gchar           // out
@@ -551,13 +551,13 @@ func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []M
 	runtime.KeepAlive(iter)
 	runtime.KeepAlive(category)
 
-	var _sList []Mark // out
+	var _sList []*Mark // out
 
-	_sList = make([]Mark, 0, gextras.SListSize(unsafe.Pointer(_cret)))
+	_sList = make([]*Mark, 0, gextras.SListSize(unsafe.Pointer(_cret)))
 	gextras.MoveSList(unsafe.Pointer(_cret), true, func(v unsafe.Pointer) {
 		src := (*C.GtkSourceMark)(v)
-		var dst Mark // out
-		dst = *wrapMark(externglib.Take(unsafe.Pointer(src)))
+		var dst *Mark // out
+		dst = wrapMark(externglib.Take(unsafe.Pointer(src)))
 		_sList = append(_sList, dst)
 	})
 
@@ -576,7 +576,7 @@ func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []M
 //
 //    - sList: a newly allocated List.
 //
-func (buffer *Buffer) SourceMarksAtLine(line int, category string) []Mark {
+func (buffer *Buffer) SourceMarksAtLine(line int, category string) []*Mark {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 C.gint             // out
 	var _arg2 *C.gchar           // out
@@ -594,13 +594,13 @@ func (buffer *Buffer) SourceMarksAtLine(line int, category string) []Mark {
 	runtime.KeepAlive(line)
 	runtime.KeepAlive(category)
 
-	var _sList []Mark // out
+	var _sList []*Mark // out
 
-	_sList = make([]Mark, 0, gextras.SListSize(unsafe.Pointer(_cret)))
+	_sList = make([]*Mark, 0, gextras.SListSize(unsafe.Pointer(_cret)))
 	gextras.MoveSList(unsafe.Pointer(_cret), true, func(v unsafe.Pointer) {
 		src := (*C.GtkSourceMark)(v)
-		var dst Mark // out
-		dst = *wrapMark(externglib.Take(unsafe.Pointer(src)))
+		var dst *Mark // out
+		dst = wrapMark(externglib.Take(unsafe.Pointer(src)))
 		_sList = append(_sList, dst)
 	})
 

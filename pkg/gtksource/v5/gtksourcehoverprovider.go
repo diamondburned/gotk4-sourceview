@@ -31,6 +31,9 @@ func init() {
 	})
 }
 
+//
+// HoverProvider wraps an interface. This means the user can get the
+// underlying type by calling Cast().
 type HoverProvider struct {
 	_ [0]func() // equal guard
 	*externglib.Object

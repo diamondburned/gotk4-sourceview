@@ -80,7 +80,7 @@ type CompletionProviderOverrider interface {
 	//    - icon (optional) to be used for the provider, or NULL if the provider
 	//      does not have a special icon.
 	//
-	GIcon() gio.Iconner
+	GIcon() *gio.Icon
 	// Icon: get the Pixbuf for the icon of the provider.
 	//
 	// The function returns the following values:
@@ -209,6 +209,9 @@ type CompletionProviderOverrider interface {
 	UpdateInfo(proposal CompletionProposaller, info *CompletionInfo)
 }
 
+//
+// CompletionProvider wraps an interface. This means the user can get the
+// underlying type by calling Cast().
 type CompletionProvider struct {
 	_ [0]func() // equal guard
 	*externglib.Object
@@ -228,7 +231,7 @@ type CompletionProviderer interface {
 	// activated.
 	Activation() CompletionActivation
 	// GIcon gets the #GIcon for the icon of provider.
-	GIcon() gio.Iconner
+	GIcon() *gio.Icon
 	// Icon: get the Pixbuf for the icon of the provider.
 	Icon() *gdkpixbuf.Pixbuf
 	// IconName gets the icon name of provider.
@@ -618,7 +621,7 @@ func (provider *CompletionProvider) Activation() CompletionActivation {
 //    - icon (optional) to be used for the provider, or NULL if the provider does
 //      not have a special icon.
 //
-func (provider *CompletionProvider) GIcon() gio.Iconner {
+func (provider *CompletionProvider) GIcon() *gio.Icon {
 	var _arg0 *C.GtkSourceCompletionProvider // out
 	var _cret *C.GIcon                       // in
 
@@ -627,22 +630,14 @@ func (provider *CompletionProvider) GIcon() gio.Iconner {
 	_cret = C.gtk_source_completion_provider_get_gicon(_arg0)
 	runtime.KeepAlive(provider)
 
-	var _icon gio.Iconner // out
+	var _icon *gio.Icon // out
 
 	if _cret != nil {
 		{
-			objptr := unsafe.Pointer(_cret)
-
-			object := externglib.Take(objptr)
-			casted := object.WalkCast(func(obj externglib.Objector) bool {
-				_, ok := obj.(gio.Iconner)
-				return ok
-			})
-			rv, ok := casted.(gio.Iconner)
-			if !ok {
-				panic("no marshaler for " + object.TypeFromInstance().String() + " matching gio.Iconner")
+			obj := externglib.Take(unsafe.Pointer(_cret))
+			_icon = &gio.Icon{
+				Object: obj,
 			}
-			_icon = rv
 		}
 	}
 

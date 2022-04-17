@@ -174,7 +174,7 @@ func (attributes *MarkAttributes) Background() (*gdk.RGBA, bool) {
 //
 //    - icon: icon. The icon belongs to attributes and should not be unreffed.
 //
-func (attributes *MarkAttributes) GIcon() gio.Iconner {
+func (attributes *MarkAttributes) GIcon() *gio.Icon {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _cret *C.GIcon                   // in
 
@@ -183,24 +183,13 @@ func (attributes *MarkAttributes) GIcon() gio.Iconner {
 	_cret = C.gtk_source_mark_attributes_get_gicon(_arg0)
 	runtime.KeepAlive(attributes)
 
-	var _icon gio.Iconner // out
+	var _icon *gio.Icon // out
 
 	{
-		objptr := unsafe.Pointer(_cret)
-		if objptr == nil {
-			panic("object of type gio.Iconner is nil")
+		obj := externglib.Take(unsafe.Pointer(_cret))
+		_icon = &gio.Icon{
+			Object: obj,
 		}
-
-		object := externglib.Take(objptr)
-		casted := object.WalkCast(func(obj externglib.Objector) bool {
-			_, ok := obj.(gio.Iconner)
-			return ok
-		})
-		rv, ok := casted.(gio.Iconner)
-		if !ok {
-			panic("no marshaler for " + object.TypeFromInstance().String() + " matching gio.Iconner")
-		}
-		_icon = rv
 	}
 
 	return _icon

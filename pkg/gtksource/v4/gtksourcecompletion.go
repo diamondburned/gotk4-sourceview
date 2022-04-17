@@ -594,7 +594,7 @@ func (completion *Completion) InfoWindow() *CompletionInfo {
 //
 //    - list of SourceCompletionProvider.
 //
-func (completion *Completion) Providers() []CompletionProviderer {
+func (completion *Completion) Providers() []*CompletionProvider {
 	var _arg0 *C.GtkSourceCompletion // out
 	var _cret *C.GList               // in
 
@@ -603,29 +603,13 @@ func (completion *Completion) Providers() []CompletionProviderer {
 	_cret = C.gtk_source_completion_get_providers(_arg0)
 	runtime.KeepAlive(completion)
 
-	var _list []CompletionProviderer // out
+	var _list []*CompletionProvider // out
 
-	_list = make([]CompletionProviderer, 0, gextras.ListSize(unsafe.Pointer(_cret)))
+	_list = make([]*CompletionProvider, 0, gextras.ListSize(unsafe.Pointer(_cret)))
 	gextras.MoveList(unsafe.Pointer(_cret), false, func(v unsafe.Pointer) {
 		src := (*C.GtkSourceCompletionProvider)(v)
-		var dst CompletionProviderer // out
-		{
-			objptr := unsafe.Pointer(src)
-			if objptr == nil {
-				panic("object of type gtksource.CompletionProviderer is nil")
-			}
-
-			object := externglib.Take(objptr)
-			casted := object.WalkCast(func(obj externglib.Objector) bool {
-				_, ok := obj.(CompletionProviderer)
-				return ok
-			})
-			rv, ok := casted.(CompletionProviderer)
-			if !ok {
-				panic("no marshaler for " + object.TypeFromInstance().String() + " matching gtksource.CompletionProviderer")
-			}
-			dst = rv
-		}
+		var dst *CompletionProvider // out
+		dst = wrapCompletionProvider(externglib.Take(unsafe.Pointer(src)))
 		_list = append(_list, dst)
 	})
 

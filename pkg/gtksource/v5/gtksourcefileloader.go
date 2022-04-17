@@ -289,7 +289,7 @@ func (loader *FileLoader) InputStream() gio.InputStreamer {
 //
 //    - file (optional) to load, or NULL if an input stream is used.
 //
-func (loader *FileLoader) Location() gio.Filer {
+func (loader *FileLoader) Location() *gio.File {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret *C.GFile               // in
 
@@ -298,22 +298,14 @@ func (loader *FileLoader) Location() gio.Filer {
 	_cret = C.gtk_source_file_loader_get_location(_arg0)
 	runtime.KeepAlive(loader)
 
-	var _file gio.Filer // out
+	var _file *gio.File // out
 
 	if _cret != nil {
 		{
-			objptr := unsafe.Pointer(_cret)
-
-			object := externglib.Take(objptr)
-			casted := object.WalkCast(func(obj externglib.Objector) bool {
-				_, ok := obj.(gio.Filer)
-				return ok
-			})
-			rv, ok := casted.(gio.Filer)
-			if !ok {
-				panic("no marshaler for " + object.TypeFromInstance().String() + " matching gio.Filer")
+			obj := externglib.Take(unsafe.Pointer(_cret))
+			_file = &gio.File{
+				Object: obj,
 			}
-			_file = rv
 		}
 	}
 

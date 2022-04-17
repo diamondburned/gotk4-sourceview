@@ -40,6 +40,9 @@ func init() {
 	})
 }
 
+//
+// CompletionProvider wraps an interface. This means the user can get the
+// underlying type by calling Cast().
 type CompletionProvider struct {
 	_ [0]func() // equal guard
 	*externglib.Object
@@ -76,7 +79,7 @@ type CompletionProviderer interface {
 	PopulateAsync(ctx context.Context, context *CompletionContext, callback gio.AsyncReadyCallback)
 	// PopulateFinish completes an asynchronous operation to populate a
 	// completion provider.
-	PopulateFinish(result gio.AsyncResulter) (gio.ListModeller, error)
+	PopulateFinish(result gio.AsyncResulter) (*gio.ListModel, error)
 	// Refilter: this function can be used to filter results previously provided
 	// to the SourceCompletionContext by the SourceCompletionProvider.
 	Refilter(context *CompletionContext, model gio.ListModeller)
@@ -350,7 +353,7 @@ func (self *CompletionProvider) PopulateAsync(ctx context.Context, context *Comp
 //
 //    - listModel of SourceCompletionProposal.
 //
-func (self *CompletionProvider) PopulateFinish(result gio.AsyncResulter) (gio.ListModeller, error) {
+func (self *CompletionProvider) PopulateFinish(result gio.AsyncResulter) (*gio.ListModel, error) {
 	var _arg0 *C.GtkSourceCompletionProvider // out
 	var _arg1 *C.GAsyncResult                // out
 	var _cret *C.GListModel                  // in
@@ -363,25 +366,14 @@ func (self *CompletionProvider) PopulateFinish(result gio.AsyncResulter) (gio.Li
 	runtime.KeepAlive(self)
 	runtime.KeepAlive(result)
 
-	var _listModel gio.ListModeller // out
-	var _goerr error                // out
+	var _listModel *gio.ListModel // out
+	var _goerr error              // out
 
 	{
-		objptr := unsafe.Pointer(_cret)
-		if objptr == nil {
-			panic("object of type gio.ListModeller is nil")
+		obj := externglib.AssumeOwnership(unsafe.Pointer(_cret))
+		_listModel = &gio.ListModel{
+			Object: obj,
 		}
-
-		object := externglib.AssumeOwnership(objptr)
-		casted := object.WalkCast(func(obj externglib.Objector) bool {
-			_, ok := obj.(gio.ListModeller)
-			return ok
-		})
-		rv, ok := casted.(gio.ListModeller)
-		if !ok {
-			panic("no marshaler for " + object.TypeFromInstance().String() + " matching gio.ListModeller")
-		}
-		_listModel = rv
 	}
 	if _cerr != nil {
 		_goerr = gerror.Take(unsafe.Pointer(_cerr))

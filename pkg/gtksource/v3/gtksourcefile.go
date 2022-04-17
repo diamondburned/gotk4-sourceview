@@ -138,7 +138,7 @@ func (file *File) Encoding() *Encoding {
 //
 //    - ret: #GFile.
 //
-func (file *File) Location() gio.Filer {
+func (file *File) Location() *gio.File {
 	var _arg0 *C.GtkSourceFile // out
 	var _cret *C.GFile         // in
 
@@ -147,24 +147,13 @@ func (file *File) Location() gio.Filer {
 	_cret = C.gtk_source_file_get_location(_arg0)
 	runtime.KeepAlive(file)
 
-	var _ret gio.Filer // out
+	var _ret *gio.File // out
 
 	{
-		objptr := unsafe.Pointer(_cret)
-		if objptr == nil {
-			panic("object of type gio.Filer is nil")
+		obj := externglib.Take(unsafe.Pointer(_cret))
+		_ret = &gio.File{
+			Object: obj,
 		}
-
-		object := externglib.Take(objptr)
-		casted := object.WalkCast(func(obj externglib.Objector) bool {
-			_, ok := obj.(gio.Filer)
-			return ok
-		})
-		rv, ok := casted.(gio.Filer)
-		if !ok {
-			panic("no marshaler for " + object.TypeFromInstance().String() + " matching gio.Filer")
-		}
-		_ret = rv
 	}
 
 	return _ret

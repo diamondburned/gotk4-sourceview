@@ -772,7 +772,7 @@ func (buffer *Buffer) MaxUndoLevels() int {
 //
 //    - sList: a newly allocated List.
 //
-func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []Mark {
+func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []*Mark {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 *C.GtkTextIter     // out
 	var _arg2 *C.gchar           // out
@@ -790,13 +790,13 @@ func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []M
 	runtime.KeepAlive(iter)
 	runtime.KeepAlive(category)
 
-	var _sList []Mark // out
+	var _sList []*Mark // out
 
-	_sList = make([]Mark, 0, gextras.SListSize(unsafe.Pointer(_cret)))
+	_sList = make([]*Mark, 0, gextras.SListSize(unsafe.Pointer(_cret)))
 	gextras.MoveSList(unsafe.Pointer(_cret), true, func(v unsafe.Pointer) {
 		src := (*C.GtkSourceMark)(v)
-		var dst Mark // out
-		dst = *wrapMark(externglib.Take(unsafe.Pointer(src)))
+		var dst *Mark // out
+		dst = wrapMark(externglib.Take(unsafe.Pointer(src)))
 		_sList = append(_sList, dst)
 	})
 
@@ -815,7 +815,7 @@ func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []M
 //
 //    - sList: a newly allocated List.
 //
-func (buffer *Buffer) SourceMarksAtLine(line int, category string) []Mark {
+func (buffer *Buffer) SourceMarksAtLine(line int, category string) []*Mark {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 C.gint             // out
 	var _arg2 *C.gchar           // out
@@ -833,13 +833,13 @@ func (buffer *Buffer) SourceMarksAtLine(line int, category string) []Mark {
 	runtime.KeepAlive(line)
 	runtime.KeepAlive(category)
 
-	var _sList []Mark // out
+	var _sList []*Mark // out
 
-	_sList = make([]Mark, 0, gextras.SListSize(unsafe.Pointer(_cret)))
+	_sList = make([]*Mark, 0, gextras.SListSize(unsafe.Pointer(_cret)))
 	gextras.MoveSList(unsafe.Pointer(_cret), true, func(v unsafe.Pointer) {
 		src := (*C.GtkSourceMark)(v)
-		var dst Mark // out
-		dst = *wrapMark(externglib.Take(unsafe.Pointer(src)))
+		var dst *Mark // out
+		dst = wrapMark(externglib.Take(unsafe.Pointer(src)))
 		_sList = append(_sList, dst)
 	})
 
@@ -880,7 +880,7 @@ func (buffer *Buffer) StyleScheme() *StyleScheme {
 //
 //    - undoManager (optional) associated with the buffer, or NULL.
 //
-func (buffer *Buffer) UndoManager() UndoManagerer {
+func (buffer *Buffer) UndoManager() *UndoManager {
 	var _arg0 *C.GtkSourceBuffer      // out
 	var _cret *C.GtkSourceUndoManager // in
 
@@ -889,23 +889,10 @@ func (buffer *Buffer) UndoManager() UndoManagerer {
 	_cret = C.gtk_source_buffer_get_undo_manager(_arg0)
 	runtime.KeepAlive(buffer)
 
-	var _undoManager UndoManagerer // out
+	var _undoManager *UndoManager // out
 
 	if _cret != nil {
-		{
-			objptr := unsafe.Pointer(_cret)
-
-			object := externglib.Take(objptr)
-			casted := object.WalkCast(func(obj externglib.Objector) bool {
-				_, ok := obj.(UndoManagerer)
-				return ok
-			})
-			rv, ok := casted.(UndoManagerer)
-			if !ok {
-				panic("no marshaler for " + object.TypeFromInstance().String() + " matching gtksource.UndoManagerer")
-			}
-			_undoManager = rv
-		}
+		_undoManager = wrapUndoManager(externglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _undoManager

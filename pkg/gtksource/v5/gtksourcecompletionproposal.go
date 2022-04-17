@@ -26,6 +26,9 @@ func init() {
 type CompletionProposalOverrider interface {
 }
 
+//
+// CompletionProposal wraps an interface. This means the user can get the
+// underlying type by calling Cast().
 type CompletionProposal struct {
 	_ [0]func() // equal guard
 	*externglib.Object

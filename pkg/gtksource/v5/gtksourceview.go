@@ -754,7 +754,7 @@ func (view *View) IndentWidth() int {
 //
 //    - indenter (optional) or NULL.
 //
-func (view *View) Indenter() Indenterer {
+func (view *View) Indenter() *Indenter {
 	var _arg0 *C.GtkSourceView     // out
 	var _cret *C.GtkSourceIndenter // in
 
@@ -763,23 +763,10 @@ func (view *View) Indenter() Indenterer {
 	_cret = C.gtk_source_view_get_indenter(_arg0)
 	runtime.KeepAlive(view)
 
-	var _indenter Indenterer // out
+	var _indenter *Indenter // out
 
 	if _cret != nil {
-		{
-			objptr := unsafe.Pointer(_cret)
-
-			object := externglib.Take(objptr)
-			casted := object.WalkCast(func(obj externglib.Objector) bool {
-				_, ok := obj.(Indenterer)
-				return ok
-			})
-			rv, ok := casted.(Indenterer)
-			if !ok {
-				panic("no marshaler for " + object.TypeFromInstance().String() + " matching gtksource.Indenterer")
-			}
-			_indenter = rv
-		}
+		_indenter = wrapIndenter(externglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _indenter

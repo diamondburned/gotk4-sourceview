@@ -53,6 +53,9 @@ type IndenterOverrider interface {
 	IsTrigger(view *View, location *gtk.TextIter, state gdk.ModifierType, keyval uint) bool
 }
 
+//
+// Indenter wraps an interface. This means the user can get the
+// underlying type by calling Cast().
 type Indenter struct {
 	_ [0]func() // equal guard
 	*externglib.Object

@@ -194,7 +194,7 @@ func (self *SnippetManager) ListGroups() []string {
 //
 //    - listModel of SourceSnippet.
 //
-func (self *SnippetManager) ListMatching(group, languageId, triggerPrefix string) gio.ListModeller {
+func (self *SnippetManager) ListMatching(group, languageId, triggerPrefix string) *gio.ListModel {
 	var _arg0 *C.GtkSourceSnippetManager // out
 	var _arg1 *C.gchar                   // out
 	var _arg2 *C.gchar                   // out
@@ -221,24 +221,13 @@ func (self *SnippetManager) ListMatching(group, languageId, triggerPrefix string
 	runtime.KeepAlive(languageId)
 	runtime.KeepAlive(triggerPrefix)
 
-	var _listModel gio.ListModeller // out
+	var _listModel *gio.ListModel // out
 
 	{
-		objptr := unsafe.Pointer(_cret)
-		if objptr == nil {
-			panic("object of type gio.ListModeller is nil")
+		obj := externglib.AssumeOwnership(unsafe.Pointer(_cret))
+		_listModel = &gio.ListModel{
+			Object: obj,
 		}
-
-		object := externglib.AssumeOwnership(objptr)
-		casted := object.WalkCast(func(obj externglib.Objector) bool {
-			_, ok := obj.(gio.ListModeller)
-			return ok
-		})
-		rv, ok := casted.(gio.ListModeller)
-		if !ok {
-			panic("no marshaler for " + object.TypeFromInstance().String() + " matching gio.ListModeller")
-		}
-		_listModel = rv
 	}
 
 	return _listModel

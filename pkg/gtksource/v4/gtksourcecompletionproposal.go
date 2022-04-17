@@ -62,7 +62,7 @@ type CompletionProposalOverrider interface {
 	//
 	//    - icon (optional) with the icon of proposal.
 	//
-	GIcon() gio.Iconner
+	GIcon() *gio.Icon
 	// Icon gets the Pixbuf for the icon of proposal.
 	//
 	// The function returns the following values:
@@ -131,6 +131,9 @@ type CompletionProposalOverrider interface {
 	Hash() uint
 }
 
+//
+// CompletionProposal wraps an interface. This means the user can get the
+// underlying type by calling Cast().
 type CompletionProposal struct {
 	_ [0]func() // equal guard
 	*externglib.Object
@@ -149,7 +152,7 @@ type CompletionProposaller interface {
 	// Equal: get whether two proposal objects are the same.
 	Equal(other CompletionProposaller) bool
 	// GIcon gets the #GIcon for the icon of proposal.
-	GIcon() gio.Iconner
+	GIcon() *gio.Icon
 	// Icon gets the Pixbuf for the icon of proposal.
 	Icon() *gdkpixbuf.Pixbuf
 	// IconName gets the icon name of proposal.
@@ -414,7 +417,7 @@ func (proposal *CompletionProposal) Equal(other CompletionProposaller) bool {
 //
 //    - icon (optional) with the icon of proposal.
 //
-func (proposal *CompletionProposal) GIcon() gio.Iconner {
+func (proposal *CompletionProposal) GIcon() *gio.Icon {
 	var _arg0 *C.GtkSourceCompletionProposal // out
 	var _cret *C.GIcon                       // in
 
@@ -423,22 +426,14 @@ func (proposal *CompletionProposal) GIcon() gio.Iconner {
 	_cret = C.gtk_source_completion_proposal_get_gicon(_arg0)
 	runtime.KeepAlive(proposal)
 
-	var _icon gio.Iconner // out
+	var _icon *gio.Icon // out
 
 	if _cret != nil {
 		{
-			objptr := unsafe.Pointer(_cret)
-
-			object := externglib.Take(objptr)
-			casted := object.WalkCast(func(obj externglib.Objector) bool {
-				_, ok := obj.(gio.Iconner)
-				return ok
-			})
-			rv, ok := casted.(gio.Iconner)
-			if !ok {
-				panic("no marshaler for " + object.TypeFromInstance().String() + " matching gio.Iconner")
+			obj := externglib.Take(unsafe.Pointer(_cret))
+			_icon = &gio.Icon{
+				Object: obj,
 			}
-			_icon = rv
 		}
 	}
 

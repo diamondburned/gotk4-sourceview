@@ -331,7 +331,7 @@ func (saver *FileSaver) Flags() FileSaverFlags {
 //
 //    - file where to save the buffer to.
 //
-func (saver *FileSaver) Location() gio.Filer {
+func (saver *FileSaver) Location() *gio.File {
 	var _arg0 *C.GtkSourceFileSaver // out
 	var _cret *C.GFile              // in
 
@@ -340,24 +340,13 @@ func (saver *FileSaver) Location() gio.Filer {
 	_cret = C.gtk_source_file_saver_get_location(_arg0)
 	runtime.KeepAlive(saver)
 
-	var _file gio.Filer // out
+	var _file *gio.File // out
 
 	{
-		objptr := unsafe.Pointer(_cret)
-		if objptr == nil {
-			panic("object of type gio.Filer is nil")
+		obj := externglib.Take(unsafe.Pointer(_cret))
+		_file = &gio.File{
+			Object: obj,
 		}
-
-		object := externglib.Take(objptr)
-		casted := object.WalkCast(func(obj externglib.Objector) bool {
-			_, ok := obj.(gio.Filer)
-			return ok
-		})
-		rv, ok := casted.(gio.Filer)
-		if !ok {
-			panic("no marshaler for " + object.TypeFromInstance().String() + " matching gio.Filer")
-		}
-		_file = rv
 	}
 
 	return _file
