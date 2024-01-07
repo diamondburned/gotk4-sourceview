@@ -29,11 +29,11 @@ import "C"
 //
 // The function takes the following parameters:
 //
-//    - text to escape.
+//   - text to escape.
 //
 // The function returns the following values:
 //
-//    - utf8: escaped text.
+//   - utf8: escaped text.
 //
 func UtilsEscapeSearchText(text string) string {
 	var _arg1 *C.gchar // out
@@ -65,11 +65,11 @@ func UtilsEscapeSearchText(text string) string {
 //
 // The function takes the following parameters:
 //
-//    - text to unescape.
+//   - text to unescape.
 //
 // The function returns the following values:
 //
-//    - utf8: unescaped text.
+//   - utf8: unescaped text.
 //
 func UtilsUnescapeSearchText(text string) string {
 	var _arg1 *C.gchar // out

@@ -20,7 +20,7 @@ import "C"
 // search entry. The selection can contain tabulations, newlines, etc. So it's
 // better to escape those special characters to better fit in the search entry.
 //
-// See also: gtk_source_utils_unescape_search_text().
+// See also: utils_unescape_search_text.
 //
 // <warning> Warning: the escape and unescape functions are not reciprocal! For
 // example, escape (unescape (\)) = \\. So avoid cycles such as: search entry ->
@@ -29,11 +29,11 @@ import "C"
 //
 // The function takes the following parameters:
 //
-//    - text to escape.
+//   - text to escape.
 //
 // The function returns the following values:
 //
-//    - utf8: escaped text.
+//   - utf8: escaped text.
 //
 func UtilsEscapeSearchText(text string) string {
 	var _arg1 *C.gchar // out
@@ -54,22 +54,22 @@ func UtilsEscapeSearchText(text string) string {
 }
 
 // UtilsUnescapeSearchText: use this function before
-// gtk_source_search_settings_set_search_text(), to unescape the following
-// sequences of characters: \n, \r, \t and \\. The purpose is to easily write
-// those characters in a search entry.
+// searchsettings.SetSearchText, to unescape the following sequences of
+// characters: \n, \r, \t and \\. The purpose is to easily write those
+// characters in a search entry.
 //
 // Note that unescaping the search text is not needed for regular expression
 // searches.
 //
-// See also: gtk_source_utils_escape_search_text().
+// See also: utils_escape_search_text.
 //
 // The function takes the following parameters:
 //
-//    - text to unescape.
+//   - text to unescape.
 //
 // The function returns the following values:
 //
-//    - utf8: unescaped text.
+//   - utf8: unescaped text.
 //
 func UtilsUnescapeSearchText(text string) string {
 	var _arg1 *C.gchar // out

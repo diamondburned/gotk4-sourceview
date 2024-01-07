@@ -5,7 +5,8 @@ package gtksource
 import (
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 )
 
 // #include <stdlib.h>
@@ -13,39 +14,58 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcecompletionsnippets.go.
-var GTypeCompletionSnippets = externglib.Type(C.gtk_source_completion_snippets_get_type())
+// GType values.
+var (
+	GTypeCompletionSnippets = coreglib.Type(C.gtk_source_completion_snippets_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeCompletionSnippets, F: marshalCompletionSnippets},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeCompletionSnippets, F: marshalCompletionSnippets},
 	})
 }
 
-// CompletionSnippetsOverrider contains methods that are overridable.
-type CompletionSnippetsOverrider interface {
+// CompletionSnippetsOverrides contains methods that are overridable.
+type CompletionSnippetsOverrides struct {
 }
 
+func defaultCompletionSnippetsOverrides(v *CompletionSnippets) CompletionSnippetsOverrides {
+	return CompletionSnippetsOverrides{}
+}
+
+// CompletionSnippets: completionprovider for the completion of snippets.
+//
+// The GtkSourceCompletionSnippets is an example of an implementation of the
+// completionprovider interface. The proposals are snippets registered with the
+// snippetmanager.
 type CompletionSnippets struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 
 	CompletionProvider
 }
 
 var (
-	_ externglib.Objector = (*CompletionSnippets)(nil)
+	_ coreglib.Objector = (*CompletionSnippets)(nil)
 )
 
-func classInitCompletionSnippetser(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*CompletionSnippets, *CompletionSnippetsClass, CompletionSnippetsOverrides](
+		GTypeCompletionSnippets,
+		initCompletionSnippetsClass,
+		wrapCompletionSnippets,
+		defaultCompletionSnippetsOverrides,
+	)
 }
 
-func wrapCompletionSnippets(obj *externglib.Object) *CompletionSnippets {
+func initCompletionSnippetsClass(gclass unsafe.Pointer, overrides CompletionSnippetsOverrides, classInitFunc func(*CompletionSnippetsClass)) {
+	if classInitFunc != nil {
+		class := (*CompletionSnippetsClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapCompletionSnippets(obj *coreglib.Object) *CompletionSnippets {
 	return &CompletionSnippets{
 		Object: obj,
 		CompletionProvider: CompletionProvider{
@@ -55,7 +75,7 @@ func wrapCompletionSnippets(obj *externglib.Object) *CompletionSnippets {
 }
 
 func marshalCompletionSnippets(p uintptr) (interface{}, error) {
-	return wrapCompletionSnippets(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapCompletionSnippets(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // The function returns the following values:
@@ -67,7 +87,17 @@ func NewCompletionSnippets() *CompletionSnippets {
 
 	var _completionSnippets *CompletionSnippets // out
 
-	_completionSnippets = wrapCompletionSnippets(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_completionSnippets = wrapCompletionSnippets(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _completionSnippets
+}
+
+// CompletionSnippetsClass: instance of this type is always passed by reference.
+type CompletionSnippetsClass struct {
+	*completionSnippetsClass
+}
+
+// completionSnippetsClass is the struct that's finalized.
+type completionSnippetsClass struct {
+	native *C.GtkSourceCompletionSnippetsClass
 }

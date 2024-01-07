@@ -9,9 +9,8 @@ import (
 
 	"github.com/diamondburned/gotk4/pkg/atk"
 	"github.com/diamondburned/gotk4/pkg/cairo"
-	"github.com/diamondburned/gotk4/pkg/core/gbox"
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v3"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
@@ -19,33 +18,63 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
-// extern gboolean _gotk4_gtksource4_GutterRendererClass_query_activatable(GtkSourceGutterRenderer*, GtkTextIter*, GdkRectangle*, GdkEvent*);
-// extern gboolean _gotk4_gtksource4_GutterRendererClass_query_tooltip(GtkSourceGutterRenderer*, GtkTextIter*, GdkRectangle*, gint, gint, GtkTooltip*);
-// extern gboolean _gotk4_gtksource4_GutterRenderer_ConnectQueryActivatable(gpointer, GtkTextIter*, GdkRectangle*, GdkEvent, guintptr);
-// extern gboolean _gotk4_gtksource4_GutterRenderer_ConnectQueryTooltip(gpointer, GtkTextIter*, GdkRectangle*, gint, gint, GtkTooltip*, guintptr);
-// extern void _gotk4_gtksource4_GutterRendererClass_activate(GtkSourceGutterRenderer*, GtkTextIter*, GdkRectangle*, GdkEvent*);
-// extern void _gotk4_gtksource4_GutterRendererClass_begin(GtkSourceGutterRenderer*, cairo_t*, GdkRectangle*, GdkRectangle*, GtkTextIter*, GtkTextIter*);
-// extern void _gotk4_gtksource4_GutterRendererClass_change_buffer(GtkSourceGutterRenderer*, GtkTextBuffer*);
-// extern void _gotk4_gtksource4_GutterRendererClass_change_view(GtkSourceGutterRenderer*, GtkTextView*);
-// extern void _gotk4_gtksource4_GutterRendererClass_draw(GtkSourceGutterRenderer*, cairo_t*, GdkRectangle*, GdkRectangle*, GtkTextIter*, GtkTextIter*, GtkSourceGutterRendererState);
-// extern void _gotk4_gtksource4_GutterRendererClass_end(GtkSourceGutterRenderer*);
-// extern void _gotk4_gtksource4_GutterRendererClass_query_data(GtkSourceGutterRenderer*, GtkTextIter*, GtkTextIter*, GtkSourceGutterRendererState);
-// extern void _gotk4_gtksource4_GutterRendererClass_queue_draw(GtkSourceGutterRenderer*);
-// extern void _gotk4_gtksource4_GutterRenderer_ConnectActivate(gpointer, GtkTextIter*, GdkRectangle*, GdkEvent, guintptr);
-// extern void _gotk4_gtksource4_GutterRenderer_ConnectQueryData(gpointer, GtkTextIter*, GtkTextIter*, GtkSourceGutterRendererState, guintptr);
 // extern void _gotk4_gtksource4_GutterRenderer_ConnectQueueDraw(gpointer, guintptr);
+// extern void _gotk4_gtksource4_GutterRenderer_ConnectQueryData(gpointer, GtkTextIter*, GtkTextIter*, GtkSourceGutterRendererState, guintptr);
+// extern void _gotk4_gtksource4_GutterRenderer_ConnectActivate(gpointer, GtkTextIter*, GdkRectangle*, GdkEvent, guintptr);
+// extern void _gotk4_gtksource4_GutterRendererClass_queue_draw(GtkSourceGutterRenderer*);
+// extern void _gotk4_gtksource4_GutterRendererClass_query_data(GtkSourceGutterRenderer*, GtkTextIter*, GtkTextIter*, GtkSourceGutterRendererState);
+// extern void _gotk4_gtksource4_GutterRendererClass_end(GtkSourceGutterRenderer*);
+// extern void _gotk4_gtksource4_GutterRendererClass_draw(GtkSourceGutterRenderer*, cairo_t*, GdkRectangle*, GdkRectangle*, GtkTextIter*, GtkTextIter*, GtkSourceGutterRendererState);
+// extern void _gotk4_gtksource4_GutterRendererClass_change_view(GtkSourceGutterRenderer*, GtkTextView*);
+// extern void _gotk4_gtksource4_GutterRendererClass_change_buffer(GtkSourceGutterRenderer*, GtkTextBuffer*);
+// extern void _gotk4_gtksource4_GutterRendererClass_begin(GtkSourceGutterRenderer*, cairo_t*, GdkRectangle*, GdkRectangle*, GtkTextIter*, GtkTextIter*);
+// extern void _gotk4_gtksource4_GutterRendererClass_activate(GtkSourceGutterRenderer*, GtkTextIter*, GdkRectangle*, GdkEvent*);
+// extern gboolean _gotk4_gtksource4_GutterRenderer_ConnectQueryTooltip(gpointer, GtkTextIter*, GdkRectangle*, gint, gint, GtkTooltip*, guintptr);
+// extern gboolean _gotk4_gtksource4_GutterRenderer_ConnectQueryActivatable(gpointer, GtkTextIter*, GdkRectangle*, GdkEvent, guintptr);
+// extern gboolean _gotk4_gtksource4_GutterRendererClass_query_tooltip(GtkSourceGutterRenderer*, GtkTextIter*, GdkRectangle*, gint, gint, GtkTooltip*);
+// extern gboolean _gotk4_gtksource4_GutterRendererClass_query_activatable(GtkSourceGutterRenderer*, GtkTextIter*, GdkRectangle*, GdkEvent*);
+// gboolean _gotk4_gtksource4_GutterRenderer_virtual_query_activatable(void* fnptr, GtkSourceGutterRenderer* arg0, GtkTextIter* arg1, GdkRectangle* arg2, GdkEvent* arg3) {
+//   return ((gboolean (*)(GtkSourceGutterRenderer*, GtkTextIter*, GdkRectangle*, GdkEvent*))(fnptr))(arg0, arg1, arg2, arg3);
+// };
+// gboolean _gotk4_gtksource4_GutterRenderer_virtual_query_tooltip(void* fnptr, GtkSourceGutterRenderer* arg0, GtkTextIter* arg1, GdkRectangle* arg2, gint arg3, gint arg4, GtkTooltip* arg5) {
+//   return ((gboolean (*)(GtkSourceGutterRenderer*, GtkTextIter*, GdkRectangle*, gint, gint, GtkTooltip*))(fnptr))(arg0, arg1, arg2, arg3, arg4, arg5);
+// };
+// void _gotk4_gtksource4_GutterRenderer_virtual_activate(void* fnptr, GtkSourceGutterRenderer* arg0, GtkTextIter* arg1, GdkRectangle* arg2, GdkEvent* arg3) {
+//   ((void (*)(GtkSourceGutterRenderer*, GtkTextIter*, GdkRectangle*, GdkEvent*))(fnptr))(arg0, arg1, arg2, arg3);
+// };
+// void _gotk4_gtksource4_GutterRenderer_virtual_begin(void* fnptr, GtkSourceGutterRenderer* arg0, cairo_t* arg1, GdkRectangle* arg2, GdkRectangle* arg3, GtkTextIter* arg4, GtkTextIter* arg5) {
+//   ((void (*)(GtkSourceGutterRenderer*, cairo_t*, GdkRectangle*, GdkRectangle*, GtkTextIter*, GtkTextIter*))(fnptr))(arg0, arg1, arg2, arg3, arg4, arg5);
+// };
+// void _gotk4_gtksource4_GutterRenderer_virtual_change_buffer(void* fnptr, GtkSourceGutterRenderer* arg0, GtkTextBuffer* arg1) {
+//   ((void (*)(GtkSourceGutterRenderer*, GtkTextBuffer*))(fnptr))(arg0, arg1);
+// };
+// void _gotk4_gtksource4_GutterRenderer_virtual_change_view(void* fnptr, GtkSourceGutterRenderer* arg0, GtkTextView* arg1) {
+//   ((void (*)(GtkSourceGutterRenderer*, GtkTextView*))(fnptr))(arg0, arg1);
+// };
+// void _gotk4_gtksource4_GutterRenderer_virtual_draw(void* fnptr, GtkSourceGutterRenderer* arg0, cairo_t* arg1, GdkRectangle* arg2, GdkRectangle* arg3, GtkTextIter* arg4, GtkTextIter* arg5, GtkSourceGutterRendererState arg6) {
+//   ((void (*)(GtkSourceGutterRenderer*, cairo_t*, GdkRectangle*, GdkRectangle*, GtkTextIter*, GtkTextIter*, GtkSourceGutterRendererState))(fnptr))(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+// };
+// void _gotk4_gtksource4_GutterRenderer_virtual_end(void* fnptr, GtkSourceGutterRenderer* arg0) {
+//   ((void (*)(GtkSourceGutterRenderer*))(fnptr))(arg0);
+// };
+// void _gotk4_gtksource4_GutterRenderer_virtual_query_data(void* fnptr, GtkSourceGutterRenderer* arg0, GtkTextIter* arg1, GtkTextIter* arg2, GtkSourceGutterRendererState arg3) {
+//   ((void (*)(GtkSourceGutterRenderer*, GtkTextIter*, GtkTextIter*, GtkSourceGutterRendererState))(fnptr))(arg0, arg1, arg2, arg3);
+// };
+// void _gotk4_gtksource4_GutterRenderer_virtual_queue_draw(void* fnptr, GtkSourceGutterRenderer* arg0) {
+//   ((void (*)(GtkSourceGutterRenderer*))(fnptr))(arg0);
+// };
 import "C"
 
-// glib.Type values for gtksourcegutterrenderer.go.
+// GType values.
 var (
-	GTypeGutterRendererAlignmentMode = externglib.Type(C.gtk_source_gutter_renderer_alignment_mode_get_type())
-	GTypeGutterRenderer              = externglib.Type(C.gtk_source_gutter_renderer_get_type())
+	GTypeGutterRendererAlignmentMode = coreglib.Type(C.gtk_source_gutter_renderer_alignment_mode_get_type())
+	GTypeGutterRenderer              = coreglib.Type(C.gtk_source_gutter_renderer_get_type())
 )
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeGutterRendererAlignmentMode, F: marshalGutterRendererAlignmentMode},
-		{T: GTypeGutterRenderer, F: marshalGutterRenderer},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeGutterRendererAlignmentMode, F: marshalGutterRendererAlignmentMode},
+		coreglib.TypeMarshaler{T: GTypeGutterRenderer, F: marshalGutterRenderer},
 	})
 }
 
@@ -63,7 +92,7 @@ const (
 )
 
 func marshalGutterRendererAlignmentMode(p uintptr) (interface{}, error) {
-	return GutterRendererAlignmentMode(externglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+	return GutterRendererAlignmentMode(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
 }
 
 // String returns the name in string for GutterRendererAlignmentMode.
@@ -80,53 +109,53 @@ func (g GutterRendererAlignmentMode) String() string {
 	}
 }
 
-// GutterRendererOverrider contains methods that are overridable.
-type GutterRendererOverrider interface {
+// GutterRendererOverrides contains methods that are overridable.
+type GutterRendererOverrides struct {
 	// Activate emits the SourceGutterRenderer::activate signal of the renderer.
 	// This is called from SourceGutter and should never have to be called
 	// manually.
 	//
 	// The function takes the following parameters:
 	//
-	//    - iter at the start of the line where the renderer is activated.
-	//    - area of the cell area where the renderer is activated.
-	//    - event that triggered the activation.
+	//   - iter at the start of the line where the renderer is activated.
+	//   - area of the cell area where the renderer is activated.
+	//   - event that triggered the activation.
 	//
-	Activate(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event)
+	Activate func(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event)
 	// Begin: called when drawing a region begins. The region to be drawn is
 	// indicated by start and end. The purpose is to allow the implementation to
 	// precompute some state before the draw method is called for each cell.
 	//
 	// The function takes the following parameters:
 	//
-	//    - cr: #cairo_t.
-	//    - backgroundArea: Rectangle.
-	//    - cellArea: Rectangle.
-	//    - start: TextIter.
-	//    - end: TextIter.
+	//   - cr: #cairo_t.
+	//   - backgroundArea: Rectangle.
+	//   - cellArea: Rectangle.
+	//   - start: TextIter.
+	//   - end: TextIter.
 	//
-	Begin(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter)
+	Begin func(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter)
 	// ChangeBuffer: this is called when the text buffer changes for renderer.
 	//
 	// The function takes the following parameters:
 	//
-	//    - oldBuffer (optional): old TextBuffer.
+	//   - oldBuffer (optional): old TextBuffer.
 	//
-	ChangeBuffer(oldBuffer *gtk.TextBuffer)
+	ChangeBuffer func(oldBuffer *gtk.TextBuffer)
 	// ChangeView: this is called when the text view changes for renderer.
 	//
 	// The function takes the following parameters:
 	//
-	//    - oldView (optional): old TextView.
+	//   - oldView (optional): old TextView.
 	//
-	ChangeView(oldView *gtk.TextView)
+	ChangeView func(oldView *gtk.TextView)
 	// Draw: main renderering method. Implementations should implement this
-	// method to draw onto the cairo context. The background_area indicates the
-	// total area of the cell to be drawn. The cell_area indicates the area
+	// method to draw onto the cairo context. The background_area indicates
+	// the total area of the cell to be drawn. The cell_area indicates the area
 	// where content can be drawn (text, images, etc).
 	//
-	// The background_area is the cell_area plus the padding on each side (two
-	// times the SourceGutterRenderer:xpad horizontally and two times the
+	// The background_area is the cell_area plus the padding on each side
+	// (two times the SourceGutterRenderer:xpad horizontally and two times the
 	// SourceGutterRenderer:ypad vertically, so that the cell_area is centered
 	// inside background_area).
 	//
@@ -136,70 +165,85 @@ type GutterRendererOverrider interface {
 	//
 	// The function takes the following parameters:
 	//
-	//    - cr: cairo render context.
-	//    - backgroundArea indicating the total area to be drawn.
-	//    - cellArea indicating the area to draw content.
-	//    - start: TextIter.
-	//    - end: TextIter.
-	//    - state: SourceGutterRendererState.
+	//   - cr: cairo render context.
+	//   - backgroundArea indicating the total area to be drawn.
+	//   - cellArea indicating the area to draw content.
+	//   - start: TextIter.
+	//   - end: TextIter.
+	//   - state: SourceGutterRendererState.
 	//
-	Draw(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter, state GutterRendererState)
+	Draw func(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter, state GutterRendererState)
 	// End: called when drawing a region of lines has ended.
-	End()
+	End func()
 	// QueryActivatable: get whether the renderer is activatable at the location
 	// in event. This is called from SourceGutter to determine whether a
 	// renderer is activatable using the mouse pointer.
 	//
 	// The function takes the following parameters:
 	//
-	//    - iter at the start of the line to be activated.
-	//    - area of the cell area to be activated.
-	//    - event that triggered the query.
+	//   - iter at the start of the line to be activated.
+	//   - area of the cell area to be activated.
+	//   - event that triggered the query.
 	//
 	// The function returns the following values:
 	//
-	//    - ok: TRUE if the renderer can be activated, FALSE otherwise.
+	//   - ok: TRUE if the renderer can be activated, FALSE otherwise.
 	//
-	QueryActivatable(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) bool
-	// QueryData: emit the SourceGutterRenderer::query-data signal. This
-	// function is called to query for data just before rendering a cell. This
-	// is called from the SourceGutter. Implementations can override the default
-	// signal handler or can connect a signal handler externally to the
+	QueryActivatable func(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) bool
+	// QueryData: emit the SourceGutterRenderer::query-data signal.
+	// This function is called to query for data just before rendering a cell.
+	// This is called from the SourceGutter. Implementations can override the
+	// default signal handler or can connect a signal handler externally to the
 	// SourceGutterRenderer::query-data signal.
 	//
 	// The function takes the following parameters:
 	//
-	//    - start: TextIter.
-	//    - end: TextIter.
-	//    - state: SourceGutterRendererState.
+	//   - start: TextIter.
+	//   - end: TextIter.
+	//   - state: SourceGutterRendererState.
 	//
-	QueryData(start, end *gtk.TextIter, state GutterRendererState)
-	// QueryTooltip emits the SourceGutterRenderer::query-tooltip signal. This
-	// function is called from SourceGutter. Implementations can override the
-	// default signal handler or can connect to the signal externally.
+	QueryData func(start, end *gtk.TextIter, state GutterRendererState)
+	// QueryTooltip emits the SourceGutterRenderer::query-tooltip signal.
+	// This function is called from SourceGutter. Implementations can override
+	// the default signal handler or can connect to the signal externally.
 	//
 	// The function takes the following parameters:
 	//
-	//    - iter: TextIter.
-	//    - area: Rectangle.
-	//    - x position of the tooltip.
-	//    - y position of the tooltip.
-	//    - tooltip: Tooltip.
+	//   - iter: TextIter.
+	//   - area: Rectangle.
+	//   - x position of the tooltip.
+	//   - y position of the tooltip.
+	//   - tooltip: Tooltip.
 	//
 	// The function returns the following values:
 	//
-	//    - ok: TRUE if the tooltip has been set, FALSE otherwise.
+	//   - ok: TRUE if the tooltip has been set, FALSE otherwise.
 	//
-	QueryTooltip(iter *gtk.TextIter, area *gdk.Rectangle, x, y int, tooltip *gtk.Tooltip) bool
+	QueryTooltip func(iter *gtk.TextIter, area *gdk.Rectangle, x, y int, tooltip *gtk.Tooltip) bool
 	// QueueDraw emits the SourceGutterRenderer::queue-draw signal of the
 	// renderer. Call this from an implementation to inform that the renderer
 	// has changed such that it needs to redraw.
-	QueueDraw()
+	QueueDraw func()
+}
+
+func defaultGutterRendererOverrides(v *GutterRenderer) GutterRendererOverrides {
+	return GutterRendererOverrides{
+		Activate:         v.activate,
+		Begin:            v.begin,
+		ChangeBuffer:     v.changeBuffer,
+		ChangeView:       v.changeView,
+		Draw:             v.draw,
+		End:              v.end,
+		QueryActivatable: v.queryActivatable,
+		QueryData:        v.queryData,
+		QueryTooltip:     v.queryTooltip,
+		QueueDraw:        v.queueDraw,
+	}
 }
 
 type GutterRenderer struct {
 	_ [0]func() // equal guard
-	externglib.InitiallyUnowned
+	coreglib.InitiallyUnowned
 }
 
 var ()
@@ -209,316 +253,80 @@ var ()
 // To get the original type, the caller must assert this to an interface or
 // another type.
 type GutterRendererer interface {
-	externglib.Objector
+	coreglib.Objector
 	baseGutterRenderer() *GutterRenderer
 }
 
 var _ GutterRendererer = (*GutterRenderer)(nil)
 
-func classInitGutterRendererer(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+func init() {
+	coreglib.RegisterClassInfo[*GutterRenderer, *GutterRendererClass, GutterRendererOverrides](
+		GTypeGutterRenderer,
+		initGutterRendererClass,
+		wrapGutterRenderer,
+		defaultGutterRendererOverrides,
+	)
+}
 
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+func initGutterRendererClass(gclass unsafe.Pointer, overrides GutterRendererOverrides, classInitFunc func(*GutterRendererClass)) {
+	pclass := (*C.GtkSourceGutterRendererClass)(unsafe.Pointer(C.g_type_check_class_cast((*C.GTypeClass)(gclass), C.GType(GTypeGutterRenderer))))
 
-	goval := gbox.Get(uintptr(data))
-	pclass := (*C.GtkSourceGutterRendererClass)(unsafe.Pointer(gclassPtr))
-	// gclass := (*C.GTypeClass)(unsafe.Pointer(gclassPtr))
-	// pclass := (*C.GtkSourceGutterRendererClass)(unsafe.Pointer(C.g_type_class_peek_parent(gclass)))
-
-	if _, ok := goval.(interface {
-		Activate(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event)
-	}); ok {
+	if overrides.Activate != nil {
 		pclass.activate = (*[0]byte)(C._gotk4_gtksource4_GutterRendererClass_activate)
 	}
 
-	if _, ok := goval.(interface {
-		Begin(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter)
-	}); ok {
+	if overrides.Begin != nil {
 		pclass.begin = (*[0]byte)(C._gotk4_gtksource4_GutterRendererClass_begin)
 	}
 
-	if _, ok := goval.(interface {
-		ChangeBuffer(oldBuffer *gtk.TextBuffer)
-	}); ok {
+	if overrides.ChangeBuffer != nil {
 		pclass.change_buffer = (*[0]byte)(C._gotk4_gtksource4_GutterRendererClass_change_buffer)
 	}
 
-	if _, ok := goval.(interface{ ChangeView(oldView *gtk.TextView) }); ok {
+	if overrides.ChangeView != nil {
 		pclass.change_view = (*[0]byte)(C._gotk4_gtksource4_GutterRendererClass_change_view)
 	}
 
-	if _, ok := goval.(interface {
-		Draw(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter, state GutterRendererState)
-	}); ok {
+	if overrides.Draw != nil {
 		pclass.draw = (*[0]byte)(C._gotk4_gtksource4_GutterRendererClass_draw)
 	}
 
-	if _, ok := goval.(interface{ End() }); ok {
+	if overrides.End != nil {
 		pclass.end = (*[0]byte)(C._gotk4_gtksource4_GutterRendererClass_end)
 	}
 
-	if _, ok := goval.(interface {
-		QueryActivatable(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) bool
-	}); ok {
+	if overrides.QueryActivatable != nil {
 		pclass.query_activatable = (*[0]byte)(C._gotk4_gtksource4_GutterRendererClass_query_activatable)
 	}
 
-	if _, ok := goval.(interface {
-		QueryData(start, end *gtk.TextIter, state GutterRendererState)
-	}); ok {
+	if overrides.QueryData != nil {
 		pclass.query_data = (*[0]byte)(C._gotk4_gtksource4_GutterRendererClass_query_data)
 	}
 
-	if _, ok := goval.(interface {
-		QueryTooltip(iter *gtk.TextIter, area *gdk.Rectangle, x, y int, tooltip *gtk.Tooltip) bool
-	}); ok {
+	if overrides.QueryTooltip != nil {
 		pclass.query_tooltip = (*[0]byte)(C._gotk4_gtksource4_GutterRendererClass_query_tooltip)
 	}
 
-	if _, ok := goval.(interface{ QueueDraw() }); ok {
+	if overrides.QueueDraw != nil {
 		pclass.queue_draw = (*[0]byte)(C._gotk4_gtksource4_GutterRendererClass_queue_draw)
 	}
-}
 
-//export _gotk4_gtksource4_GutterRendererClass_activate
-func _gotk4_gtksource4_GutterRendererClass_activate(arg0 *C.GtkSourceGutterRenderer, arg1 *C.GtkTextIter, arg2 *C.GdkRectangle, arg3 *C.GdkEvent) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface {
-		Activate(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event)
-	})
-
-	var _iter *gtk.TextIter  // out
-	var _area *gdk.Rectangle // out
-	var _event *gdk.Event    // out
-
-	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
-	_area = (*gdk.Rectangle)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-	{
-		v := (*gdk.Event)(gextras.NewStructNative(unsafe.Pointer(arg3)))
-		v = gdk.CopyEventer(v)
-		_event = v
+	if classInitFunc != nil {
+		class := (*GutterRendererClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
 	}
-
-	iface.Activate(_iter, _area, _event)
 }
 
-//export _gotk4_gtksource4_GutterRendererClass_begin
-func _gotk4_gtksource4_GutterRendererClass_begin(arg0 *C.GtkSourceGutterRenderer, arg1 *C.cairo_t, arg2 *C.GdkRectangle, arg3 *C.GdkRectangle, arg4 *C.GtkTextIter, arg5 *C.GtkTextIter) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface {
-		Begin(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter)
-	})
-
-	var _cr *cairo.Context             // out
-	var _backgroundArea *gdk.Rectangle // out
-	var _cellArea *gdk.Rectangle       // out
-	var _start *gtk.TextIter           // out
-	var _end *gtk.TextIter             // out
-
-	_cr = cairo.WrapContext(uintptr(unsafe.Pointer(arg1)))
-	C.cairo_reference(arg1)
-	runtime.SetFinalizer(_cr, func(v *cairo.Context) {
-		C.cairo_destroy((*C.cairo_t)(unsafe.Pointer(v.Native())))
-	})
-	_backgroundArea = (*gdk.Rectangle)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-	_cellArea = (*gdk.Rectangle)(gextras.NewStructNative(unsafe.Pointer(arg3)))
-	_start = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg4)))
-	_end = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg5)))
-
-	iface.Begin(_cr, _backgroundArea, _cellArea, _start, _end)
-}
-
-//export _gotk4_gtksource4_GutterRendererClass_change_buffer
-func _gotk4_gtksource4_GutterRendererClass_change_buffer(arg0 *C.GtkSourceGutterRenderer, arg1 *C.GtkTextBuffer) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface {
-		ChangeBuffer(oldBuffer *gtk.TextBuffer)
-	})
-
-	var _oldBuffer *gtk.TextBuffer // out
-
-	if arg1 != nil {
-		{
-			obj := externglib.Take(unsafe.Pointer(arg1))
-			_oldBuffer = &gtk.TextBuffer{
-				Object: obj,
-			}
-		}
-	}
-
-	iface.ChangeBuffer(_oldBuffer)
-}
-
-//export _gotk4_gtksource4_GutterRendererClass_change_view
-func _gotk4_gtksource4_GutterRendererClass_change_view(arg0 *C.GtkSourceGutterRenderer, arg1 *C.GtkTextView) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface{ ChangeView(oldView *gtk.TextView) })
-
-	var _oldView *gtk.TextView // out
-
-	if arg1 != nil {
-		{
-			obj := externglib.Take(unsafe.Pointer(arg1))
-			_oldView = &gtk.TextView{
-				Container: gtk.Container{
-					Widget: gtk.Widget{
-						InitiallyUnowned: externglib.InitiallyUnowned{
-							Object: obj,
-						},
-						Object: obj,
-						ImplementorIface: atk.ImplementorIface{
-							Object: obj,
-						},
-						Buildable: gtk.Buildable{
-							Object: obj,
-						},
-					},
-				},
-				Object: obj,
-				Scrollable: gtk.Scrollable{
-					Object: obj,
-				},
-			}
-		}
-	}
-
-	iface.ChangeView(_oldView)
-}
-
-//export _gotk4_gtksource4_GutterRendererClass_draw
-func _gotk4_gtksource4_GutterRendererClass_draw(arg0 *C.GtkSourceGutterRenderer, arg1 *C.cairo_t, arg2 *C.GdkRectangle, arg3 *C.GdkRectangle, arg4 *C.GtkTextIter, arg5 *C.GtkTextIter, arg6 C.GtkSourceGutterRendererState) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface {
-		Draw(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter, state GutterRendererState)
-	})
-
-	var _cr *cairo.Context             // out
-	var _backgroundArea *gdk.Rectangle // out
-	var _cellArea *gdk.Rectangle       // out
-	var _start *gtk.TextIter           // out
-	var _end *gtk.TextIter             // out
-	var _state GutterRendererState     // out
-
-	_cr = cairo.WrapContext(uintptr(unsafe.Pointer(arg1)))
-	C.cairo_reference(arg1)
-	runtime.SetFinalizer(_cr, func(v *cairo.Context) {
-		C.cairo_destroy((*C.cairo_t)(unsafe.Pointer(v.Native())))
-	})
-	_backgroundArea = (*gdk.Rectangle)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-	_cellArea = (*gdk.Rectangle)(gextras.NewStructNative(unsafe.Pointer(arg3)))
-	_start = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg4)))
-	_end = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg5)))
-	_state = GutterRendererState(arg6)
-
-	iface.Draw(_cr, _backgroundArea, _cellArea, _start, _end, _state)
-}
-
-//export _gotk4_gtksource4_GutterRendererClass_end
-func _gotk4_gtksource4_GutterRendererClass_end(arg0 *C.GtkSourceGutterRenderer) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface{ End() })
-
-	iface.End()
-}
-
-//export _gotk4_gtksource4_GutterRendererClass_query_activatable
-func _gotk4_gtksource4_GutterRendererClass_query_activatable(arg0 *C.GtkSourceGutterRenderer, arg1 *C.GtkTextIter, arg2 *C.GdkRectangle, arg3 *C.GdkEvent) (cret C.gboolean) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface {
-		QueryActivatable(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) bool
-	})
-
-	var _iter *gtk.TextIter  // out
-	var _area *gdk.Rectangle // out
-	var _event *gdk.Event    // out
-
-	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
-	_area = (*gdk.Rectangle)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-	{
-		v := (*gdk.Event)(gextras.NewStructNative(unsafe.Pointer(arg3)))
-		v = gdk.CopyEventer(v)
-		_event = v
-	}
-
-	ok := iface.QueryActivatable(_iter, _area, _event)
-
-	if ok {
-		cret = C.TRUE
-	}
-
-	return cret
-}
-
-//export _gotk4_gtksource4_GutterRendererClass_query_data
-func _gotk4_gtksource4_GutterRendererClass_query_data(arg0 *C.GtkSourceGutterRenderer, arg1 *C.GtkTextIter, arg2 *C.GtkTextIter, arg3 C.GtkSourceGutterRendererState) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface {
-		QueryData(start, end *gtk.TextIter, state GutterRendererState)
-	})
-
-	var _start *gtk.TextIter       // out
-	var _end *gtk.TextIter         // out
-	var _state GutterRendererState // out
-
-	_start = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
-	_end = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-	_state = GutterRendererState(arg3)
-
-	iface.QueryData(_start, _end, _state)
-}
-
-//export _gotk4_gtksource4_GutterRendererClass_query_tooltip
-func _gotk4_gtksource4_GutterRendererClass_query_tooltip(arg0 *C.GtkSourceGutterRenderer, arg1 *C.GtkTextIter, arg2 *C.GdkRectangle, arg3 C.gint, arg4 C.gint, arg5 *C.GtkTooltip) (cret C.gboolean) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface {
-		QueryTooltip(iter *gtk.TextIter, area *gdk.Rectangle, x, y int, tooltip *gtk.Tooltip) bool
-	})
-
-	var _iter *gtk.TextIter   // out
-	var _area *gdk.Rectangle  // out
-	var _x int                // out
-	var _y int                // out
-	var _tooltip *gtk.Tooltip // out
-
-	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
-	_area = (*gdk.Rectangle)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-	_x = int(arg3)
-	_y = int(arg4)
-	{
-		obj := externglib.Take(unsafe.Pointer(arg5))
-		_tooltip = &gtk.Tooltip{
-			Object: obj,
-		}
-	}
-
-	ok := iface.QueryTooltip(_iter, _area, _x, _y, _tooltip)
-
-	if ok {
-		cret = C.TRUE
-	}
-
-	return cret
-}
-
-//export _gotk4_gtksource4_GutterRendererClass_queue_draw
-func _gotk4_gtksource4_GutterRendererClass_queue_draw(arg0 *C.GtkSourceGutterRenderer) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface{ QueueDraw() })
-
-	iface.QueueDraw()
-}
-
-func wrapGutterRenderer(obj *externglib.Object) *GutterRenderer {
+func wrapGutterRenderer(obj *coreglib.Object) *GutterRenderer {
 	return &GutterRenderer{
-		InitiallyUnowned: externglib.InitiallyUnowned{
+		InitiallyUnowned: coreglib.InitiallyUnowned{
 			Object: obj,
 		},
 	}
 }
 
 func marshalGutterRenderer(p uintptr) (interface{}, error) {
-	return wrapGutterRenderer(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapGutterRenderer(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 func (renderer *GutterRenderer) baseGutterRenderer() *GutterRenderer {
@@ -530,175 +338,34 @@ func BaseGutterRenderer(obj GutterRendererer) *GutterRenderer {
 	return obj.baseGutterRenderer()
 }
 
-//export _gotk4_gtksource4_GutterRenderer_ConnectActivate
-func _gotk4_gtksource4_GutterRenderer_ConnectActivate(arg0 C.gpointer, arg1 *C.GtkTextIter, arg2 *C.GdkRectangle, arg3 C.GdkEvent, arg4 C.guintptr) {
-	var f func(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event)
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg4))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event))
-	}
-
-	var _iter *gtk.TextIter  // out
-	var _area *gdk.Rectangle // out
-	var _event *gdk.Event    // out
-
-	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
-	_area = (*gdk.Rectangle)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-	{
-		v := (*gdk.Event)(gextras.NewStructNative(unsafe.Pointer((&arg3))))
-		v = gdk.CopyEventer(v)
-		_event = v
-	}
-
-	f(_iter, _area, _event)
-}
-
 // ConnectActivate signal is emitted when the renderer is activated.
-func (renderer *GutterRenderer) ConnectActivate(f func(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event)) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(renderer, "activate", false, unsafe.Pointer(C._gotk4_gtksource4_GutterRenderer_ConnectActivate), f)
-}
-
-//export _gotk4_gtksource4_GutterRenderer_ConnectQueryActivatable
-func _gotk4_gtksource4_GutterRenderer_ConnectQueryActivatable(arg0 C.gpointer, arg1 *C.GtkTextIter, arg2 *C.GdkRectangle, arg3 C.GdkEvent, arg4 C.guintptr) (cret C.gboolean) {
-	var f func(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) (ok bool)
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg4))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) (ok bool))
-	}
-
-	var _iter *gtk.TextIter  // out
-	var _area *gdk.Rectangle // out
-	var _event *gdk.Event    // out
-
-	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
-	_area = (*gdk.Rectangle)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-	{
-		v := (*gdk.Event)(gextras.NewStructNative(unsafe.Pointer((&arg3))))
-		v = gdk.CopyEventer(v)
-		_event = v
-	}
-
-	ok := f(_iter, _area, _event)
-
-	if ok {
-		cret = C.TRUE
-	}
-
-	return cret
+func (renderer *GutterRenderer) ConnectActivate(f func(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(renderer, "activate", false, unsafe.Pointer(C._gotk4_gtksource4_GutterRenderer_ConnectActivate), f)
 }
 
 // ConnectQueryActivatable signal is emitted when the renderer can possibly be
 // activated.
-func (renderer *GutterRenderer) ConnectQueryActivatable(f func(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) (ok bool)) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(renderer, "query-activatable", false, unsafe.Pointer(C._gotk4_gtksource4_GutterRenderer_ConnectQueryActivatable), f)
+func (renderer *GutterRenderer) ConnectQueryActivatable(f func(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) (ok bool)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(renderer, "query-activatable", false, unsafe.Pointer(C._gotk4_gtksource4_GutterRenderer_ConnectQueryActivatable), f)
 }
 
-//export _gotk4_gtksource4_GutterRenderer_ConnectQueryData
-func _gotk4_gtksource4_GutterRenderer_ConnectQueryData(arg0 C.gpointer, arg1 *C.GtkTextIter, arg2 *C.GtkTextIter, arg3 C.GtkSourceGutterRendererState, arg4 C.guintptr) {
-	var f func(start, end *gtk.TextIter, state GutterRendererState)
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg4))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func(start, end *gtk.TextIter, state GutterRendererState))
-	}
-
-	var _start *gtk.TextIter       // out
-	var _end *gtk.TextIter         // out
-	var _state GutterRendererState // out
-
-	_start = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
-	_end = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-	_state = GutterRendererState(arg3)
-
-	f(_start, _end, _state)
-}
-
-// ConnectQueryData signal is emitted when the renderer needs to be filled with
-// data just before a cell is drawn. This can be used by general renderer
+// ConnectQueryData signal is emitted when the renderer needs to be filled
+// with data just before a cell is drawn. This can be used by general renderer
 // implementations to allow render data to be filled in externally.
-func (renderer *GutterRenderer) ConnectQueryData(f func(start, end *gtk.TextIter, state GutterRendererState)) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(renderer, "query-data", false, unsafe.Pointer(C._gotk4_gtksource4_GutterRenderer_ConnectQueryData), f)
-}
-
-//export _gotk4_gtksource4_GutterRenderer_ConnectQueryTooltip
-func _gotk4_gtksource4_GutterRenderer_ConnectQueryTooltip(arg0 C.gpointer, arg1 *C.GtkTextIter, arg2 *C.GdkRectangle, arg3 C.gint, arg4 C.gint, arg5 *C.GtkTooltip, arg6 C.guintptr) (cret C.gboolean) {
-	var f func(iter *gtk.TextIter, area *gdk.Rectangle, x, y int, tooltip *gtk.Tooltip) (ok bool)
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg6))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func(iter *gtk.TextIter, area *gdk.Rectangle, x, y int, tooltip *gtk.Tooltip) (ok bool))
-	}
-
-	var _iter *gtk.TextIter   // out
-	var _area *gdk.Rectangle  // out
-	var _x int                // out
-	var _y int                // out
-	var _tooltip *gtk.Tooltip // out
-
-	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
-	_area = (*gdk.Rectangle)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-	_x = int(arg3)
-	_y = int(arg4)
-	{
-		obj := externglib.Take(unsafe.Pointer(arg5))
-		_tooltip = &gtk.Tooltip{
-			Object: obj,
-		}
-	}
-
-	ok := f(_iter, _area, _x, _y, _tooltip)
-
-	if ok {
-		cret = C.TRUE
-	}
-
-	return cret
+func (renderer *GutterRenderer) ConnectQueryData(f func(start, end *gtk.TextIter, state GutterRendererState)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(renderer, "query-data", false, unsafe.Pointer(C._gotk4_gtksource4_GutterRenderer_ConnectQueryData), f)
 }
 
 // ConnectQueryTooltip signal is emitted when the renderer can show a tooltip.
-func (renderer *GutterRenderer) ConnectQueryTooltip(f func(iter *gtk.TextIter, area *gdk.Rectangle, x, y int, tooltip *gtk.Tooltip) (ok bool)) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(renderer, "query-tooltip", false, unsafe.Pointer(C._gotk4_gtksource4_GutterRenderer_ConnectQueryTooltip), f)
+func (renderer *GutterRenderer) ConnectQueryTooltip(f func(iter *gtk.TextIter, area *gdk.Rectangle, x, y int, tooltip *gtk.Tooltip) (ok bool)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(renderer, "query-tooltip", false, unsafe.Pointer(C._gotk4_gtksource4_GutterRenderer_ConnectQueryTooltip), f)
 }
 
-//export _gotk4_gtksource4_GutterRenderer_ConnectQueueDraw
-func _gotk4_gtksource4_GutterRenderer_ConnectQueueDraw(arg0 C.gpointer, arg1 C.guintptr) {
-	var f func()
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func())
-	}
-
-	f()
-}
-
-// ConnectQueueDraw signal is emitted when the renderer needs to be redrawn. Use
-// gtk_source_gutter_renderer_queue_draw() to emit this signal from an
+// ConnectQueueDraw signal is emitted when the renderer needs to be redrawn.
+// Use gtk_source_gutter_renderer_queue_draw() to emit this signal from an
 // implementation of the SourceGutterRenderer interface.
-func (renderer *GutterRenderer) ConnectQueueDraw(f func()) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(renderer, "queue-draw", false, unsafe.Pointer(C._gotk4_gtksource4_GutterRenderer_ConnectQueueDraw), f)
+func (renderer *GutterRenderer) ConnectQueueDraw(f func()) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(renderer, "queue-draw", false, unsafe.Pointer(C._gotk4_gtksource4_GutterRenderer_ConnectQueueDraw), f)
 }
 
 // Activate emits the SourceGutterRenderer::activate signal of the renderer.
@@ -706,9 +373,9 @@ func (renderer *GutterRenderer) ConnectQueueDraw(f func()) externglib.SignalHand
 //
 // The function takes the following parameters:
 //
-//    - iter at the start of the line where the renderer is activated.
-//    - area of the cell area where the renderer is activated.
-//    - event that triggered the activation.
+//   - iter at the start of the line where the renderer is activated.
+//   - area of the cell area where the renderer is activated.
+//   - event that triggered the activation.
 //
 func (renderer *GutterRenderer) Activate(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) {
 	var _arg0 *C.GtkSourceGutterRenderer // out
@@ -716,7 +383,7 @@ func (renderer *GutterRenderer) Activate(iter *gtk.TextIter, area *gdk.Rectangle
 	var _arg2 *C.GdkRectangle            // out
 	var _arg3 *C.GdkEvent                // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	_arg2 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(area)))
 	_arg3 = (*C.GdkEvent)(gextras.StructNative(unsafe.Pointer(event)))
@@ -734,11 +401,11 @@ func (renderer *GutterRenderer) Activate(iter *gtk.TextIter, area *gdk.Rectangle
 //
 // The function takes the following parameters:
 //
-//    - cr: #cairo_t.
-//    - backgroundArea: Rectangle.
-//    - cellArea: Rectangle.
-//    - start: TextIter.
-//    - end: TextIter.
+//   - cr: #cairo_t.
+//   - backgroundArea: Rectangle.
+//   - cellArea: Rectangle.
+//   - start: TextIter.
+//   - end: TextIter.
 //
 func (renderer *GutterRenderer) Begin(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter) {
 	var _arg0 *C.GtkSourceGutterRenderer // out
@@ -748,7 +415,7 @@ func (renderer *GutterRenderer) Begin(cr *cairo.Context, backgroundArea, cellAre
 	var _arg4 *C.GtkTextIter             // out
 	var _arg5 *C.GtkTextIter             // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = (*C.cairo_t)(unsafe.Pointer(cr.Native()))
 	_arg2 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(backgroundArea)))
 	_arg3 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(cellArea)))
@@ -769,8 +436,8 @@ func (renderer *GutterRenderer) Begin(cr *cairo.Context, backgroundArea, cellAre
 // of the cell to be drawn. The cell_area indicates the area where content can
 // be drawn (text, images, etc).
 //
-// The background_area is the cell_area plus the padding on each side (two times
-// the SourceGutterRenderer:xpad horizontally and two times the
+// The background_area is the cell_area plus the padding on each side
+// (two times the SourceGutterRenderer:xpad horizontally and two times the
 // SourceGutterRenderer:ypad vertically, so that the cell_area is centered
 // inside background_area).
 //
@@ -780,12 +447,12 @@ func (renderer *GutterRenderer) Begin(cr *cairo.Context, backgroundArea, cellAre
 //
 // The function takes the following parameters:
 //
-//    - cr: cairo render context.
-//    - backgroundArea indicating the total area to be drawn.
-//    - cellArea indicating the area to draw content.
-//    - start: TextIter.
-//    - end: TextIter.
-//    - state: SourceGutterRendererState.
+//   - cr: cairo render context.
+//   - backgroundArea indicating the total area to be drawn.
+//   - cellArea indicating the area to draw content.
+//   - start: TextIter.
+//   - end: TextIter.
+//   - state: SourceGutterRendererState.
 //
 func (renderer *GutterRenderer) Draw(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter, state GutterRendererState) {
 	var _arg0 *C.GtkSourceGutterRenderer     // out
@@ -796,7 +463,7 @@ func (renderer *GutterRenderer) Draw(cr *cairo.Context, backgroundArea, cellArea
 	var _arg5 *C.GtkTextIter                 // out
 	var _arg6 C.GtkSourceGutterRendererState // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = (*C.cairo_t)(unsafe.Pointer(cr.Native()))
 	_arg2 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(backgroundArea)))
 	_arg3 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(cellArea)))
@@ -818,7 +485,7 @@ func (renderer *GutterRenderer) Draw(cr *cairo.Context, backgroundArea, cellArea
 func (renderer *GutterRenderer) End() {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	C.gtk_source_gutter_renderer_end(_arg0)
 	runtime.KeepAlive(renderer)
@@ -828,17 +495,17 @@ func (renderer *GutterRenderer) End() {
 //
 // The function returns the following values:
 //
-//    - xalign (optional): return location for the x-alignment, or NULL to
-//      ignore.
-//    - yalign (optional): return location for the y-alignment, or NULL to
-//      ignore.
+//   - xalign (optional): return location for the x-alignment, or NULL to
+//     ignore.
+//   - yalign (optional): return location for the y-alignment, or NULL to
+//     ignore.
 //
-func (renderer *GutterRenderer) Alignment() (xalign float32, yalign float32) {
+func (renderer *GutterRenderer) Alignment() (xalign, yalign float32) {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _arg1 C.gfloat                   // in
 	var _arg2 C.gfloat                   // in
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	C.gtk_source_gutter_renderer_get_alignment(_arg0, &_arg1, &_arg2)
 	runtime.KeepAlive(renderer)
@@ -857,13 +524,13 @@ func (renderer *GutterRenderer) Alignment() (xalign float32, yalign float32) {
 //
 // The function returns the following values:
 //
-//    - gutterRendererAlignmentMode: SourceGutterRendererAlignmentMode.
+//   - gutterRendererAlignmentMode: SourceGutterRendererAlignmentMode.
 //
 func (renderer *GutterRenderer) AlignmentMode() GutterRendererAlignmentMode {
 	var _arg0 *C.GtkSourceGutterRenderer             // out
 	var _cret C.GtkSourceGutterRendererAlignmentMode // in
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	_cret = C.gtk_source_gutter_renderer_get_alignment_mode(_arg0)
 	runtime.KeepAlive(renderer)
@@ -879,15 +546,15 @@ func (renderer *GutterRenderer) AlignmentMode() GutterRendererAlignmentMode {
 //
 // The function returns the following values:
 //
-//    - color (optional): return value for a RGBA.
-//    - ok: TRUE if the background color is set, FALSE otherwise.
+//   - color (optional): return value for a RGBA.
+//   - ok: TRUE if the background color is set, FALSE otherwise.
 //
 func (renderer *GutterRenderer) Background() (*gdk.RGBA, bool) {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _arg1 C.GdkRGBA                  // in
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	_cret = C.gtk_source_gutter_renderer_get_background(_arg0, &_arg1)
 	runtime.KeepAlive(renderer)
@@ -907,15 +574,15 @@ func (renderer *GutterRenderer) Background() (*gdk.RGBA, bool) {
 //
 // The function returns the following values:
 //
-//    - xpad (optional): return location for the x-padding, or NULL to ignore.
-//    - ypad (optional): return location for the y-padding, or NULL to ignore.
+//   - xpad (optional): return location for the x-padding, or NULL to ignore.
+//   - ypad (optional): return location for the y-padding, or NULL to ignore.
 //
-func (renderer *GutterRenderer) Padding() (xpad int, ypad int) {
+func (renderer *GutterRenderer) Padding() (xpad, ypad int) {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _arg1 C.gint                     // in
 	var _arg2 C.gint                     // in
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	C.gtk_source_gutter_renderer_get_padding(_arg0, &_arg1, &_arg2)
 	runtime.KeepAlive(renderer)
@@ -933,13 +600,13 @@ func (renderer *GutterRenderer) Padding() (xpad int, ypad int) {
 //
 // The function returns the following values:
 //
-//    - gint: size of the renderer.
+//   - gint: size of the renderer.
 //
 func (renderer *GutterRenderer) Size() int {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _cret C.gint                     // in
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	_cret = C.gtk_source_gutter_renderer_get_size(_arg0)
 	runtime.KeepAlive(renderer)
@@ -955,13 +622,13 @@ func (renderer *GutterRenderer) Size() int {
 //
 // The function returns the following values:
 //
-//    - textView: TextView.
+//   - textView: TextView.
 //
 func (renderer *GutterRenderer) View() *gtk.TextView {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _cret *C.GtkTextView             // in
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	_cret = C.gtk_source_gutter_renderer_get_view(_arg0)
 	runtime.KeepAlive(renderer)
@@ -969,11 +636,11 @@ func (renderer *GutterRenderer) View() *gtk.TextView {
 	var _textView *gtk.TextView // out
 
 	{
-		obj := externglib.Take(unsafe.Pointer(_cret))
+		obj := coreglib.Take(unsafe.Pointer(_cret))
 		_textView = &gtk.TextView{
 			Container: gtk.Container{
 				Widget: gtk.Widget{
-					InitiallyUnowned: externglib.InitiallyUnowned{
+					InitiallyUnowned: coreglib.InitiallyUnowned{
 						Object: obj,
 					},
 					Object: obj,
@@ -999,13 +666,13 @@ func (renderer *GutterRenderer) View() *gtk.TextView {
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if the renderer is visible, FALSE otherwise.
+//   - ok: TRUE if the renderer is visible, FALSE otherwise.
 //
 func (renderer *GutterRenderer) Visible() bool {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	_cret = C.gtk_source_gutter_renderer_get_visible(_arg0)
 	runtime.KeepAlive(renderer)
@@ -1023,13 +690,13 @@ func (renderer *GutterRenderer) Visible() bool {
 //
 // The function returns the following values:
 //
-//    - textWindowType: TextWindowType.
+//   - textWindowType: TextWindowType.
 //
 func (renderer *GutterRenderer) WindowType() gtk.TextWindowType {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _cret C.GtkTextWindowType        // in
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	_cret = C.gtk_source_gutter_renderer_get_window_type(_arg0)
 	runtime.KeepAlive(renderer)
@@ -1047,13 +714,13 @@ func (renderer *GutterRenderer) WindowType() gtk.TextWindowType {
 //
 // The function takes the following parameters:
 //
-//    - iter at the start of the line to be activated.
-//    - area of the cell area to be activated.
-//    - event that triggered the query.
+//   - iter at the start of the line to be activated.
+//   - area of the cell area to be activated.
+//   - event that triggered the query.
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if the renderer can be activated, FALSE otherwise.
+//   - ok: TRUE if the renderer can be activated, FALSE otherwise.
 //
 func (renderer *GutterRenderer) QueryActivatable(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) bool {
 	var _arg0 *C.GtkSourceGutterRenderer // out
@@ -1062,7 +729,7 @@ func (renderer *GutterRenderer) QueryActivatable(iter *gtk.TextIter, area *gdk.R
 	var _arg3 *C.GdkEvent                // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	_arg2 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(area)))
 	_arg3 = (*C.GdkEvent)(gextras.StructNative(unsafe.Pointer(event)))
@@ -1082,17 +749,17 @@ func (renderer *GutterRenderer) QueryActivatable(iter *gtk.TextIter, area *gdk.R
 	return _ok
 }
 
-// QueryData: emit the SourceGutterRenderer::query-data signal. This function is
-// called to query for data just before rendering a cell. This is called from
-// the SourceGutter. Implementations can override the default signal handler or
-// can connect a signal handler externally to the
+// QueryData: emit the SourceGutterRenderer::query-data signal.
+// This function is called to query for data just before rendering a cell.
+// This is called from the SourceGutter. Implementations can override the
+// default signal handler or can connect a signal handler externally to the
 // SourceGutterRenderer::query-data signal.
 //
 // The function takes the following parameters:
 //
-//    - start: TextIter.
-//    - end: TextIter.
-//    - state: SourceGutterRendererState.
+//   - start: TextIter.
+//   - end: TextIter.
+//   - state: SourceGutterRendererState.
 //
 func (renderer *GutterRenderer) QueryData(start, end *gtk.TextIter, state GutterRendererState) {
 	var _arg0 *C.GtkSourceGutterRenderer     // out
@@ -1100,7 +767,7 @@ func (renderer *GutterRenderer) QueryData(start, end *gtk.TextIter, state Gutter
 	var _arg2 *C.GtkTextIter                 // out
 	var _arg3 C.GtkSourceGutterRendererState // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 	_arg3 = C.GtkSourceGutterRendererState(state)
@@ -1112,21 +779,21 @@ func (renderer *GutterRenderer) QueryData(start, end *gtk.TextIter, state Gutter
 	runtime.KeepAlive(state)
 }
 
-// QueryTooltip emits the SourceGutterRenderer::query-tooltip signal. This
-// function is called from SourceGutter. Implementations can override the
+// QueryTooltip emits the SourceGutterRenderer::query-tooltip signal.
+// This function is called from SourceGutter. Implementations can override the
 // default signal handler or can connect to the signal externally.
 //
 // The function takes the following parameters:
 //
-//    - iter: TextIter.
-//    - area: Rectangle.
-//    - x position of the tooltip.
-//    - y position of the tooltip.
-//    - tooltip: Tooltip.
+//   - iter: TextIter.
+//   - area: Rectangle.
+//   - x position of the tooltip.
+//   - y position of the tooltip.
+//   - tooltip: Tooltip.
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if the tooltip has been set, FALSE otherwise.
+//   - ok: TRUE if the tooltip has been set, FALSE otherwise.
 //
 func (renderer *GutterRenderer) QueryTooltip(iter *gtk.TextIter, area *gdk.Rectangle, x, y int, tooltip *gtk.Tooltip) bool {
 	var _arg0 *C.GtkSourceGutterRenderer // out
@@ -1137,12 +804,12 @@ func (renderer *GutterRenderer) QueryTooltip(iter *gtk.TextIter, area *gdk.Recta
 	var _arg5 *C.GtkTooltip              // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	_arg2 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(area)))
 	_arg3 = C.gint(x)
 	_arg4 = C.gint(y)
-	_arg5 = (*C.GtkTooltip)(unsafe.Pointer(externglib.InternObject(tooltip).Native()))
+	_arg5 = (*C.GtkTooltip)(unsafe.Pointer(coreglib.InternObject(tooltip).Native()))
 
 	_cret = C.gtk_source_gutter_renderer_query_tooltip(_arg0, _arg1, _arg2, _arg3, _arg4, _arg5)
 	runtime.KeepAlive(renderer)
@@ -1167,7 +834,7 @@ func (renderer *GutterRenderer) QueryTooltip(iter *gtk.TextIter, area *gdk.Recta
 func (renderer *GutterRenderer) QueueDraw() {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	C.gtk_source_gutter_renderer_queue_draw(_arg0)
 	runtime.KeepAlive(renderer)
@@ -1183,15 +850,15 @@ func (renderer *GutterRenderer) QueueDraw() {
 //
 // The function takes the following parameters:
 //
-//    - xalign: x-alignment.
-//    - yalign: y-alignment.
+//   - xalign: x-alignment.
+//   - yalign: y-alignment.
 //
 func (renderer *GutterRenderer) SetAlignment(xalign, yalign float32) {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _arg1 C.gfloat                   // out
 	var _arg2 C.gfloat                   // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = C.gfloat(xalign)
 	_arg2 = C.gfloat(yalign)
 
@@ -1206,13 +873,13 @@ func (renderer *GutterRenderer) SetAlignment(xalign, yalign float32) {
 //
 // The function takes the following parameters:
 //
-//    - mode: SourceGutterRendererAlignmentMode.
+//   - mode: SourceGutterRendererAlignmentMode.
 //
 func (renderer *GutterRenderer) SetAlignmentMode(mode GutterRendererAlignmentMode) {
 	var _arg0 *C.GtkSourceGutterRenderer             // out
 	var _arg1 C.GtkSourceGutterRendererAlignmentMode // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = C.GtkSourceGutterRendererAlignmentMode(mode)
 
 	C.gtk_source_gutter_renderer_set_alignment_mode(_arg0, _arg1)
@@ -1225,13 +892,13 @@ func (renderer *GutterRenderer) SetAlignmentMode(mode GutterRendererAlignmentMod
 //
 // The function takes the following parameters:
 //
-//    - color (optional) or NULL.
+//   - color (optional) or NULL.
 //
 func (renderer *GutterRenderer) SetBackground(color *gdk.RGBA) {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _arg1 *C.GdkRGBA                 // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	if color != nil {
 		_arg1 = (*C.GdkRGBA)(gextras.StructNative(unsafe.Pointer(color)))
 	}
@@ -1249,15 +916,15 @@ func (renderer *GutterRenderer) SetBackground(color *gdk.RGBA) {
 //
 // The function takes the following parameters:
 //
-//    - xpad: x-padding.
-//    - ypad: y-padding.
+//   - xpad: x-padding.
+//   - ypad: y-padding.
 //
 func (renderer *GutterRenderer) SetPadding(xpad, ypad int) {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _arg1 C.gint                     // out
 	var _arg2 C.gint                     // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = C.gint(xpad)
 	_arg2 = C.gint(ypad)
 
@@ -1272,13 +939,13 @@ func (renderer *GutterRenderer) SetPadding(xpad, ypad int) {
 //
 // The function takes the following parameters:
 //
-//    - size: size.
+//   - size: size.
 //
 func (renderer *GutterRenderer) SetSize(size int) {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _arg1 C.gint                     // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = C.gint(size)
 
 	C.gtk_source_gutter_renderer_set_size(_arg0, _arg1)
@@ -1290,13 +957,13 @@ func (renderer *GutterRenderer) SetSize(size int) {
 //
 // The function takes the following parameters:
 //
-//    - visible: visibility.
+//   - visible: visibility.
 //
 func (renderer *GutterRenderer) SetVisible(visible bool) {
 	var _arg0 *C.GtkSourceGutterRenderer // out
 	var _arg1 C.gboolean                 // out
 
-	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	if visible {
 		_arg1 = C.TRUE
 	}
@@ -1304,4 +971,351 @@ func (renderer *GutterRenderer) SetVisible(visible bool) {
 	C.gtk_source_gutter_renderer_set_visible(_arg0, _arg1)
 	runtime.KeepAlive(renderer)
 	runtime.KeepAlive(visible)
+}
+
+// Activate emits the SourceGutterRenderer::activate signal of the renderer.
+// This is called from SourceGutter and should never have to be called manually.
+//
+// The function takes the following parameters:
+//
+//   - iter at the start of the line where the renderer is activated.
+//   - area of the cell area where the renderer is activated.
+//   - event that triggered the activation.
+//
+func (renderer *GutterRenderer) activate(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) {
+	gclass := (*C.GtkSourceGutterRendererClass)(coreglib.PeekParentClass(renderer))
+	fnarg := gclass.activate
+
+	var _arg0 *C.GtkSourceGutterRenderer // out
+	var _arg1 *C.GtkTextIter             // out
+	var _arg2 *C.GdkRectangle            // out
+	var _arg3 *C.GdkEvent                // out
+
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
+	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
+	_arg2 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(area)))
+	_arg3 = (*C.GdkEvent)(gextras.StructNative(unsafe.Pointer(event)))
+
+	C._gotk4_gtksource4_GutterRenderer_virtual_activate(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2, _arg3)
+	runtime.KeepAlive(renderer)
+	runtime.KeepAlive(iter)
+	runtime.KeepAlive(area)
+	runtime.KeepAlive(event)
+}
+
+// Begin: called when drawing a region begins. The region to be drawn is
+// indicated by start and end. The purpose is to allow the implementation to
+// precompute some state before the draw method is called for each cell.
+//
+// The function takes the following parameters:
+//
+//   - cr: #cairo_t.
+//   - backgroundArea: Rectangle.
+//   - cellArea: Rectangle.
+//   - start: TextIter.
+//   - end: TextIter.
+//
+func (renderer *GutterRenderer) begin(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter) {
+	gclass := (*C.GtkSourceGutterRendererClass)(coreglib.PeekParentClass(renderer))
+	fnarg := gclass.begin
+
+	var _arg0 *C.GtkSourceGutterRenderer // out
+	var _arg1 *C.cairo_t                 // out
+	var _arg2 *C.GdkRectangle            // out
+	var _arg3 *C.GdkRectangle            // out
+	var _arg4 *C.GtkTextIter             // out
+	var _arg5 *C.GtkTextIter             // out
+
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
+	_arg1 = (*C.cairo_t)(unsafe.Pointer(cr.Native()))
+	_arg2 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(backgroundArea)))
+	_arg3 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(cellArea)))
+	_arg4 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
+	_arg5 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
+
+	C._gotk4_gtksource4_GutterRenderer_virtual_begin(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2, _arg3, _arg4, _arg5)
+	runtime.KeepAlive(renderer)
+	runtime.KeepAlive(cr)
+	runtime.KeepAlive(backgroundArea)
+	runtime.KeepAlive(cellArea)
+	runtime.KeepAlive(start)
+	runtime.KeepAlive(end)
+}
+
+// changeBuffer: this is called when the text buffer changes for renderer.
+//
+// The function takes the following parameters:
+//
+//   - oldBuffer (optional): old TextBuffer.
+//
+func (renderer *GutterRenderer) changeBuffer(oldBuffer *gtk.TextBuffer) {
+	gclass := (*C.GtkSourceGutterRendererClass)(coreglib.PeekParentClass(renderer))
+	fnarg := gclass.change_buffer
+
+	var _arg0 *C.GtkSourceGutterRenderer // out
+	var _arg1 *C.GtkTextBuffer           // out
+
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
+	if oldBuffer != nil {
+		_arg1 = (*C.GtkTextBuffer)(unsafe.Pointer(coreglib.InternObject(oldBuffer).Native()))
+	}
+
+	C._gotk4_gtksource4_GutterRenderer_virtual_change_buffer(unsafe.Pointer(fnarg), _arg0, _arg1)
+	runtime.KeepAlive(renderer)
+	runtime.KeepAlive(oldBuffer)
+}
+
+// changeView: this is called when the text view changes for renderer.
+//
+// The function takes the following parameters:
+//
+//   - oldView (optional): old TextView.
+//
+func (renderer *GutterRenderer) changeView(oldView *gtk.TextView) {
+	gclass := (*C.GtkSourceGutterRendererClass)(coreglib.PeekParentClass(renderer))
+	fnarg := gclass.change_view
+
+	var _arg0 *C.GtkSourceGutterRenderer // out
+	var _arg1 *C.GtkTextView             // out
+
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
+	if oldView != nil {
+		_arg1 = (*C.GtkTextView)(unsafe.Pointer(coreglib.InternObject(oldView).Native()))
+	}
+
+	C._gotk4_gtksource4_GutterRenderer_virtual_change_view(unsafe.Pointer(fnarg), _arg0, _arg1)
+	runtime.KeepAlive(renderer)
+	runtime.KeepAlive(oldView)
+}
+
+// Draw: main renderering method. Implementations should implement this method
+// to draw onto the cairo context. The background_area indicates the total area
+// of the cell to be drawn. The cell_area indicates the area where content can
+// be drawn (text, images, etc).
+//
+// The background_area is the cell_area plus the padding on each side
+// (two times the SourceGutterRenderer:xpad horizontally and two times the
+// SourceGutterRenderer:ypad vertically, so that the cell_area is centered
+// inside background_area).
+//
+// The state argument indicates the current state of the renderer and should be
+// taken into account to properly draw the different possible states (cursor,
+// prelit, selected) if appropriate.
+//
+// The function takes the following parameters:
+//
+//   - cr: cairo render context.
+//   - backgroundArea indicating the total area to be drawn.
+//   - cellArea indicating the area to draw content.
+//   - start: TextIter.
+//   - end: TextIter.
+//   - state: SourceGutterRendererState.
+//
+func (renderer *GutterRenderer) draw(cr *cairo.Context, backgroundArea, cellArea *gdk.Rectangle, start, end *gtk.TextIter, state GutterRendererState) {
+	gclass := (*C.GtkSourceGutterRendererClass)(coreglib.PeekParentClass(renderer))
+	fnarg := gclass.draw
+
+	var _arg0 *C.GtkSourceGutterRenderer     // out
+	var _arg1 *C.cairo_t                     // out
+	var _arg2 *C.GdkRectangle                // out
+	var _arg3 *C.GdkRectangle                // out
+	var _arg4 *C.GtkTextIter                 // out
+	var _arg5 *C.GtkTextIter                 // out
+	var _arg6 C.GtkSourceGutterRendererState // out
+
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
+	_arg1 = (*C.cairo_t)(unsafe.Pointer(cr.Native()))
+	_arg2 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(backgroundArea)))
+	_arg3 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(cellArea)))
+	_arg4 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
+	_arg5 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
+	_arg6 = C.GtkSourceGutterRendererState(state)
+
+	C._gotk4_gtksource4_GutterRenderer_virtual_draw(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2, _arg3, _arg4, _arg5, _arg6)
+	runtime.KeepAlive(renderer)
+	runtime.KeepAlive(cr)
+	runtime.KeepAlive(backgroundArea)
+	runtime.KeepAlive(cellArea)
+	runtime.KeepAlive(start)
+	runtime.KeepAlive(end)
+	runtime.KeepAlive(state)
+}
+
+// End: called when drawing a region of lines has ended.
+func (renderer *GutterRenderer) end() {
+	gclass := (*C.GtkSourceGutterRendererClass)(coreglib.PeekParentClass(renderer))
+	fnarg := gclass.end
+
+	var _arg0 *C.GtkSourceGutterRenderer // out
+
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
+
+	C._gotk4_gtksource4_GutterRenderer_virtual_end(unsafe.Pointer(fnarg), _arg0)
+	runtime.KeepAlive(renderer)
+}
+
+// queryActivatable: get whether the renderer is activatable at the location in
+// event. This is called from SourceGutter to determine whether a renderer is
+// activatable using the mouse pointer.
+//
+// The function takes the following parameters:
+//
+//   - iter at the start of the line to be activated.
+//   - area of the cell area to be activated.
+//   - event that triggered the query.
+//
+// The function returns the following values:
+//
+//   - ok: TRUE if the renderer can be activated, FALSE otherwise.
+//
+func (renderer *GutterRenderer) queryActivatable(iter *gtk.TextIter, area *gdk.Rectangle, event *gdk.Event) bool {
+	gclass := (*C.GtkSourceGutterRendererClass)(coreglib.PeekParentClass(renderer))
+	fnarg := gclass.query_activatable
+
+	var _arg0 *C.GtkSourceGutterRenderer // out
+	var _arg1 *C.GtkTextIter             // out
+	var _arg2 *C.GdkRectangle            // out
+	var _arg3 *C.GdkEvent                // out
+	var _cret C.gboolean                 // in
+
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
+	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
+	_arg2 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(area)))
+	_arg3 = (*C.GdkEvent)(gextras.StructNative(unsafe.Pointer(event)))
+
+	_cret = C._gotk4_gtksource4_GutterRenderer_virtual_query_activatable(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2, _arg3)
+	runtime.KeepAlive(renderer)
+	runtime.KeepAlive(iter)
+	runtime.KeepAlive(area)
+	runtime.KeepAlive(event)
+
+	var _ok bool // out
+
+	if _cret != 0 {
+		_ok = true
+	}
+
+	return _ok
+}
+
+// queryData: emit the SourceGutterRenderer::query-data signal.
+// This function is called to query for data just before rendering a cell.
+// This is called from the SourceGutter. Implementations can override the
+// default signal handler or can connect a signal handler externally to the
+// SourceGutterRenderer::query-data signal.
+//
+// The function takes the following parameters:
+//
+//   - start: TextIter.
+//   - end: TextIter.
+//   - state: SourceGutterRendererState.
+//
+func (renderer *GutterRenderer) queryData(start, end *gtk.TextIter, state GutterRendererState) {
+	gclass := (*C.GtkSourceGutterRendererClass)(coreglib.PeekParentClass(renderer))
+	fnarg := gclass.query_data
+
+	var _arg0 *C.GtkSourceGutterRenderer     // out
+	var _arg1 *C.GtkTextIter                 // out
+	var _arg2 *C.GtkTextIter                 // out
+	var _arg3 C.GtkSourceGutterRendererState // out
+
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
+	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
+	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
+	_arg3 = C.GtkSourceGutterRendererState(state)
+
+	C._gotk4_gtksource4_GutterRenderer_virtual_query_data(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2, _arg3)
+	runtime.KeepAlive(renderer)
+	runtime.KeepAlive(start)
+	runtime.KeepAlive(end)
+	runtime.KeepAlive(state)
+}
+
+// queryTooltip emits the SourceGutterRenderer::query-tooltip signal.
+// This function is called from SourceGutter. Implementations can override the
+// default signal handler or can connect to the signal externally.
+//
+// The function takes the following parameters:
+//
+//   - iter: TextIter.
+//   - area: Rectangle.
+//   - x position of the tooltip.
+//   - y position of the tooltip.
+//   - tooltip: Tooltip.
+//
+// The function returns the following values:
+//
+//   - ok: TRUE if the tooltip has been set, FALSE otherwise.
+//
+func (renderer *GutterRenderer) queryTooltip(iter *gtk.TextIter, area *gdk.Rectangle, x, y int, tooltip *gtk.Tooltip) bool {
+	gclass := (*C.GtkSourceGutterRendererClass)(coreglib.PeekParentClass(renderer))
+	fnarg := gclass.query_tooltip
+
+	var _arg0 *C.GtkSourceGutterRenderer // out
+	var _arg1 *C.GtkTextIter             // out
+	var _arg2 *C.GdkRectangle            // out
+	var _arg3 C.gint                     // out
+	var _arg4 C.gint                     // out
+	var _arg5 *C.GtkTooltip              // out
+	var _cret C.gboolean                 // in
+
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
+	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
+	_arg2 = (*C.GdkRectangle)(gextras.StructNative(unsafe.Pointer(area)))
+	_arg3 = C.gint(x)
+	_arg4 = C.gint(y)
+	_arg5 = (*C.GtkTooltip)(unsafe.Pointer(coreglib.InternObject(tooltip).Native()))
+
+	_cret = C._gotk4_gtksource4_GutterRenderer_virtual_query_tooltip(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2, _arg3, _arg4, _arg5)
+	runtime.KeepAlive(renderer)
+	runtime.KeepAlive(iter)
+	runtime.KeepAlive(area)
+	runtime.KeepAlive(x)
+	runtime.KeepAlive(y)
+	runtime.KeepAlive(tooltip)
+
+	var _ok bool // out
+
+	if _cret != 0 {
+		_ok = true
+	}
+
+	return _ok
+}
+
+// queueDraw emits the SourceGutterRenderer::queue-draw signal of the renderer.
+// Call this from an implementation to inform that the renderer has changed such
+// that it needs to redraw.
+func (renderer *GutterRenderer) queueDraw() {
+	gclass := (*C.GtkSourceGutterRendererClass)(coreglib.PeekParentClass(renderer))
+	fnarg := gclass.queue_draw
+
+	var _arg0 *C.GtkSourceGutterRenderer // out
+
+	_arg0 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
+
+	C._gotk4_gtksource4_GutterRenderer_virtual_queue_draw(unsafe.Pointer(fnarg), _arg0)
+	runtime.KeepAlive(renderer)
+}
+
+// GutterRendererClass: instance of this type is always passed by reference.
+type GutterRendererClass struct {
+	*gutterRendererClass
+}
+
+// gutterRendererClass is the struct that's finalized.
+type gutterRendererClass struct {
+	native *C.GtkSourceGutterRendererClass
+}
+
+func (g *GutterRendererClass) Padding() [20]unsafe.Pointer {
+	valptr := &g.native.padding
+	var _v [20]unsafe.Pointer // out
+	{
+		src := &*valptr
+		for i := 0; i < 20; i++ {
+			_v[i] = (unsafe.Pointer)(unsafe.Pointer(src[i]))
+		}
+	}
+	return _v
 }

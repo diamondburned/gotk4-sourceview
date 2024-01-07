@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 )
 
 // #include <stdlib.h>
@@ -14,56 +15,70 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcestylescheme.go.
-var GTypeStyleScheme = externglib.Type(C.gtk_source_style_scheme_get_type())
+// GType values.
+var (
+	GTypeStyleScheme = coreglib.Type(C.gtk_source_style_scheme_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeStyleScheme, F: marshalStyleScheme},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeStyleScheme, F: marshalStyleScheme},
 	})
 }
 
-// StyleSchemeOverrider contains methods that are overridable.
-type StyleSchemeOverrider interface {
+// StyleSchemeOverrides contains methods that are overridable.
+type StyleSchemeOverrides struct {
+}
+
+func defaultStyleSchemeOverrides(v *StyleScheme) StyleSchemeOverrides {
+	return StyleSchemeOverrides{}
 }
 
 type StyleScheme struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*StyleScheme)(nil)
+	_ coreglib.Objector = (*StyleScheme)(nil)
 )
 
-func classInitStyleSchemer(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*StyleScheme, *StyleSchemeClass, StyleSchemeOverrides](
+		GTypeStyleScheme,
+		initStyleSchemeClass,
+		wrapStyleScheme,
+		defaultStyleSchemeOverrides,
+	)
 }
 
-func wrapStyleScheme(obj *externglib.Object) *StyleScheme {
+func initStyleSchemeClass(gclass unsafe.Pointer, overrides StyleSchemeOverrides, classInitFunc func(*StyleSchemeClass)) {
+	if classInitFunc != nil {
+		class := (*StyleSchemeClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapStyleScheme(obj *coreglib.Object) *StyleScheme {
 	return &StyleScheme{
 		Object: obj,
 	}
 }
 
 func marshalStyleScheme(p uintptr) (interface{}, error) {
-	return wrapStyleScheme(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapStyleScheme(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // The function returns the following values:
 //
-//    - utf8s (optional): a NULL-terminated array containing the scheme authors
-//      or NULL if no author is specified by the style scheme.
+//   - utf8s (optional): a NULL-terminated array containing the scheme authors
+//     or NULL if no author is specified by the style scheme.
 //
 func (scheme *StyleScheme) Authors() []string {
 	var _arg0 *C.GtkSourceStyleScheme // out
 	var _cret **C.gchar               // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(coreglib.InternObject(scheme).Native()))
 
 	_cret = C.gtk_source_style_scheme_get_authors(_arg0)
 	runtime.KeepAlive(scheme)
@@ -91,13 +106,13 @@ func (scheme *StyleScheme) Authors() []string {
 
 // The function returns the following values:
 //
-//    - utf8 (optional): scheme description (if defined), or NULL.
+//   - utf8 (optional): scheme description (if defined), or NULL.
 //
 func (scheme *StyleScheme) Description() string {
 	var _arg0 *C.GtkSourceStyleScheme // out
 	var _cret *C.gchar                // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(coreglib.InternObject(scheme).Native()))
 
 	_cret = C.gtk_source_style_scheme_get_description(_arg0)
 	runtime.KeepAlive(scheme)
@@ -113,14 +128,14 @@ func (scheme *StyleScheme) Description() string {
 
 // The function returns the following values:
 //
-//    - utf8 (optional): scheme file name if the scheme was created parsing a
-//      style scheme file or NULL in the other cases.
+//   - utf8 (optional): scheme file name if the scheme was created parsing a
+//     style scheme file or NULL in the other cases.
 //
 func (scheme *StyleScheme) Filename() string {
 	var _arg0 *C.GtkSourceStyleScheme // out
 	var _cret *C.gchar                // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(coreglib.InternObject(scheme).Native()))
 
 	_cret = C.gtk_source_style_scheme_get_filename(_arg0)
 	runtime.KeepAlive(scheme)
@@ -136,13 +151,13 @@ func (scheme *StyleScheme) Filename() string {
 
 // The function returns the following values:
 //
-//    - utf8: scheme id.
+//   - utf8: scheme id.
 //
 func (scheme *StyleScheme) ID() string {
 	var _arg0 *C.GtkSourceStyleScheme // out
 	var _cret *C.gchar                // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(coreglib.InternObject(scheme).Native()))
 
 	_cret = C.gtk_source_style_scheme_get_id(_arg0)
 	runtime.KeepAlive(scheme)
@@ -156,13 +171,13 @@ func (scheme *StyleScheme) ID() string {
 
 // The function returns the following values:
 //
-//    - utf8: scheme name.
+//   - utf8: scheme name.
 //
 func (scheme *StyleScheme) Name() string {
 	var _arg0 *C.GtkSourceStyleScheme // out
 	var _cret *C.gchar                // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(coreglib.InternObject(scheme).Native()))
 
 	_cret = C.gtk_source_style_scheme_get_name(_arg0)
 	runtime.KeepAlive(scheme)
@@ -176,20 +191,20 @@ func (scheme *StyleScheme) Name() string {
 
 // The function takes the following parameters:
 //
-//    - styleId: id of the style to retrieve.
+//   - styleId: id of the style to retrieve.
 //
 // The function returns the following values:
 //
-//    - style (optional) which corresponds to style_id in the scheme, or NULL
-//      when no style with this name found. It is owned by scheme and may not be
-//      unref'ed.
+//   - style (optional) which corresponds to style_id in the scheme, or NULL
+//     when no style with this name found. It is owned by scheme and may not be
+//     unref'ed.
 //
 func (scheme *StyleScheme) Style(styleId string) *Style {
 	var _arg0 *C.GtkSourceStyleScheme // out
 	var _arg1 *C.gchar                // out
 	var _cret *C.GtkSourceStyle       // in
 
-	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
+	_arg0 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(coreglib.InternObject(scheme).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(styleId)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -200,8 +215,30 @@ func (scheme *StyleScheme) Style(styleId string) *Style {
 	var _style *Style // out
 
 	if _cret != nil {
-		_style = wrapStyle(externglib.Take(unsafe.Pointer(_cret)))
+		_style = wrapStyle(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _style
+}
+
+// StyleSchemeClass: instance of this type is always passed by reference.
+type StyleSchemeClass struct {
+	*styleSchemeClass
+}
+
+// styleSchemeClass is the struct that's finalized.
+type styleSchemeClass struct {
+	native *C.GtkSourceStyleSchemeClass
+}
+
+func (s *StyleSchemeClass) Padding() [10]unsafe.Pointer {
+	valptr := &s.native.padding
+	var _v [10]unsafe.Pointer // out
+	{
+		src := &*valptr
+		for i := 0; i < 10; i++ {
+			_v[i] = (unsafe.Pointer)(unsafe.Pointer(src[i]))
+		}
+	}
+	return _v
 }

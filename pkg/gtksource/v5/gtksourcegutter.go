@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -15,19 +16,41 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcegutter.go.
-var GTypeGutter = externglib.Type(C.gtk_source_gutter_get_type())
+// GType values.
+var (
+	GTypeGutter = coreglib.Type(C.gtk_source_gutter_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeGutter, F: marshalGutter},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeGutter, F: marshalGutter},
 	})
 }
 
-// GutterOverrider contains methods that are overridable.
-type GutterOverrider interface {
+// GutterOverrides contains methods that are overridable.
+type GutterOverrides struct {
 }
 
+func defaultGutterOverrides(v *Gutter) GutterOverrides {
+	return GutterOverrides{}
+}
+
+// Gutter object for view.
+//
+// The GtkSourceGutter object represents the left or right gutter of the text
+// view. It is used by view to draw the line numbers and marks that might
+// be present on a line. By packing additional gutterrenderer objects in the
+// gutter, you can extend the gutter with your own custom drawings.
+//
+// To get a GtkSourceGutter, use the view.GetGutter function.
+//
+// The gutter works very much the same way as cells rendered in a gtk.TreeView.
+// The concept is similar, with the exception that the gutter does not have an
+// underlying gtk.TreeModel. The builtin line number renderer is at position
+// GTK_SOURCE_VIEW_GUTTER_POSITION_LINES (-30) and the marks renderer is at
+// GTK_SOURCE_VIEW_GUTTER_POSITION_MARKS (-20). The gutter sorts the renderers
+// in ascending order, from left to right. So the marks are displayed on the
+// right of the line numbers.
 type Gutter struct {
 	_ [0]func() // equal guard
 	gtk.Widget
@@ -37,18 +60,26 @@ var (
 	_ gtk.Widgetter = (*Gutter)(nil)
 )
 
-func classInitGutterer(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*Gutter, *GutterClass, GutterOverrides](
+		GTypeGutter,
+		initGutterClass,
+		wrapGutter,
+		defaultGutterOverrides,
+	)
 }
 
-func wrapGutter(obj *externglib.Object) *Gutter {
+func initGutterClass(gclass unsafe.Pointer, overrides GutterOverrides, classInitFunc func(*GutterClass)) {
+	if classInitFunc != nil {
+		class := (*GutterClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapGutter(obj *coreglib.Object) *Gutter {
 	return &Gutter{
 		Widget: gtk.Widget{
-			InitiallyUnowned: externglib.InitiallyUnowned{
+			InitiallyUnowned: coreglib.InitiallyUnowned{
 				Object: obj,
 			},
 			Object: obj,
@@ -66,25 +97,25 @@ func wrapGutter(obj *externglib.Object) *Gutter {
 }
 
 func marshalGutter(p uintptr) (interface{}, error) {
-	return wrapGutter(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapGutter(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // The function returns the following values:
 //
-//    - view: associated SourceView.
+//   - view: associated SourceView.
 //
 func (gutter *Gutter) View() *View {
 	var _arg0 *C.GtkSourceGutter // out
 	var _cret *C.GtkSourceView   // in
 
-	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(externglib.InternObject(gutter).Native()))
+	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(coreglib.InternObject(gutter).Native()))
 
 	_cret = C.gtk_source_gutter_get_view(_arg0)
 	runtime.KeepAlive(gutter)
 
 	var _view *View // out
 
-	_view = wrapView(externglib.Take(unsafe.Pointer(_cret)))
+	_view = wrapView(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _view
 }
@@ -95,12 +126,12 @@ func (gutter *Gutter) View() *View {
 //
 // The function takes the following parameters:
 //
-//    - renderer: gutter renderer (must inherit from SourceGutterRenderer).
-//    - position: renderer position.
+//   - renderer: gutter renderer (must inherit from SourceGutterRenderer).
+//   - position: renderer position.
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if operation succeeded. Otherwise FALSE.
+//   - ok: TRUE if operation succeeded. Otherwise FALSE.
 //
 func (gutter *Gutter) Insert(renderer GutterRendererer, position int) bool {
 	var _arg0 *C.GtkSourceGutter         // out
@@ -108,8 +139,8 @@ func (gutter *Gutter) Insert(renderer GutterRendererer, position int) bool {
 	var _arg2 C.gint                     // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(externglib.InternObject(gutter).Native()))
-	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(coreglib.InternObject(gutter).Native()))
+	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg2 = C.gint(position)
 
 	_cret = C.gtk_source_gutter_insert(_arg0, _arg1, _arg2)
@@ -132,8 +163,8 @@ func (gutter *Gutter) Remove(renderer GutterRendererer) {
 	var _arg0 *C.GtkSourceGutter         // out
 	var _arg1 *C.GtkSourceGutterRenderer // out
 
-	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(externglib.InternObject(gutter).Native()))
-	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(coreglib.InternObject(gutter).Native()))
+	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	C.gtk_source_gutter_remove(_arg0, _arg1)
 	runtime.KeepAlive(gutter)
@@ -144,20 +175,37 @@ func (gutter *Gutter) Remove(renderer GutterRendererer) {
 //
 // The function takes the following parameters:
 //
-//    - renderer: CellRenderer.
-//    - position: new renderer position.
+//   - renderer: CellRenderer.
+//   - position: new renderer position.
 //
 func (gutter *Gutter) Reorder(renderer GutterRendererer, position int) {
 	var _arg0 *C.GtkSourceGutter         // out
 	var _arg1 *C.GtkSourceGutterRenderer // out
 	var _arg2 C.gint                     // out
 
-	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(externglib.InternObject(gutter).Native()))
-	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutter)(unsafe.Pointer(coreglib.InternObject(gutter).Native()))
+	_arg1 = (*C.GtkSourceGutterRenderer)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg2 = C.gint(position)
 
 	C.gtk_source_gutter_reorder(_arg0, _arg1, _arg2)
 	runtime.KeepAlive(gutter)
 	runtime.KeepAlive(renderer)
 	runtime.KeepAlive(position)
+}
+
+// GutterClass: instance of this type is always passed by reference.
+type GutterClass struct {
+	*gutterClass
+}
+
+// gutterClass is the struct that's finalized.
+type gutterClass struct {
+	native *C.GtkSourceGutterClass
+}
+
+func (g *GutterClass) ParentClass() *gtk.WidgetClass {
+	valptr := &g.native.parent_class
+	var _v *gtk.WidgetClass // out
+	_v = (*gtk.WidgetClass)(gextras.NewStructNative(unsafe.Pointer(valptr)))
+	return _v
 }

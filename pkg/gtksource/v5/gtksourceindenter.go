@@ -7,7 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
@@ -15,59 +15,63 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
-// extern gboolean _gotk4_gtksource5_IndenterInterface_is_trigger(GtkSourceIndenter*, GtkSourceView*, GtkTextIter*, GdkModifierType, guint);
+// gboolean _gotk4_gtksource5_Indenter_virtual_is_trigger(void* fnptr, GtkSourceIndenter* arg0, GtkSourceView* arg1, GtkTextIter* arg2, GdkModifierType arg3, guint arg4) {
+//   return ((gboolean (*)(GtkSourceIndenter*, GtkSourceView*, GtkTextIter*, GdkModifierType, guint))(fnptr))(arg0, arg1, arg2, arg3, arg4);
+// };
 import "C"
 
-// glib.Type values for gtksourceindenter.go.
-var GTypeIndenter = externglib.Type(C.gtk_source_indenter_get_type())
+// GType values.
+var (
+	GTypeIndenter = coreglib.Type(C.gtk_source_indenter_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeIndenter, F: marshalIndenter},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeIndenter, F: marshalIndenter},
 	})
 }
 
-// IndenterOverrider contains methods that are overridable.
-type IndenterOverrider interface {
-	// IsTrigger: this function is used to determine if a key pressed should
-	// cause the indenter to automatically indent.
-	//
-	// The default implementation of this virtual method will check to see if
-	// keyval is GDK_KEY_Return or GDK_KEY_KP_Enter and state does not have
-	// GDK_SHIFT_MASK set. This is to allow the user to avoid indentation when
-	// Shift+Return is pressed. Other indenters may want to copy this behavior
-	// to provide a consistent experience to users.
-	//
-	// The function takes the following parameters:
-	//
-	//    - view: SourceView.
-	//    - location where ch is to be inserted.
-	//    - state: modifier state for the insertion.
-	//    - keyval pressed such as GDK_KEY_Return.
-	//
-	// The function returns the following values:
-	//
-	//    - ok: TRUE if indentation should be automatically triggered; otherwise
-	//      FALSE and no indentation will be performed.
-	//
-	IsTrigger(view *View, location *gtk.TextIter, state gdk.ModifierType, keyval uint) bool
-}
-
+// Indenter: auto-indentation interface.
+//
+// By default, view can auto-indent as you type when view:auto-indent is
+// enabled. The indentation simply copies the previous lines indentation.
+//
+// This can be changed by implementing GtkSourceIndenter and setting the
+// view:indenter property.
+//
+// Implementors of this interface should implement both indenter.IsTrigger and
+// indenter.Indent.
+//
+// indenter.IsTrigger is called upon key-press to determine of the key press
+// should trigger an indentation. The default implementation of the interface
+// checks to see if the key was gdk.KEYReturn or gdk.KEYKPEnter without
+// GDK_SHIFT_MASK set.
+//
+// indenter.Indent is called after text has been inserted into buffer when
+// indenter.IsTrigger returned TRUE. The gtk.TextIter is placed directly after
+// the inserted character or characters.
+//
+// It may be beneficial to move the insertion mark using
+// gtk.TextBuffer.SelectRange() depending on how the indenter changes the
+// indentation.
+//
+// All changes are encapsulated within a single user action so that the user may
+// undo them using standard undo/redo accelerators.
 //
 // Indenter wraps an interface. This means the user can get the
 // underlying type by calling Cast().
 type Indenter struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*Indenter)(nil)
+	_ coreglib.Objector = (*Indenter)(nil)
 )
 
 // Indenterer describes Indenter's interface methods.
 type Indenterer interface {
-	externglib.Objector
+	coreglib.Objector
 
 	// IsTrigger: this function is used to determine if a key pressed should
 	// cause the indenter to automatically indent.
@@ -76,65 +80,36 @@ type Indenterer interface {
 
 var _ Indenterer = (*Indenter)(nil)
 
-func ifaceInitIndenterer(gifacePtr, data C.gpointer) {
-	iface := (*C.GtkSourceIndenterInterface)(unsafe.Pointer(gifacePtr))
-	iface.is_trigger = (*[0]byte)(C._gotk4_gtksource5_IndenterInterface_is_trigger)
-}
-
-//export _gotk4_gtksource5_IndenterInterface_is_trigger
-func _gotk4_gtksource5_IndenterInterface_is_trigger(arg0 *C.GtkSourceIndenter, arg1 *C.GtkSourceView, arg2 *C.GtkTextIter, arg3 C.GdkModifierType, arg4 C.guint) (cret C.gboolean) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(IndenterOverrider)
-
-	var _view *View             // out
-	var _location *gtk.TextIter // out
-	var _state gdk.ModifierType // out
-	var _keyval uint            // out
-
-	_view = wrapView(externglib.Take(unsafe.Pointer(arg1)))
-	_location = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-	_state = gdk.ModifierType(arg3)
-	_keyval = uint(arg4)
-
-	ok := iface.IsTrigger(_view, _location, _state, _keyval)
-
-	if ok {
-		cret = C.TRUE
-	}
-
-	return cret
-}
-
-func wrapIndenter(obj *externglib.Object) *Indenter {
+func wrapIndenter(obj *coreglib.Object) *Indenter {
 	return &Indenter{
 		Object: obj,
 	}
 }
 
 func marshalIndenter(p uintptr) (interface{}, error) {
-	return wrapIndenter(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapIndenter(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // IsTrigger: this function is used to determine if a key pressed should cause
 // the indenter to automatically indent.
 //
 // The default implementation of this virtual method will check to see if keyval
-// is GDK_KEY_Return or GDK_KEY_KP_Enter and state does not have GDK_SHIFT_MASK
-// set. This is to allow the user to avoid indentation when Shift+Return is
-// pressed. Other indenters may want to copy this behavior to provide a
+// is gdk.KEYReturn or gdk.KEYKPEnter and state does not have GDK_SHIFT_MASK
+// set. This is to allow the user to avoid indentation when Shift+Return
+// is pressed. Other indenters may want to copy this behavior to provide a
 // consistent experience to users.
 //
 // The function takes the following parameters:
 //
-//    - view: SourceView.
-//    - location where ch is to be inserted.
-//    - state: modifier state for the insertion.
-//    - keyval pressed such as GDK_KEY_Return.
+//   - view: SourceView.
+//   - location where ch is to be inserted.
+//   - state: modifier state for the insertion.
+//   - keyval pressed such as gdk.KEYReturn.
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if indentation should be automatically triggered; otherwise
-//      FALSE and no indentation will be performed.
+//   - ok: TRUE if indentation should be automatically triggered; otherwise
+//     FALSE and no indentation will be performed.
 //
 func (self *Indenter) IsTrigger(view *View, location *gtk.TextIter, state gdk.ModifierType, keyval uint) bool {
 	var _arg0 *C.GtkSourceIndenter // out
@@ -144,8 +119,8 @@ func (self *Indenter) IsTrigger(view *View, location *gtk.TextIter, state gdk.Mo
 	var _arg4 C.guint              // out
 	var _cret C.gboolean           // in
 
-	_arg0 = (*C.GtkSourceIndenter)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
+	_arg0 = (*C.GtkSourceIndenter)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(coreglib.InternObject(view).Native()))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(location)))
 	_arg3 = C.GdkModifierType(state)
 	_arg4 = C.guint(keyval)
@@ -164,4 +139,70 @@ func (self *Indenter) IsTrigger(view *View, location *gtk.TextIter, state gdk.Mo
 	}
 
 	return _ok
+}
+
+// isTrigger: this function is used to determine if a key pressed should cause
+// the indenter to automatically indent.
+//
+// The default implementation of this virtual method will check to see if keyval
+// is gdk.KEYReturn or gdk.KEYKPEnter and state does not have GDK_SHIFT_MASK
+// set. This is to allow the user to avoid indentation when Shift+Return
+// is pressed. Other indenters may want to copy this behavior to provide a
+// consistent experience to users.
+//
+// The function takes the following parameters:
+//
+//   - view: SourceView.
+//   - location where ch is to be inserted.
+//   - state: modifier state for the insertion.
+//   - keyval pressed such as gdk.KEYReturn.
+//
+// The function returns the following values:
+//
+//   - ok: TRUE if indentation should be automatically triggered; otherwise
+//     FALSE and no indentation will be performed.
+//
+func (self *Indenter) isTrigger(view *View, location *gtk.TextIter, state gdk.ModifierType, keyval uint) bool {
+	gclass := (*C.GtkSourceIndenterInterface)(coreglib.PeekParentClass(self))
+	fnarg := gclass.is_trigger
+
+	var _arg0 *C.GtkSourceIndenter // out
+	var _arg1 *C.GtkSourceView     // out
+	var _arg2 *C.GtkTextIter       // out
+	var _arg3 C.GdkModifierType    // out
+	var _arg4 C.guint              // out
+	var _cret C.gboolean           // in
+
+	_arg0 = (*C.GtkSourceIndenter)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(coreglib.InternObject(view).Native()))
+	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(location)))
+	_arg3 = C.GdkModifierType(state)
+	_arg4 = C.guint(keyval)
+
+	_cret = C._gotk4_gtksource5_Indenter_virtual_is_trigger(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2, _arg3, _arg4)
+	runtime.KeepAlive(self)
+	runtime.KeepAlive(view)
+	runtime.KeepAlive(location)
+	runtime.KeepAlive(state)
+	runtime.KeepAlive(keyval)
+
+	var _ok bool // out
+
+	if _cret != 0 {
+		_ok = true
+	}
+
+	return _ok
+}
+
+// IndenterInterface: virtual function table for SourceIndenter.
+//
+// An instance of this type is always passed by reference.
+type IndenterInterface struct {
+	*indenterInterface
+}
+
+// indenterInterface is the struct that's finalized.
+type indenterInterface struct {
+	native *C.GtkSourceIndenterInterface
 }

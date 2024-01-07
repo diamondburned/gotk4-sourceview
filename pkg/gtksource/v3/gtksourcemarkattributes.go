@@ -7,7 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v3"
 	"github.com/diamondburned/gotk4/pkg/gdkpixbuf/v2"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
@@ -17,115 +17,81 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
-// extern gchar* _gotk4_gtksource3_MarkAttributes_ConnectQueryTooltipMarkup(gpointer, GtkSourceMark*, guintptr);
 // extern gchar* _gotk4_gtksource3_MarkAttributes_ConnectQueryTooltipText(gpointer, GtkSourceMark*, guintptr);
+// extern gchar* _gotk4_gtksource3_MarkAttributes_ConnectQueryTooltipMarkup(gpointer, GtkSourceMark*, guintptr);
 import "C"
 
-// glib.Type values for gtksourcemarkattributes.go.
-var GTypeMarkAttributes = externglib.Type(C.gtk_source_mark_attributes_get_type())
+// GType values.
+var (
+	GTypeMarkAttributes = coreglib.Type(C.gtk_source_mark_attributes_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeMarkAttributes, F: marshalMarkAttributes},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeMarkAttributes, F: marshalMarkAttributes},
 	})
 }
 
-// MarkAttributesOverrider contains methods that are overridable.
-type MarkAttributesOverrider interface {
+// MarkAttributesOverrides contains methods that are overridable.
+type MarkAttributesOverrides struct {
+}
+
+func defaultMarkAttributesOverrides(v *MarkAttributes) MarkAttributesOverrides {
+	return MarkAttributesOverrides{}
 }
 
 type MarkAttributes struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*MarkAttributes)(nil)
+	_ coreglib.Objector = (*MarkAttributes)(nil)
 )
 
-func classInitMarkAttributesser(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*MarkAttributes, *MarkAttributesClass, MarkAttributesOverrides](
+		GTypeMarkAttributes,
+		initMarkAttributesClass,
+		wrapMarkAttributes,
+		defaultMarkAttributesOverrides,
+	)
 }
 
-func wrapMarkAttributes(obj *externglib.Object) *MarkAttributes {
+func initMarkAttributesClass(gclass unsafe.Pointer, overrides MarkAttributesOverrides, classInitFunc func(*MarkAttributesClass)) {
+	if classInitFunc != nil {
+		class := (*MarkAttributesClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapMarkAttributes(obj *coreglib.Object) *MarkAttributes {
 	return &MarkAttributes{
 		Object: obj,
 	}
 }
 
 func marshalMarkAttributes(p uintptr) (interface{}, error) {
-	return wrapMarkAttributes(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
-}
-
-//export _gotk4_gtksource3_MarkAttributes_ConnectQueryTooltipMarkup
-func _gotk4_gtksource3_MarkAttributes_ConnectQueryTooltipMarkup(arg0 C.gpointer, arg1 *C.GtkSourceMark, arg2 C.guintptr) (cret *C.gchar) {
-	var f func(mark *Mark) (utf8 string)
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func(mark *Mark) (utf8 string))
-	}
-
-	var _mark *Mark // out
-
-	_mark = wrapMark(externglib.Take(unsafe.Pointer(arg1)))
-
-	utf8 := f(_mark)
-
-	cret = (*C.gchar)(unsafe.Pointer(C.CString(utf8)))
-
-	return cret
+	return wrapMarkAttributes(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // ConnectQueryTooltipMarkup: code should connect to this signal to provide a
 // tooltip for given mark. The tooltip can contain a markup.
-func (attributes *MarkAttributes) ConnectQueryTooltipMarkup(f func(mark *Mark) (utf8 string)) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(attributes, "query-tooltip-markup", false, unsafe.Pointer(C._gotk4_gtksource3_MarkAttributes_ConnectQueryTooltipMarkup), f)
-}
-
-//export _gotk4_gtksource3_MarkAttributes_ConnectQueryTooltipText
-func _gotk4_gtksource3_MarkAttributes_ConnectQueryTooltipText(arg0 C.gpointer, arg1 *C.GtkSourceMark, arg2 C.guintptr) (cret *C.gchar) {
-	var f func(mark *Mark) (utf8 string)
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func(mark *Mark) (utf8 string))
-	}
-
-	var _mark *Mark // out
-
-	_mark = wrapMark(externglib.Take(unsafe.Pointer(arg1)))
-
-	utf8 := f(_mark)
-
-	cret = (*C.gchar)(unsafe.Pointer(C.CString(utf8)))
-
-	return cret
+func (attributes *MarkAttributes) ConnectQueryTooltipMarkup(f func(mark *Mark) (utf8 string)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(attributes, "query-tooltip-markup", false, unsafe.Pointer(C._gotk4_gtksource3_MarkAttributes_ConnectQueryTooltipMarkup), f)
 }
 
 // ConnectQueryTooltipText: code should connect to this signal to provide a
 // tooltip for given mark. The tooltip should be just a plain text.
-func (attributes *MarkAttributes) ConnectQueryTooltipText(f func(mark *Mark) (utf8 string)) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(attributes, "query-tooltip-text", false, unsafe.Pointer(C._gotk4_gtksource3_MarkAttributes_ConnectQueryTooltipText), f)
+func (attributes *MarkAttributes) ConnectQueryTooltipText(f func(mark *Mark) (utf8 string)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(attributes, "query-tooltip-text", false, unsafe.Pointer(C._gotk4_gtksource3_MarkAttributes_ConnectQueryTooltipText), f)
 }
 
 // NewMarkAttributes creates a new source mark attributes.
 //
 // The function returns the following values:
 //
-//    - markAttributes: new source mark attributes.
+//   - markAttributes: new source mark attributes.
 //
 func NewMarkAttributes() *MarkAttributes {
 	var _cret *C.GtkSourceMarkAttributes // in
@@ -134,7 +100,7 @@ func NewMarkAttributes() *MarkAttributes {
 
 	var _markAttributes *MarkAttributes // out
 
-	_markAttributes = wrapMarkAttributes(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_markAttributes = wrapMarkAttributes(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _markAttributes
 }
@@ -143,15 +109,15 @@ func NewMarkAttributes() *MarkAttributes {
 //
 // The function returns the following values:
 //
-//    - background: RGBA.
-//    - ok: whether background color for attributes was set.
+//   - background: RGBA.
+//   - ok: whether background color for attributes was set.
 //
 func (attributes *MarkAttributes) Background() (*gdk.RGBA, bool) {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 C.GdkRGBA                  // in
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_background(_arg0, &_arg1)
 	runtime.KeepAlive(attributes)
@@ -172,13 +138,13 @@ func (attributes *MarkAttributes) Background() (*gdk.RGBA, bool) {
 //
 // The function returns the following values:
 //
-//    - icon: icon. The icon belongs to attributes and should not be unreffed.
+//   - icon: icon. The icon belongs to attributes and should not be unreffed.
 //
 func (attributes *MarkAttributes) GIcon() *gio.Icon {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _cret *C.GIcon                   // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_gicon(_arg0)
 	runtime.KeepAlive(attributes)
@@ -186,7 +152,7 @@ func (attributes *MarkAttributes) GIcon() *gio.Icon {
 	var _icon *gio.Icon // out
 
 	{
-		obj := externglib.Take(unsafe.Pointer(_cret))
+		obj := coreglib.Take(unsafe.Pointer(_cret))
 		_icon = &gio.Icon{
 			Object: obj,
 		}
@@ -195,19 +161,19 @@ func (attributes *MarkAttributes) GIcon() *gio.Icon {
 	return _icon
 }
 
-// IconName gets a name of an icon to be used as a base for rendered icon. Note
-// that the icon name can be NULL if it wasn't set earlier.
+// IconName gets a name of an icon to be used as a base for rendered icon.
+// Note that the icon name can be NULL if it wasn't set earlier.
 //
 // The function returns the following values:
 //
-//    - utf8: icon name. The string belongs to attributes and should not be
-//      freed.
+//   - utf8: icon name. The string belongs to attributes and should not be
+//     freed.
 //
 func (attributes *MarkAttributes) IconName() string {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_icon_name(_arg0)
 	runtime.KeepAlive(attributes)
@@ -224,14 +190,14 @@ func (attributes *MarkAttributes) IconName() string {
 //
 // The function returns the following values:
 //
-//    - pixbuf: pixbuf. The pixbuf belongs to attributes and should not be
-//      unreffed.
+//   - pixbuf: pixbuf. The pixbuf belongs to attributes and should not be
+//     unreffed.
 //
 func (attributes *MarkAttributes) Pixbuf() *gdkpixbuf.Pixbuf {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _cret *C.GdkPixbuf               // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_pixbuf(_arg0)
 	runtime.KeepAlive(attributes)
@@ -239,7 +205,7 @@ func (attributes *MarkAttributes) Pixbuf() *gdkpixbuf.Pixbuf {
 	var _pixbuf *gdkpixbuf.Pixbuf // out
 
 	{
-		obj := externglib.Take(unsafe.Pointer(_cret))
+		obj := coreglib.Take(unsafe.Pointer(_cret))
 		_pixbuf = &gdkpixbuf.Pixbuf{
 			Object: obj,
 			LoadableIcon: gio.LoadableIcon{
@@ -260,14 +226,14 @@ func (attributes *MarkAttributes) Pixbuf() *gdkpixbuf.Pixbuf {
 //
 // The function returns the following values:
 //
-//    - utf8: stock id. Returned string is owned by attributes and shouldn't be
-//      freed.
+//   - utf8: stock id. Returned string is owned by attributes and shouldn't be
+//     freed.
 //
 func (attributes *MarkAttributes) StockID() string {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_stock_id(_arg0)
 	runtime.KeepAlive(attributes)
@@ -285,20 +251,20 @@ func (attributes *MarkAttributes) StockID() string {
 //
 // The function takes the following parameters:
 //
-//    - mark: SourceMark.
+//   - mark: SourceMark.
 //
 // The function returns the following values:
 //
-//    - utf8: tooltip. The returned string should be freed by using g_free() when
-//      done with it.
+//   - utf8: tooltip. The returned string should be freed by using g_free() when
+//     done with it.
 //
 func (attributes *MarkAttributes) TooltipMarkup(mark *Mark) string {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 *C.GtkSourceMark           // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
-	_arg1 = (*C.GtkSourceMark)(unsafe.Pointer(externglib.InternObject(mark).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
+	_arg1 = (*C.GtkSourceMark)(unsafe.Pointer(coreglib.InternObject(mark).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_tooltip_markup(_arg0, _arg1)
 	runtime.KeepAlive(attributes)
@@ -317,20 +283,20 @@ func (attributes *MarkAttributes) TooltipMarkup(mark *Mark) string {
 //
 // The function takes the following parameters:
 //
-//    - mark: SourceMark.
+//   - mark: SourceMark.
 //
 // The function returns the following values:
 //
-//    - utf8: tooltip. The returned string should be freed by using g_free() when
-//      done with it.
+//   - utf8: tooltip. The returned string should be freed by using g_free() when
+//     done with it.
 //
 func (attributes *MarkAttributes) TooltipText(mark *Mark) string {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 *C.GtkSourceMark           // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
-	_arg1 = (*C.GtkSourceMark)(unsafe.Pointer(externglib.InternObject(mark).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
+	_arg1 = (*C.GtkSourceMark)(unsafe.Pointer(coreglib.InternObject(mark).Native()))
 
 	_cret = C.gtk_source_mark_attributes_get_tooltip_text(_arg0, _arg1)
 	runtime.KeepAlive(attributes)
@@ -344,21 +310,21 @@ func (attributes *MarkAttributes) TooltipText(mark *Mark) string {
 	return _utf8
 }
 
-// RenderIcon renders an icon of given size. The base of the icon is set by the
-// last call to one of: gtk_source_mark_attributes_set_pixbuf(),
+// RenderIcon renders an icon of given size. The base of the icon is set
+// by the last call to one of: gtk_source_mark_attributes_set_pixbuf(),
 // gtk_source_mark_attributes_set_gicon(),
 // gtk_source_mark_attributes_set_icon_name() or
 // gtk_source_mark_attributes_set_stock_id(). size cannot be lower than 1.
 //
 // The function takes the following parameters:
 //
-//    - widget of which style settings may be used.
-//    - size of the rendered icon.
+//   - widget of which style settings may be used.
+//   - size of the rendered icon.
 //
 // The function returns the following values:
 //
-//    - pixbuf: rendered pixbuf. The pixbuf belongs to attributes and should not
-//      be unreffed.
+//   - pixbuf: rendered pixbuf. The pixbuf belongs to attributes and should not
+//     be unreffed.
 //
 func (attributes *MarkAttributes) RenderIcon(widget gtk.Widgetter, size int) *gdkpixbuf.Pixbuf {
 	var _arg0 *C.GtkSourceMarkAttributes // out
@@ -366,8 +332,8 @@ func (attributes *MarkAttributes) RenderIcon(widget gtk.Widgetter, size int) *gd
 	var _arg2 C.gint                     // out
 	var _cret *C.GdkPixbuf               // in
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
-	_arg1 = (*C.GtkWidget)(unsafe.Pointer(externglib.InternObject(widget).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
+	_arg1 = (*C.GtkWidget)(unsafe.Pointer(coreglib.InternObject(widget).Native()))
 	_arg2 = C.gint(size)
 
 	_cret = C.gtk_source_mark_attributes_render_icon(_arg0, _arg1, _arg2)
@@ -378,7 +344,7 @@ func (attributes *MarkAttributes) RenderIcon(widget gtk.Widgetter, size int) *gd
 	var _pixbuf *gdkpixbuf.Pixbuf // out
 
 	{
-		obj := externglib.Take(unsafe.Pointer(_cret))
+		obj := coreglib.Take(unsafe.Pointer(_cret))
 		_pixbuf = &gdkpixbuf.Pixbuf{
 			Object: obj,
 			LoadableIcon: gio.LoadableIcon{
@@ -396,13 +362,13 @@ func (attributes *MarkAttributes) RenderIcon(widget gtk.Widgetter, size int) *gd
 //
 // The function takes the following parameters:
 //
-//    - background: RGBA.
+//   - background: RGBA.
 //
 func (attributes *MarkAttributes) SetBackground(background *gdk.RGBA) {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 *C.GdkRGBA                 // out
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
 	_arg1 = (*C.GdkRGBA)(gextras.StructNative(unsafe.Pointer(background)))
 
 	C.gtk_source_mark_attributes_set_background(_arg0, _arg1)
@@ -414,14 +380,14 @@ func (attributes *MarkAttributes) SetBackground(background *gdk.RGBA) {
 //
 // The function takes the following parameters:
 //
-//    - gicon to be used.
+//   - gicon to be used.
 //
 func (attributes *MarkAttributes) SetGIcon(gicon gio.Iconner) {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 *C.GIcon                   // out
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
-	_arg1 = (*C.GIcon)(unsafe.Pointer(externglib.InternObject(gicon).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
+	_arg1 = (*C.GIcon)(unsafe.Pointer(coreglib.InternObject(gicon).Native()))
 
 	C.gtk_source_mark_attributes_set_gicon(_arg0, _arg1)
 	runtime.KeepAlive(attributes)
@@ -432,13 +398,13 @@ func (attributes *MarkAttributes) SetGIcon(gicon gio.Iconner) {
 //
 // The function takes the following parameters:
 //
-//    - iconName: name of an icon to be used.
+//   - iconName: name of an icon to be used.
 //
 func (attributes *MarkAttributes) SetIconName(iconName string) {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(iconName)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -451,14 +417,14 @@ func (attributes *MarkAttributes) SetIconName(iconName string) {
 //
 // The function takes the following parameters:
 //
-//    - pixbuf to be used.
+//   - pixbuf to be used.
 //
 func (attributes *MarkAttributes) SetPixbuf(pixbuf *gdkpixbuf.Pixbuf) {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 *C.GdkPixbuf               // out
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
-	_arg1 = (*C.GdkPixbuf)(unsafe.Pointer(externglib.InternObject(pixbuf).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
+	_arg1 = (*C.GdkPixbuf)(unsafe.Pointer(coreglib.InternObject(pixbuf).Native()))
 
 	C.gtk_source_mark_attributes_set_pixbuf(_arg0, _arg1)
 	runtime.KeepAlive(attributes)
@@ -471,17 +437,27 @@ func (attributes *MarkAttributes) SetPixbuf(pixbuf *gdkpixbuf.Pixbuf) {
 //
 // The function takes the following parameters:
 //
-//    - stockId: stock id.
+//   - stockId: stock id.
 //
 func (attributes *MarkAttributes) SetStockID(stockId string) {
 	var _arg0 *C.GtkSourceMarkAttributes // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(externglib.InternObject(attributes).Native()))
+	_arg0 = (*C.GtkSourceMarkAttributes)(unsafe.Pointer(coreglib.InternObject(attributes).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(stockId)))
 	defer C.free(unsafe.Pointer(_arg1))
 
 	C.gtk_source_mark_attributes_set_stock_id(_arg0, _arg1)
 	runtime.KeepAlive(attributes)
 	runtime.KeepAlive(stockId)
+}
+
+// MarkAttributesClass: instance of this type is always passed by reference.
+type MarkAttributesClass struct {
+	*markAttributesClass
+}
+
+// markAttributesClass is the struct that's finalized.
+type markAttributesClass struct {
+	native *C.GtkSourceMarkAttributesClass
 }

@@ -17,7 +17,7 @@ import "C"
 //
 // The function returns the following values:
 //
-//    - sList: list of all SourceEncoding's. Free with g_slist_free().
+//   - sList: list of all SourceEncoding's. Free with g_slist_free().
 //
 func EncodingGetAll() []*Encoding {
 	var _cret *C.GSList // in
@@ -42,7 +42,7 @@ func EncodingGetAll() []*Encoding {
 //
 // The function returns the following values:
 //
-//    - encoding: current locale encoding.
+//   - encoding: current locale encoding.
 //
 func EncodingGetCurrent() *Encoding {
 	var _cret *C.GtkSourceEncoding // in
@@ -56,46 +56,16 @@ func EncodingGetCurrent() *Encoding {
 	return _encoding
 }
 
-// EncodingGetDefaultCandidates gets the list of default candidate encodings to
-// try when loading a file. See
-// gtk_source_file_loader_set_candidate_encodings().
-//
-// This function returns a different list depending on the current locale (i.e.
-// language, country and default encoding). The UTF-8 encoding and the current
-// locale encoding are guaranteed to be present in the returned list.
-//
-// The function returns the following values:
-//
-//    - sList: list of default candidate encodings. Free with g_slist_free().
-//
-func EncodingGetDefaultCandidates() []*Encoding {
-	var _cret *C.GSList // in
-
-	_cret = C.gtk_source_encoding_get_default_candidates()
-
-	var _sList []*Encoding // out
-
-	_sList = make([]*Encoding, 0, gextras.SListSize(unsafe.Pointer(_cret)))
-	gextras.MoveSList(unsafe.Pointer(_cret), true, func(v unsafe.Pointer) {
-		src := (*C.GtkSourceEncoding)(v)
-		var dst *Encoding // out
-		dst = (*Encoding)(gextras.NewStructNative(unsafe.Pointer(src)))
-		_sList = append(_sList, dst)
-	})
-
-	return _sList
-}
-
 // EncodingGetFromCharset gets a SourceEncoding from a character set such as
 // "UTF-8" or "ISO-8859-1".
 //
 // The function takes the following parameters:
 //
-//    - charset: character set.
+//   - charset: character set.
 //
 // The function returns the following values:
 //
-//    - encoding (optional): corresponding SourceEncoding, or NULL if not found.
+//   - encoding (optional): corresponding SourceEncoding, or NULL if not found.
 //
 func EncodingGetFromCharset(charset string) *Encoding {
 	var _arg1 *C.gchar             // out
@@ -118,7 +88,7 @@ func EncodingGetFromCharset(charset string) *Encoding {
 
 // The function returns the following values:
 //
-//    - encoding: UTF-8 encoding.
+//   - encoding: UTF-8 encoding.
 //
 func EncodingGetUTF8() *Encoding {
 	var _cret *C.GtkSourceEncoding // in

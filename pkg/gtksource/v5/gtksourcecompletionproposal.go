@@ -3,68 +3,141 @@
 package gtksource
 
 import (
+	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 )
 
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// char* _gotk4_gtksource5_CompletionProposal_virtual_get_typed_text(void* fnptr, GtkSourceCompletionProposal* arg0) {
+//   return ((char* (*)(GtkSourceCompletionProposal*))(fnptr))(arg0);
+// };
 import "C"
 
-// glib.Type values for gtksourcecompletionproposal.go.
-var GTypeCompletionProposal = externglib.Type(C.gtk_source_completion_proposal_get_type())
+// GType values.
+var (
+	GTypeCompletionProposal = coreglib.Type(C.gtk_source_completion_proposal_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeCompletionProposal, F: marshalCompletionProposal},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeCompletionProposal, F: marshalCompletionProposal},
 	})
 }
 
-// CompletionProposalOverrider contains methods that are overridable.
-type CompletionProposalOverrider interface {
-}
-
+// CompletionProposal: interface for completion proposals.
+//
+// This interface is used to denote that an object is capable of being a
+// completion proposal for completion.
+//
+// Currently, no method or functions are required but additional methods may be
+// added in the future. Proposals created by SourceCompletionProvider can use
+// gobject.IMPLEMENTINTERFACE() to implement this with NULL for the interface
+// init function.
 //
 // CompletionProposal wraps an interface. This means the user can get the
 // underlying type by calling Cast().
 type CompletionProposal struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*CompletionProposal)(nil)
+	_ coreglib.Objector = (*CompletionProposal)(nil)
 )
 
 // CompletionProposaller describes CompletionProposal's interface methods.
 type CompletionProposaller interface {
-	externglib.Objector
+	coreglib.Objector
 
-	baseCompletionProposal() *CompletionProposal
+	// TypedText gets the typed-text for the proposal, if supported by the
+	// implementation.
+	TypedText() string
 }
 
 var _ CompletionProposaller = (*CompletionProposal)(nil)
 
-func ifaceInitCompletionProposaller(gifacePtr, data C.gpointer) {
-}
-
-func wrapCompletionProposal(obj *externglib.Object) *CompletionProposal {
+func wrapCompletionProposal(obj *coreglib.Object) *CompletionProposal {
 	return &CompletionProposal{
 		Object: obj,
 	}
 }
 
 func marshalCompletionProposal(p uintptr) (interface{}, error) {
-	return wrapCompletionProposal(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapCompletionProposal(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
-func (v *CompletionProposal) baseCompletionProposal() *CompletionProposal {
-	return v
+// TypedText gets the typed-text for the proposal, if supported by the
+// implementation.
+//
+// Implementing this virtual-function is optional, but can be useful to allow
+// external tooling to compare results.
+//
+// The function returns the following values:
+//
+//   - utf8 (optional): newly allocated string, or NULL.
+//
+func (proposal *CompletionProposal) TypedText() string {
+	var _arg0 *C.GtkSourceCompletionProposal // out
+	var _cret *C.char                        // in
+
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(coreglib.InternObject(proposal).Native()))
+
+	_cret = C.gtk_source_completion_proposal_get_typed_text(_arg0)
+	runtime.KeepAlive(proposal)
+
+	var _utf8 string // out
+
+	if _cret != nil {
+		_utf8 = C.GoString((*C.gchar)(unsafe.Pointer(_cret)))
+		defer C.free(unsafe.Pointer(_cret))
+	}
+
+	return _utf8
 }
 
-// BaseCompletionProposal returns the underlying base object.
-func BaseCompletionProposal(obj CompletionProposaller) *CompletionProposal {
-	return obj.baseCompletionProposal()
+// typedText gets the typed-text for the proposal, if supported by the
+// implementation.
+//
+// Implementing this virtual-function is optional, but can be useful to allow
+// external tooling to compare results.
+//
+// The function returns the following values:
+//
+//   - utf8 (optional): newly allocated string, or NULL.
+//
+func (proposal *CompletionProposal) typedText() string {
+	gclass := (*C.GtkSourceCompletionProposalInterface)(coreglib.PeekParentClass(proposal))
+	fnarg := gclass.get_typed_text
+
+	var _arg0 *C.GtkSourceCompletionProposal // out
+	var _cret *C.char                        // in
+
+	_arg0 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(coreglib.InternObject(proposal).Native()))
+
+	_cret = C._gotk4_gtksource5_CompletionProposal_virtual_get_typed_text(unsafe.Pointer(fnarg), _arg0)
+	runtime.KeepAlive(proposal)
+
+	var _utf8 string // out
+
+	if _cret != nil {
+		_utf8 = C.GoString((*C.gchar)(unsafe.Pointer(_cret)))
+		defer C.free(unsafe.Pointer(_cret))
+	}
+
+	return _utf8
+}
+
+// CompletionProposalInterface: instance of this type is always passed by
+// reference.
+type CompletionProposalInterface struct {
+	*completionProposalInterface
+}
+
+// completionProposalInterface is the struct that's finalized.
+type completionProposalInterface struct {
+	native *C.GtkSourceCompletionProposalInterface
 }

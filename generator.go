@@ -3,74 +3,41 @@ package main
 //go:generate go run . -o ./pkg/
 
 import (
-	"flag"
-	"log"
-	"os"
-
-	"github.com/diamondburned/gotk4/gir"
-	"github.com/diamondburned/gotk4/gir/cmd/gir_generate/gendata"
-	"github.com/diamondburned/gotk4/gir/cmd/gir_generate/genutil"
-	"github.com/diamondburned/gotk4/gir/girgen"
-	"github.com/diamondburned/gotk4/gir/girgen/logger"
+	"github.com/diamondburned/gotk4/gir/cmd/gir-generate/gendata"
+	"github.com/diamondburned/gotk4/gir/cmd/gir-generate/genmain"
+	"github.com/diamondburned/gotk4/gir/girgen/types"
 )
 
-var (
-	output  string
-	verbose bool
-	listPkg bool
+const sourceviewModule = "github.com/diamondburned/gotk4-sourceview/pkg"
+
+var data = genmain.Overlay(
+	gendata.Main,
+	genmain.Data{
+		Module: sourceviewModule,
+		Packages: []genmain.Package{
+			{Name: "gtksourceview-3.0", Namespaces: nil},
+			{Name: "gtksourceview-4", Namespaces: nil},
+			{Name: "gtksourceview-5", Namespaces: nil},
+		},
+		PkgGenerated: []string{
+			"gtksource",
+		},
+		PkgExceptions: []string{
+			"go.mod",
+			"go.sum",
+			"LICENSE",
+		},
+		Filters: []types.FilterMatcher{
+			// /nix/store/kmqs0wll31ylwbqkpmlgbjrn6ny3myik-binutils-2.35.1/bin/ld: $WORK/b069/_x006.o: in function `_cgo_f791a2727c11_Cfunc_gtk_source_completion_context_get_start_iter':
+			// gtksourcecompletioncontext.cgo2.c:(.text+0x140): undefined reference to `gtk_source_completion_context_get_start_iter'
+			// /nix/store/kmqs0wll31ylwbqkpmlgbjrn6ny3myik-binutils-2.35.1/bin/ld: $WORK/b069/_x016.o: in function `_cgo_f791a2727c11_Cfunc_gtk_source_gutter_lines_get_yrange':
+			// gtksourcegutterlines.cgo2.c:(.text+0x14d): undefined reference to `gtk_source_gutter_lines_get_yrange'
+			types.AbsoluteFilter("C.gtk_source_completion_context_get_start_iter"),
+			types.AbsoluteFilter("C.gtk_source_gutter_lines_get_yrange"),
+		},
+	},
 )
-
-func init() {
-	flag.StringVar(&output, "o", "", "output directory to mkdir in")
-	flag.BoolVar(&verbose, "v", verbose, "log verbosely (debug mode)")
-	flag.BoolVar(&listPkg, "l", listPkg, "only list packages and exit")
-	flag.Parse()
-
-	if !listPkg && output == "" {
-		log.Fatalln("Missing -o output directory.")
-	}
-
-	if verbose {
-		girgen.DefaultOpts.LogLevel = logger.Debug
-	}
-}
 
 func main() {
-	var repos gir.Repositories
-
-	// Load all of gotk4's packages first.
-	genutil.MustAddPackages(&repos, gendata.Packages)
-	// Get a map of exteral imports for packages that gotk4 already generates.
-	overrides := genutil.LoadExternOverrides(gotk4Module, repos)
-
-	// Add our own packages in.
-	genutil.MustAddPackages(&repos, packages)
-	// Dump the added packages down.
-	genutil.PrintAddedPkgs(repos)
-
-	if listPkg {
-		return
-	}
-
-	gen := girgen.NewGenerator(repos, genutil.ModulePath(thisModule, overrides))
-	gen.Logger = log.New(os.Stderr, "girgen: ", log.Lmsgprefix)
-	gen.AddFilters(gendata.Filters)
-	gen.AddFilters(filters)
-	gen.ApplyPreprocessors(preprocessors)
-	gen.ApplyPreprocessors(gendata.Preprocessors)
-
-	if err := genutil.CleanDirectory(output, pkgExceptions); err != nil {
-		log.Fatalln("failed to clean output directory:", err)
-	}
-
-	if errors := genutil.GeneratePackages(gen, output, packages); len(errors) > 0 {
-		for _, err := range errors {
-			log.Println("generation error:", err)
-		}
-		os.Exit(1)
-	}
-
-	if err := genutil.EnsureDirectory(output, pkgExceptions, pkgGenerated); err != nil {
-		log.Fatalln("error verifying generation:", err)
-	}
+	genmain.Run(data)
 }

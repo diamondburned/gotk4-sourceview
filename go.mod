@@ -2,7 +2,7 @@ module github.com/diamondburned/gotk4-sourceview
 
 go 1.17
 
-require github.com/diamondburned/gotk4 v0.0.3-0.20220417091308-856167c02355
+require github.com/diamondburned/gotk4 v0.0.5
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

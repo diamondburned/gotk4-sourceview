@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -15,39 +16,58 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcecompletionwords.go.
-var GTypeCompletionWords = externglib.Type(C.gtk_source_completion_words_get_type())
+// GType values.
+var (
+	GTypeCompletionWords = coreglib.Type(C.gtk_source_completion_words_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeCompletionWords, F: marshalCompletionWords},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeCompletionWords, F: marshalCompletionWords},
 	})
 }
 
-// CompletionWordsOverrider contains methods that are overridable.
-type CompletionWordsOverrider interface {
+// CompletionWordsOverrides contains methods that are overridable.
+type CompletionWordsOverrides struct {
 }
 
+func defaultCompletionWordsOverrides(v *CompletionWords) CompletionWordsOverrides {
+	return CompletionWordsOverrides{}
+}
+
+// CompletionWords: completionprovider for the completion of words.
+//
+// The GtkSourceCompletionWords is an example of an implementation of the
+// completionprovider interface. The proposals are words appearing in the
+// registered gtk.TextBuffers.
 type CompletionWords struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 
 	CompletionProvider
 }
 
 var (
-	_ externglib.Objector = (*CompletionWords)(nil)
+	_ coreglib.Objector = (*CompletionWords)(nil)
 )
 
-func classInitCompletionWordser(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*CompletionWords, *CompletionWordsClass, CompletionWordsOverrides](
+		GTypeCompletionWords,
+		initCompletionWordsClass,
+		wrapCompletionWords,
+		defaultCompletionWordsOverrides,
+	)
 }
 
-func wrapCompletionWords(obj *externglib.Object) *CompletionWords {
+func initCompletionWordsClass(gclass unsafe.Pointer, overrides CompletionWordsOverrides, classInitFunc func(*CompletionWordsClass)) {
+	if classInitFunc != nil {
+		class := (*CompletionWordsClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapCompletionWords(obj *coreglib.Object) *CompletionWords {
 	return &CompletionWords{
 		Object: obj,
 		CompletionProvider: CompletionProvider{
@@ -57,16 +77,16 @@ func wrapCompletionWords(obj *externglib.Object) *CompletionWords {
 }
 
 func marshalCompletionWords(p uintptr) (interface{}, error) {
-	return wrapCompletionWords(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapCompletionWords(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // The function takes the following parameters:
 //
-//    - title (optional) for the provider, or NULL.
+//   - title (optional) for the provider, or NULL.
 //
 // The function returns the following values:
 //
-//    - completionWords: new SourceCompletionWords provider.
+//   - completionWords: new SourceCompletionWords provider.
 //
 func NewCompletionWords(title string) *CompletionWords {
 	var _arg1 *C.gchar                    // out
@@ -82,7 +102,7 @@ func NewCompletionWords(title string) *CompletionWords {
 
 	var _completionWords *CompletionWords // out
 
-	_completionWords = wrapCompletionWords(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_completionWords = wrapCompletionWords(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _completionWords
 }
@@ -91,14 +111,14 @@ func NewCompletionWords(title string) *CompletionWords {
 //
 // The function takes the following parameters:
 //
-//    - buffer: TextBuffer.
+//   - buffer: TextBuffer.
 //
 func (words *CompletionWords) Register(buffer *gtk.TextBuffer) {
 	var _arg0 *C.GtkSourceCompletionWords // out
 	var _arg1 *C.GtkTextBuffer            // out
 
-	_arg0 = (*C.GtkSourceCompletionWords)(unsafe.Pointer(externglib.InternObject(words).Native()))
-	_arg1 = (*C.GtkTextBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceCompletionWords)(unsafe.Pointer(coreglib.InternObject(words).Native()))
+	_arg1 = (*C.GtkTextBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 
 	C.gtk_source_completion_words_register(_arg0, _arg1)
 	runtime.KeepAlive(words)
@@ -109,16 +129,26 @@ func (words *CompletionWords) Register(buffer *gtk.TextBuffer) {
 //
 // The function takes the following parameters:
 //
-//    - buffer: TextBuffer.
+//   - buffer: TextBuffer.
 //
 func (words *CompletionWords) Unregister(buffer *gtk.TextBuffer) {
 	var _arg0 *C.GtkSourceCompletionWords // out
 	var _arg1 *C.GtkTextBuffer            // out
 
-	_arg0 = (*C.GtkSourceCompletionWords)(unsafe.Pointer(externglib.InternObject(words).Native()))
-	_arg1 = (*C.GtkTextBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceCompletionWords)(unsafe.Pointer(coreglib.InternObject(words).Native()))
+	_arg1 = (*C.GtkTextBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 
 	C.gtk_source_completion_words_unregister(_arg0, _arg1)
 	runtime.KeepAlive(words)
 	runtime.KeepAlive(buffer)
+}
+
+// CompletionWordsClass: instance of this type is always passed by reference.
+type CompletionWordsClass struct {
+	*completionWordsClass
+}
+
+// completionWordsClass is the struct that's finalized.
+type completionWordsClass struct {
+	native *C.GtkSourceCompletionWordsClass
 }

@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 )
 
 // #include <stdlib.h>
@@ -14,44 +15,58 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcelanguagemanager.go.
-var GTypeLanguageManager = externglib.Type(C.gtk_source_language_manager_get_type())
+// GType values.
+var (
+	GTypeLanguageManager = coreglib.Type(C.gtk_source_language_manager_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeLanguageManager, F: marshalLanguageManager},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeLanguageManager, F: marshalLanguageManager},
 	})
 }
 
-// LanguageManagerOverrider contains methods that are overridable.
-type LanguageManagerOverrider interface {
+// LanguageManagerOverrides contains methods that are overridable.
+type LanguageManagerOverrides struct {
+}
+
+func defaultLanguageManagerOverrides(v *LanguageManager) LanguageManagerOverrides {
+	return LanguageManagerOverrides{}
 }
 
 type LanguageManager struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*LanguageManager)(nil)
+	_ coreglib.Objector = (*LanguageManager)(nil)
 )
 
-func classInitLanguageManagerer(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*LanguageManager, *LanguageManagerClass, LanguageManagerOverrides](
+		GTypeLanguageManager,
+		initLanguageManagerClass,
+		wrapLanguageManager,
+		defaultLanguageManagerOverrides,
+	)
 }
 
-func wrapLanguageManager(obj *externglib.Object) *LanguageManager {
+func initLanguageManagerClass(gclass unsafe.Pointer, overrides LanguageManagerOverrides, classInitFunc func(*LanguageManagerClass)) {
+	if classInitFunc != nil {
+		class := (*LanguageManagerClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapLanguageManager(obj *coreglib.Object) *LanguageManager {
 	return &LanguageManager{
 		Object: obj,
 	}
 }
 
 func marshalLanguageManager(p uintptr) (interface{}, error) {
-	return wrapLanguageManager(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapLanguageManager(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // NewLanguageManager creates a new language manager. If you do not need more
@@ -60,7 +75,7 @@ func marshalLanguageManager(p uintptr) (interface{}, error) {
 //
 // The function returns the following values:
 //
-//    - languageManager: new SourceLanguageManager.
+//   - languageManager: new SourceLanguageManager.
 //
 func NewLanguageManager() *LanguageManager {
 	var _cret *C.GtkSourceLanguageManager // in
@@ -69,7 +84,7 @@ func NewLanguageManager() *LanguageManager {
 
 	var _languageManager *LanguageManager // out
 
-	_languageManager = wrapLanguageManager(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_languageManager = wrapLanguageManager(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _languageManager
 }
@@ -79,19 +94,19 @@ func NewLanguageManager() *LanguageManager {
 //
 // The function takes the following parameters:
 //
-//    - id: language id.
+//   - id: language id.
 //
 // The function returns the following values:
 //
-//    - language (optional) or NULL if there is no language identified by the
-//      given id. Return value is owned by lm and should not be freed.
+//   - language (optional) or NULL if there is no language identified by the
+//     given id. Return value is owned by lm and should not be freed.
 //
 func (lm *LanguageManager) Language(id string) *Language {
 	var _arg0 *C.GtkSourceLanguageManager // out
 	var _arg1 *C.gchar                    // out
 	var _cret *C.GtkSourceLanguage        // in
 
-	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(externglib.InternObject(lm).Native()))
+	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(coreglib.InternObject(lm).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(id)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -102,7 +117,7 @@ func (lm *LanguageManager) Language(id string) *Language {
 	var _language *Language // out
 
 	if _cret != nil {
-		_language = wrapLanguage(externglib.Take(unsafe.Pointer(_cret)))
+		_language = wrapLanguage(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _language
@@ -112,16 +127,16 @@ func (lm *LanguageManager) Language(id string) *Language {
 //
 // The function returns the following values:
 //
-//    - utf8s (optional): a NULL-terminated array of strings containing the ids
-//      of the available languages or NULL if no language is available. The array
-//      is sorted alphabetically according to the language name. The array is
-//      owned by lm and must not be modified.
+//   - utf8s (optional): a NULL-terminated array of strings containing the
+//     ids of the available languages or NULL if no language is available.
+//     The array is sorted alphabetically according to the language name.
+//     The array is owned by lm and must not be modified.
 //
 func (lm *LanguageManager) LanguageIDs() []string {
 	var _arg0 *C.GtkSourceLanguageManager // out
 	var _cret **C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(externglib.InternObject(lm).Native()))
+	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(coreglib.InternObject(lm).Native()))
 
 	_cret = C.gtk_source_language_manager_get_language_ids(_arg0)
 	runtime.KeepAlive(lm)
@@ -151,14 +166,14 @@ func (lm *LanguageManager) LanguageIDs() []string {
 //
 // The function returns the following values:
 //
-//    - utf8s: NULL-terminated array containg a list of language files
-//      directories. The array is owned by lm and must not be modified.
+//   - utf8s: NULL-terminated array containg a list of language files
+//     directories. The array is owned by lm and must not be modified.
 //
 func (lm *LanguageManager) SearchPath() []string {
 	var _arg0 *C.GtkSourceLanguageManager // out
 	var _cret **C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(externglib.InternObject(lm).Native()))
+	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(coreglib.InternObject(lm).Native()))
 
 	_cret = C.gtk_source_language_manager_get_search_path(_arg0)
 	runtime.KeepAlive(lm)
@@ -186,9 +201,9 @@ func (lm *LanguageManager) SearchPath() []string {
 // according to the information in lang files. Either filename or content_type
 // may be NULL. This function can be used as follows:
 //
-// <informalexample><programlisting> GtkSourceLanguage *lang; lang =
-// gtk_source_language_manager_guess_language (filename, NULL);
-// gtk_source_buffer_set_language (buffer, lang);
+// <informalexample><programlisting> GtkSourceLanguage *lang;
+// lang = gtk_source_language_manager_guess_language (filename,
+// NULL); gtk_source_buffer_set_language (buffer, lang);
 // </programlisting></informalexample>
 //
 // or
@@ -216,14 +231,14 @@ func (lm *LanguageManager) SearchPath() []string {
 //
 // The function takes the following parameters:
 //
-//    - filename (optional) in Glib filename encoding, or NULL.
-//    - contentType (optional): content type (as in GIO API), or NULL.
+//   - filename (optional) in Glib filename encoding, or NULL.
+//   - contentType (optional): content type (as in GIO API), or NULL.
 //
 // The function returns the following values:
 //
-//    - language (optional) or NULL if there is no suitable language for given
-//      filename and/or content_type. Return value is owned by lm and should not
-//      be freed.
+//   - language (optional) or NULL if there is no suitable language for given
+//     filename and/or content_type. Return value is owned by lm and should not
+//     be freed.
 //
 func (lm *LanguageManager) GuessLanguage(filename, contentType string) *Language {
 	var _arg0 *C.GtkSourceLanguageManager // out
@@ -231,7 +246,7 @@ func (lm *LanguageManager) GuessLanguage(filename, contentType string) *Language
 	var _arg2 *C.gchar                    // out
 	var _cret *C.GtkSourceLanguage        // in
 
-	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(externglib.InternObject(lm).Native()))
+	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(coreglib.InternObject(lm).Native()))
 	if filename != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(filename)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -249,7 +264,7 @@ func (lm *LanguageManager) GuessLanguage(filename, contentType string) *Language
 	var _language *Language // out
 
 	if _cret != nil {
-		_language = wrapLanguage(externglib.Take(unsafe.Pointer(_cret)))
+		_language = wrapLanguage(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _language
@@ -265,13 +280,13 @@ func (lm *LanguageManager) GuessLanguage(filename, contentType string) *Language
 //
 // The function takes the following parameters:
 //
-//    - dirs (optional): a NULL-terminated array of strings or NULL.
+//   - dirs (optional): a NULL-terminated array of strings or NULL.
 //
 func (lm *LanguageManager) SetSearchPath(dirs []string) {
 	var _arg0 *C.GtkSourceLanguageManager // out
 	var _arg1 **C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(externglib.InternObject(lm).Native()))
+	_arg0 = (*C.GtkSourceLanguageManager)(unsafe.Pointer(coreglib.InternObject(lm).Native()))
 	{
 		_arg1 = (**C.gchar)(C.calloc(C.size_t((len(dirs) + 1)), C.size_t(unsafe.Sizeof(uint(0)))))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -295,8 +310,8 @@ func (lm *LanguageManager) SetSearchPath(dirs []string) {
 //
 // The function returns the following values:
 //
-//    - languageManager value is owned by GtkSourceView library and must not be
-//      unref'ed.
+//   - languageManager value is owned by GtkSourceView library and must not be
+//     unref'ed.
 //
 func LanguageManagerGetDefault() *LanguageManager {
 	var _cret *C.GtkSourceLanguageManager // in
@@ -305,7 +320,17 @@ func LanguageManagerGetDefault() *LanguageManager {
 
 	var _languageManager *LanguageManager // out
 
-	_languageManager = wrapLanguageManager(externglib.Take(unsafe.Pointer(_cret)))
+	_languageManager = wrapLanguageManager(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _languageManager
+}
+
+// LanguageManagerClass: instance of this type is always passed by reference.
+type LanguageManagerClass struct {
+	*languageManagerClass
+}
+
+// languageManagerClass is the struct that's finalized.
+type languageManagerClass struct {
+	native *C.GtkSourceLanguageManagerClass
 }

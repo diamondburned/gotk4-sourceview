@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -15,19 +16,28 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcegutterrenderertext.go.
-var GTypeGutterRendererText = externglib.Type(C.gtk_source_gutter_renderer_text_get_type())
+// GType values.
+var (
+	GTypeGutterRendererText = coreglib.Type(C.gtk_source_gutter_renderer_text_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeGutterRendererText, F: marshalGutterRendererText},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeGutterRendererText, F: marshalGutterRendererText},
 	})
 }
 
-// GutterRendererTextOverrider contains methods that are overridable.
-type GutterRendererTextOverrider interface {
+// GutterRendererTextOverrides contains methods that are overridable.
+type GutterRendererTextOverrides struct {
 }
 
+func defaultGutterRendererTextOverrides(v *GutterRendererText) GutterRendererTextOverrides {
+	return GutterRendererTextOverrides{}
+}
+
+// GutterRendererText renders text in the gutter.
+//
+// A GtkSourceGutterRendererText can be used to render text in a cell of gutter.
 type GutterRendererText struct {
 	_ [0]func() // equal guard
 	GutterRenderer
@@ -37,19 +47,27 @@ var (
 	_ GutterRendererer = (*GutterRendererText)(nil)
 )
 
-func classInitGutterRendererTexter(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*GutterRendererText, *GutterRendererTextClass, GutterRendererTextOverrides](
+		GTypeGutterRendererText,
+		initGutterRendererTextClass,
+		wrapGutterRendererText,
+		defaultGutterRendererTextOverrides,
+	)
 }
 
-func wrapGutterRendererText(obj *externglib.Object) *GutterRendererText {
+func initGutterRendererTextClass(gclass unsafe.Pointer, overrides GutterRendererTextOverrides, classInitFunc func(*GutterRendererTextClass)) {
+	if classInitFunc != nil {
+		class := (*GutterRendererTextClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapGutterRendererText(obj *coreglib.Object) *GutterRendererText {
 	return &GutterRendererText{
 		GutterRenderer: GutterRenderer{
 			Widget: gtk.Widget{
-				InitiallyUnowned: externglib.InitiallyUnowned{
+				InitiallyUnowned: coreglib.InitiallyUnowned{
 					Object: obj,
 				},
 				Object: obj,
@@ -68,14 +86,14 @@ func wrapGutterRendererText(obj *externglib.Object) *GutterRendererText {
 }
 
 func marshalGutterRendererText(p uintptr) (interface{}, error) {
-	return wrapGutterRendererText(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapGutterRendererText(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // NewGutterRendererText: create a new SourceGutterRendererText.
 //
 // The function returns the following values:
 //
-//    - gutterRendererText: SourceGutterRenderer.
+//   - gutterRendererText: SourceGutterRenderer.
 //
 func NewGutterRendererText() *GutterRendererText {
 	var _cret *C.GtkSourceGutterRenderer // in
@@ -84,7 +102,7 @@ func NewGutterRendererText() *GutterRendererText {
 
 	var _gutterRendererText *GutterRendererText // out
 
-	_gutterRendererText = wrapGutterRendererText(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_gutterRendererText = wrapGutterRendererText(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _gutterRendererText
 }
@@ -94,22 +112,22 @@ func NewGutterRendererText() *GutterRendererText {
 //
 // The function takes the following parameters:
 //
-//    - text to measure.
+//   - text to measure.
 //
 // The function returns the following values:
 //
-//    - width (optional): location to store the width of the text in pixels, or
-//      NULL.
-//    - height (optional): location to store the height of the text in pixels, or
-//      NULL.
+//   - width (optional): location to store the width of the text in pixels,
+//     or NULL.
+//   - height (optional): location to store the height of the text in pixels,
+//     or NULL.
 //
-func (renderer *GutterRendererText) Measure(text string) (width int, height int) {
+func (renderer *GutterRendererText) Measure(text string) (width, height int) {
 	var _arg0 *C.GtkSourceGutterRendererText // out
 	var _arg1 *C.gchar                       // out
 	var _arg2 C.gint                         // in
 	var _arg3 C.gint                         // in
 
-	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(text)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -131,22 +149,22 @@ func (renderer *GutterRendererText) Measure(text string) (width int, height int)
 //
 // The function takes the following parameters:
 //
-//    - markup: pango markup to measure.
+//   - markup: pango markup to measure.
 //
 // The function returns the following values:
 //
-//    - width (optional): location to store the width of the text in pixels, or
-//      NULL.
-//    - height (optional): location to store the height of the text in pixels, or
-//      NULL.
+//   - width (optional): location to store the width of the text in pixels,
+//     or NULL.
+//   - height (optional): location to store the height of the text in pixels,
+//     or NULL.
 //
-func (renderer *GutterRendererText) MeasureMarkup(markup string) (width int, height int) {
+func (renderer *GutterRendererText) MeasureMarkup(markup string) (width, height int) {
 	var _arg0 *C.GtkSourceGutterRendererText // out
 	var _arg1 *C.gchar                       // out
 	var _arg2 C.gint                         // in
 	var _arg3 C.gint                         // in
 
-	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(markup)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -165,15 +183,15 @@ func (renderer *GutterRendererText) MeasureMarkup(markup string) (width int, hei
 
 // The function takes the following parameters:
 //
-//    - markup
-//    - length
+//   - markup
+//   - length
 //
 func (renderer *GutterRendererText) SetMarkup(markup string, length int) {
 	var _arg0 *C.GtkSourceGutterRendererText // out
 	var _arg1 *C.gchar                       // out
 	var _arg2 C.gint                         // out
 
-	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(markup)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = C.gint(length)
@@ -186,15 +204,15 @@ func (renderer *GutterRendererText) SetMarkup(markup string, length int) {
 
 // The function takes the following parameters:
 //
-//    - text
-//    - length
+//   - text
+//   - length
 //
 func (renderer *GutterRendererText) SetText(text string, length int) {
 	var _arg0 *C.GtkSourceGutterRendererText // out
 	var _arg1 *C.gchar                       // out
 	var _arg2 C.gint                         // out
 
-	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRendererText)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(text)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = C.gint(length)
@@ -203,4 +221,21 @@ func (renderer *GutterRendererText) SetText(text string, length int) {
 	runtime.KeepAlive(renderer)
 	runtime.KeepAlive(text)
 	runtime.KeepAlive(length)
+}
+
+// GutterRendererTextClass: instance of this type is always passed by reference.
+type GutterRendererTextClass struct {
+	*gutterRendererTextClass
+}
+
+// gutterRendererTextClass is the struct that's finalized.
+type gutterRendererTextClass struct {
+	native *C.GtkSourceGutterRendererTextClass
+}
+
+func (g *GutterRendererTextClass) ParentClass() *GutterRendererClass {
+	valptr := &g.native.parent_class
+	var _v *GutterRendererClass // out
+	_v = (*GutterRendererClass)(gextras.NewStructNative(unsafe.Pointer(valptr)))
+	return _v
 }

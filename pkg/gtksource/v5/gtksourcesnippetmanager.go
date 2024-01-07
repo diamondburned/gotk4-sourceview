@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 )
 
@@ -15,58 +16,81 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcesnippetmanager.go.
-var GTypeSnippetManager = externglib.Type(C.gtk_source_snippet_manager_get_type())
+// GType values.
+var (
+	GTypeSnippetManager = coreglib.Type(C.gtk_source_snippet_manager_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeSnippetManager, F: marshalSnippetManager},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeSnippetManager, F: marshalSnippetManager},
 	})
 }
 
-// SnippetManagerOverrider contains methods that are overridable.
-type SnippetManagerOverrider interface {
+// SnippetManagerOverrides contains methods that are overridable.
+type SnippetManagerOverrides struct {
 }
 
+func defaultSnippetManagerOverrides(v *SnippetManager) SnippetManagerOverrides {
+	return SnippetManagerOverrides{}
+}
+
+// SnippetManager provides access to snippet.
+//
+// GtkSourceSnippetManager is an object which processes snippet description
+// files and creates snippet objects.
+//
+// Use snippetmanager.GetDefault() to retrieve the default instance of
+// GtkSourceSnippetManager.
+//
+// Use snippetmanager.GetSnippet to retrieve snippets for a given snippets.
 type SnippetManager struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*SnippetManager)(nil)
+	_ coreglib.Objector = (*SnippetManager)(nil)
 )
 
-func classInitSnippetManagerer(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*SnippetManager, *SnippetManagerClass, SnippetManagerOverrides](
+		GTypeSnippetManager,
+		initSnippetManagerClass,
+		wrapSnippetManager,
+		defaultSnippetManagerOverrides,
+	)
 }
 
-func wrapSnippetManager(obj *externglib.Object) *SnippetManager {
+func initSnippetManagerClass(gclass unsafe.Pointer, overrides SnippetManagerOverrides, classInitFunc func(*SnippetManagerClass)) {
+	if classInitFunc != nil {
+		class := (*SnippetManagerClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapSnippetManager(obj *coreglib.Object) *SnippetManager {
 	return &SnippetManager{
 		Object: obj,
 	}
 }
 
 func marshalSnippetManager(p uintptr) (interface{}, error) {
-	return wrapSnippetManager(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapSnippetManager(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // SearchPath gets the list directories where self looks for snippet files.
 //
 // The function returns the following values:
 //
-//    - utf8s: NULL-terminated array containing a list of snippet files
-//      directories. The array is owned by lm and must not be modified.
+//   - utf8s: NULL-terminated array containing a list of snippet files
+//     directories. The array is owned by lm and must not be modified.
 //
 func (self *SnippetManager) SearchPath() []string {
 	var _arg0 *C.GtkSourceSnippetManager // out
 	var _cret **C.gchar                  // in
 
-	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_snippet_manager_get_search_path(_arg0)
 	runtime.KeepAlive(self)
@@ -91,17 +115,19 @@ func (self *SnippetManager) SearchPath() []string {
 }
 
 // Snippet queries the known snippets for the first matching group, language_id,
-// and/or trigger. If group or language_id are NULL, they will be ignored.
+// and/or trigger.
+//
+// If group or language_id are NULL, they will be ignored.
 //
 // The function takes the following parameters:
 //
-//    - group (optional) name or NULL.
-//    - languageId (optional) or NULL.
-//    - trigger for the snippet.
+//   - group (optional) name or NULL.
+//   - languageId (optional) or NULL.
+//   - trigger for the snippet.
 //
 // The function returns the following values:
 //
-//    - snippet (optional) or NULL if no matching snippet was found.
+//   - snippet (optional) or NULL if no matching snippet was found.
 //
 func (self *SnippetManager) Snippet(group, languageId, trigger string) *Snippet {
 	var _arg0 *C.GtkSourceSnippetManager // out
@@ -110,7 +136,7 @@ func (self *SnippetManager) Snippet(group, languageId, trigger string) *Snippet 
 	var _arg3 *C.gchar                   // out
 	var _cret *C.GtkSourceSnippet        // in
 
-	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	if group != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(group)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -131,10 +157,40 @@ func (self *SnippetManager) Snippet(group, languageId, trigger string) *Snippet 
 	var _snippet *Snippet // out
 
 	if _cret != nil {
-		_snippet = wrapSnippet(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+		_snippet = wrapSnippet(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 	}
 
 	return _snippet
+}
+
+// ListAll gets a gio.ListModel of all snippets.
+//
+// This can be used to get an unfiltered list of all of the snippets known to
+// the snippet manager.
+//
+// The function returns the following values:
+//
+//   - listModel: gio.ListModel of gtksource.Snippet.
+//
+func (self *SnippetManager) ListAll() *gio.ListModel {
+	var _arg0 *C.GtkSourceSnippetManager // out
+	var _cret *C.GListModel              // in
+
+	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+
+	_cret = C.gtk_source_snippet_manager_list_all(_arg0)
+	runtime.KeepAlive(self)
+
+	var _listModel *gio.ListModel // out
+
+	{
+		obj := coreglib.Take(unsafe.Pointer(_cret))
+		_listModel = &gio.ListModel{
+			Object: obj,
+		}
+	}
+
+	return _listModel
 }
 
 // ListGroups: list all the known groups within the snippet manager.
@@ -144,13 +200,13 @@ func (self *SnippetManager) Snippet(group, languageId, trigger string) *Snippet 
 //
 // The function returns the following values:
 //
-//    - utf8s: An array of strings which should be freed with g_free().
+//   - utf8s: An array of strings which should be freed with g_free().
 //
 func (self *SnippetManager) ListGroups() []string {
 	var _arg0 *C.GtkSourceSnippetManager // out
 	var _cret **C.gchar                  // in
 
-	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_snippet_manager_list_groups(_arg0)
 	runtime.KeepAlive(self)
@@ -176,23 +232,25 @@ func (self *SnippetManager) ListGroups() []string {
 }
 
 // ListMatching queries the known snippets for those matching group,
-// language_id, and/or trigger_prefix. If any of these are NULL, they will be
-// ignored when filtering the available snippets.
+// language_id, and/or trigger_prefix.
 //
-// The Model only contains information about the available snippets until
-// g_list_model_get_item() is called for a specific snippet. This helps reduce
-// the number of #GObject's that are created at runtime to those needed by the
-// calling application.
+// If any of these are NULL, they will be ignored when filtering the available
+// snippets.
+//
+// The gio.ListModel only contains information about the available snippets
+// until gio.ListModel.GetItem() is called for a specific snippet. This helps
+// reduce the number of gobject.Object's that are created at runtime to those
+// needed by the calling application.
 //
 // The function takes the following parameters:
 //
-//    - group (optional) name or NULL.
-//    - languageId (optional) or NULL.
-//    - triggerPrefix (optional): prefix for a trigger to activate.
+//   - group (optional) name or NULL.
+//   - languageId (optional) or NULL.
+//   - triggerPrefix (optional): prefix for a trigger to activate.
 //
 // The function returns the following values:
 //
-//    - listModel of SourceSnippet.
+//   - listModel of SourceSnippet.
 //
 func (self *SnippetManager) ListMatching(group, languageId, triggerPrefix string) *gio.ListModel {
 	var _arg0 *C.GtkSourceSnippetManager // out
@@ -201,7 +259,7 @@ func (self *SnippetManager) ListMatching(group, languageId, triggerPrefix string
 	var _arg3 *C.gchar                   // out
 	var _cret *C.GListModel              // in
 
-	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	if group != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(group)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -224,7 +282,7 @@ func (self *SnippetManager) ListMatching(group, languageId, triggerPrefix string
 	var _listModel *gio.ListModel // out
 
 	{
-		obj := externglib.AssumeOwnership(unsafe.Pointer(_cret))
+		obj := coreglib.AssumeOwnership(unsafe.Pointer(_cret))
 		_listModel = &gio.ListModel{
 			Object: obj,
 		}
@@ -234,23 +292,24 @@ func (self *SnippetManager) ListMatching(group, languageId, triggerPrefix string
 }
 
 // SetSearchPath sets the list of directories in which the
-// SourceSnippetManagerlooks for snippet files. If dirs is NULL, the search path
-// is reset to default.
+// GtkSourceSnippetManager looks for snippet files.
 //
-// <note> <para> At the moment this function can be called only before the
-// snippet files are loaded for the first time. In practice to set a custom
-// search path for a SourceSnippetManager, you have to call this function right
-// after creating it. </para> </note>.
+// If dirs is NULL, the search path is reset to default.
+//
+// At the moment this function can be called only before the snippet files are
+// loaded for the first time. In practice to set a custom search path for a
+// GtkSourceSnippetManager, you have to call this function right after creating
+// it.
 //
 // The function takes the following parameters:
 //
-//    - dirs (optional): NULL-terminated array of strings or NULL.
+//   - dirs (optional): NULL-terminated array of strings or NULL.
 //
 func (self *SnippetManager) SetSearchPath(dirs []string) {
 	var _arg0 *C.GtkSourceSnippetManager // out
 	var _arg1 **C.gchar                  // out
 
-	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetManager)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	{
 		_arg1 = (**C.gchar)(C.calloc(C.size_t((len(dirs) + 1)), C.size_t(unsafe.Sizeof(uint(0)))))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -274,8 +333,8 @@ func (self *SnippetManager) SetSearchPath(dirs []string) {
 //
 // The function returns the following values:
 //
-//    - snippetManager which is owned by GtkSourceView library and must not be
-//      unref'd.
+//   - snippetManager which is owned by GtkSourceView library and must not be
+//     unref'd.
 //
 func SnippetManagerGetDefault() *SnippetManager {
 	var _cret *C.GtkSourceSnippetManager // in
@@ -284,7 +343,17 @@ func SnippetManagerGetDefault() *SnippetManager {
 
 	var _snippetManager *SnippetManager // out
 
-	_snippetManager = wrapSnippetManager(externglib.Take(unsafe.Pointer(_cret)))
+	_snippetManager = wrapSnippetManager(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _snippetManager
+}
+
+// SnippetManagerClass: instance of this type is always passed by reference.
+type SnippetManagerClass struct {
+	*snippetManagerClass
+}
+
+// snippetManagerClass is the struct that's finalized.
+type snippetManagerClass struct {
+	native *C.GtkSourceSnippetManagerClass
 }

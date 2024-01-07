@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
@@ -15,44 +15,34 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcestyle.go.
-var GTypeStyle = externglib.Type(C.gtk_source_style_get_type())
+// GType values.
+var (
+	GTypeStyle = coreglib.Type(C.gtk_source_style_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeStyle, F: marshalStyle},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeStyle, F: marshalStyle},
 	})
-}
-
-// StyleOverrider contains methods that are overridable.
-type StyleOverrider interface {
 }
 
 type Style struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*Style)(nil)
+	_ coreglib.Objector = (*Style)(nil)
 )
 
-func classInitStyler(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
-}
-
-func wrapStyle(obj *externglib.Object) *Style {
+func wrapStyle(obj *coreglib.Object) *Style {
 	return &Style{
 		Object: obj,
 	}
 }
 
 func marshalStyle(p uintptr) (interface{}, error) {
-	return wrapStyle(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapStyle(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // Apply: this function modifies the TextTag properties that are related to the
@@ -64,16 +54,16 @@ func marshalStyle(p uintptr) (interface{}, error) {
 //
 // The function takes the following parameters:
 //
-//    - tag to apply styles to.
+//   - tag to apply styles to.
 //
 func (style *Style) Apply(tag *gtk.TextTag) {
 	var _arg0 *C.GtkSourceStyle // out
 	var _arg1 *C.GtkTextTag     // out
 
 	if style != nil {
-		_arg0 = (*C.GtkSourceStyle)(unsafe.Pointer(externglib.InternObject(style).Native()))
+		_arg0 = (*C.GtkSourceStyle)(unsafe.Pointer(coreglib.InternObject(style).Native()))
 	}
-	_arg1 = (*C.GtkTextTag)(unsafe.Pointer(externglib.InternObject(tag).Native()))
+	_arg1 = (*C.GtkTextTag)(unsafe.Pointer(coreglib.InternObject(tag).Native()))
 
 	C.gtk_source_style_apply(_arg0, _arg1)
 	runtime.KeepAlive(style)
@@ -85,20 +75,20 @@ func (style *Style) Apply(tag *gtk.TextTag) {
 //
 // The function returns the following values:
 //
-//    - ret: copy of style, call g_object_unref() when you are done with it.
+//   - ret: copy of style, call g_object_unref() when you are done with it.
 //
 func (style *Style) Copy() *Style {
 	var _arg0 *C.GtkSourceStyle // out
 	var _cret *C.GtkSourceStyle // in
 
-	_arg0 = (*C.GtkSourceStyle)(unsafe.Pointer(externglib.InternObject(style).Native()))
+	_arg0 = (*C.GtkSourceStyle)(unsafe.Pointer(coreglib.InternObject(style).Native()))
 
 	_cret = C.gtk_source_style_copy(_arg0)
 	runtime.KeepAlive(style)
 
 	var _ret *Style // out
 
-	_ret = wrapStyle(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_ret = wrapStyle(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _ret
 }

@@ -7,7 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 )
 
 // #include <stdlib.h>
@@ -15,16 +15,24 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcetypes.go.
-var GTypeEncoding = externglib.Type(C.gtk_source_encoding_get_type())
+// GType values.
+var (
+	GTypeEncoding = coreglib.Type(C.gtk_source_encoding_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeEncoding, F: marshalEncoding},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeEncoding, F: marshalEncoding},
 	})
 }
 
-// Encoding: instance of this type is always passed by reference.
+// Encoding: character encoding.
+//
+// The SourceEncoding boxed type represents a character encoding. It is used for
+// example by SourceFile. Note that the text in GTK widgets is always encoded in
+// UTF-8.
+//
+// An instance of this type is always passed by reference.
 type Encoding struct {
 	*encoding
 }
@@ -35,7 +43,7 @@ type encoding struct {
 }
 
 func marshalEncoding(p uintptr) (interface{}, error) {
-	b := externglib.ValueFromNative(unsafe.Pointer(p)).Boxed()
+	b := coreglib.ValueFromNative(unsafe.Pointer(p)).Boxed()
 	return &Encoding{&encoding{(*C.GtkSourceEncoding)(b)}}, nil
 }
 
@@ -43,7 +51,7 @@ func marshalEncoding(p uintptr) (interface{}, error) {
 //
 // The function returns the following values:
 //
-//    - encoding: copy of enc.
+//   - encoding: copy of enc.
 //
 func (enc *Encoding) Copy() *Encoding {
 	var _arg0 *C.GtkSourceEncoding // out
@@ -72,7 +80,7 @@ func (enc *Encoding) Copy() *Encoding {
 //
 // The function returns the following values:
 //
-//    - utf8: character set of the SourceEncoding.
+//   - utf8: character set of the SourceEncoding.
 //
 func (enc *Encoding) Charset() string {
 	var _arg0 *C.GtkSourceEncoding // out
@@ -94,7 +102,7 @@ func (enc *Encoding) Charset() string {
 //
 // The function returns the following values:
 //
-//    - utf8: name of the SourceEncoding.
+//   - utf8: name of the SourceEncoding.
 //
 func (enc *Encoding) Name() string {
 	var _arg0 *C.GtkSourceEncoding // out
@@ -114,7 +122,7 @@ func (enc *Encoding) Name() string {
 
 // The function returns the following values:
 //
-//    - utf8: string representation. Free with g_free() when no longer needed.
+//   - utf8: string representation. Free with g_free() when no longer needed.
 //
 func (enc *Encoding) String() string {
 	var _arg0 *C.GtkSourceEncoding // out

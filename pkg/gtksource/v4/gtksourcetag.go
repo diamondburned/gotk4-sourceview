@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
@@ -15,17 +16,23 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcetag.go.
-var GTypeTag = externglib.Type(C.gtk_source_tag_get_type())
+// GType values.
+var (
+	GTypeTag = coreglib.Type(C.gtk_source_tag_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeTag, F: marshalTag},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeTag, F: marshalTag},
 	})
 }
 
-// TagOverrider contains methods that are overridable.
-type TagOverrider interface {
+// TagOverrides contains methods that are overridable.
+type TagOverrides struct {
+}
+
+func defaultTagOverrides(v *Tag) TagOverrides {
+	return TagOverrides{}
 }
 
 type Tag struct {
@@ -34,18 +41,26 @@ type Tag struct {
 }
 
 var (
-	_ externglib.Objector = (*Tag)(nil)
+	_ coreglib.Objector = (*Tag)(nil)
 )
 
-func classInitTagger(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*Tag, *TagClass, TagOverrides](
+		GTypeTag,
+		initTagClass,
+		wrapTag,
+		defaultTagOverrides,
+	)
 }
 
-func wrapTag(obj *externglib.Object) *Tag {
+func initTagClass(gclass unsafe.Pointer, overrides TagOverrides, classInitFunc func(*TagClass)) {
+	if classInitFunc != nil {
+		class := (*TagClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapTag(obj *coreglib.Object) *Tag {
 	return &Tag{
 		TextTag: gtk.TextTag{
 			Object: obj,
@@ -54,7 +69,7 @@ func wrapTag(obj *externglib.Object) *Tag {
 }
 
 func marshalTag(p uintptr) (interface{}, error) {
-	return wrapTag(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapTag(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // NewTag creates a SourceTag. Configure the tag using object arguments, i.e.
@@ -65,11 +80,11 @@ func marshalTag(p uintptr) (interface{}, error) {
 //
 // The function takes the following parameters:
 //
-//    - name (optional): tag name, or NULL.
+//   - name (optional): tag name, or NULL.
 //
 // The function returns the following values:
 //
-//    - tag: new SourceTag.
+//   - tag: new SourceTag.
 //
 func NewTag(name string) *Tag {
 	var _arg1 *C.gchar      // out
@@ -85,7 +100,36 @@ func NewTag(name string) *Tag {
 
 	var _tag *Tag // out
 
-	_tag = wrapTag(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_tag = wrapTag(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _tag
+}
+
+// TagClass: instance of this type is always passed by reference.
+type TagClass struct {
+	*tagClass
+}
+
+// tagClass is the struct that's finalized.
+type tagClass struct {
+	native *C.GtkSourceTagClass
+}
+
+func (t *TagClass) ParentClass() *gtk.TextTagClass {
+	valptr := &t.native.parent_class
+	var _v *gtk.TextTagClass // out
+	_v = (*gtk.TextTagClass)(gextras.NewStructNative(unsafe.Pointer(valptr)))
+	return _v
+}
+
+func (t *TagClass) Padding() [10]unsafe.Pointer {
+	valptr := &t.native.padding
+	var _v [10]unsafe.Pointer // out
+	{
+		src := &*valptr
+		for i := 0; i < 10; i++ {
+			_v[i] = (unsafe.Pointer)(unsafe.Pointer(src[i]))
+		}
+	}
+	return _v
 }

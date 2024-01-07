@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 )
 
@@ -19,32 +19,32 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksource.go.
+// GType values.
 var (
-	GTypeBackgroundPatternType = externglib.Type(C.gtk_source_background_pattern_type_get_type())
-	GTypeBracketMatchType      = externglib.Type(C.gtk_source_bracket_match_type_get_type())
-	GTypeChangeCaseType        = externglib.Type(C.gtk_source_change_case_type_get_type())
-	GTypeCompletionActivation  = externglib.Type(C.gtk_source_completion_activation_get_type())
-	GTypeCompletionColumn      = externglib.Type(C.gtk_source_completion_column_get_type())
-	GTypeCompressionType       = externglib.Type(C.gtk_source_compression_type_get_type())
-	GTypeNewlineType           = externglib.Type(C.gtk_source_newline_type_get_type())
-	GTypeSmartHomeEndType      = externglib.Type(C.gtk_source_smart_home_end_type_get_type())
-	GTypeViewGutterPosition    = externglib.Type(C.gtk_source_view_gutter_position_get_type())
-	GTypeSortFlags             = externglib.Type(C.gtk_source_sort_flags_get_type())
+	GTypeBackgroundPatternType = coreglib.Type(C.gtk_source_background_pattern_type_get_type())
+	GTypeBracketMatchType      = coreglib.Type(C.gtk_source_bracket_match_type_get_type())
+	GTypeChangeCaseType        = coreglib.Type(C.gtk_source_change_case_type_get_type())
+	GTypeCompletionActivation  = coreglib.Type(C.gtk_source_completion_activation_get_type())
+	GTypeCompletionColumn      = coreglib.Type(C.gtk_source_completion_column_get_type())
+	GTypeCompressionType       = coreglib.Type(C.gtk_source_compression_type_get_type())
+	GTypeNewlineType           = coreglib.Type(C.gtk_source_newline_type_get_type())
+	GTypeSmartHomeEndType      = coreglib.Type(C.gtk_source_smart_home_end_type_get_type())
+	GTypeViewGutterPosition    = coreglib.Type(C.gtk_source_view_gutter_position_get_type())
+	GTypeSortFlags             = coreglib.Type(C.gtk_source_sort_flags_get_type())
 )
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeBackgroundPatternType, F: marshalBackgroundPatternType},
-		{T: GTypeBracketMatchType, F: marshalBracketMatchType},
-		{T: GTypeChangeCaseType, F: marshalChangeCaseType},
-		{T: GTypeCompletionActivation, F: marshalCompletionActivation},
-		{T: GTypeCompletionColumn, F: marshalCompletionColumn},
-		{T: GTypeCompressionType, F: marshalCompressionType},
-		{T: GTypeNewlineType, F: marshalNewlineType},
-		{T: GTypeSmartHomeEndType, F: marshalSmartHomeEndType},
-		{T: GTypeViewGutterPosition, F: marshalViewGutterPosition},
-		{T: GTypeSortFlags, F: marshalSortFlags},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeBackgroundPatternType, F: marshalBackgroundPatternType},
+		coreglib.TypeMarshaler{T: GTypeBracketMatchType, F: marshalBracketMatchType},
+		coreglib.TypeMarshaler{T: GTypeChangeCaseType, F: marshalChangeCaseType},
+		coreglib.TypeMarshaler{T: GTypeCompletionActivation, F: marshalCompletionActivation},
+		coreglib.TypeMarshaler{T: GTypeCompletionColumn, F: marshalCompletionColumn},
+		coreglib.TypeMarshaler{T: GTypeCompressionType, F: marshalCompressionType},
+		coreglib.TypeMarshaler{T: GTypeNewlineType, F: marshalNewlineType},
+		coreglib.TypeMarshaler{T: GTypeSmartHomeEndType, F: marshalSmartHomeEndType},
+		coreglib.TypeMarshaler{T: GTypeViewGutterPosition, F: marshalViewGutterPosition},
+		coreglib.TypeMarshaler{T: GTypeSortFlags, F: marshalSortFlags},
 	})
 }
 
@@ -58,7 +58,7 @@ const (
 )
 
 func marshalBackgroundPatternType(p uintptr) (interface{}, error) {
-	return BackgroundPatternType(externglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+	return BackgroundPatternType(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
 }
 
 // String returns the name in string for BackgroundPatternType.
@@ -88,7 +88,7 @@ const (
 )
 
 func marshalBracketMatchType(p uintptr) (interface{}, error) {
-	return BracketMatchType(externglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+	return BracketMatchType(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
 }
 
 // String returns the name in string for BracketMatchType.
@@ -121,7 +121,7 @@ const (
 )
 
 func marshalChangeCaseType(p uintptr) (interface{}, error) {
-	return ChangeCaseType(externglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+	return ChangeCaseType(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
 }
 
 // String returns the name in string for ChangeCaseType.
@@ -149,7 +149,7 @@ const (
 )
 
 func marshalCompletionActivation(p uintptr) (interface{}, error) {
-	return CompletionActivation(externglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+	return CompletionActivation(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
 }
 
 // String returns the name in string for CompletionActivation.
@@ -178,7 +178,7 @@ const (
 )
 
 func marshalCompletionColumn(p uintptr) (interface{}, error) {
-	return CompletionColumn(externglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+	return CompletionColumn(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
 }
 
 // String returns the name in string for CompletionColumn.
@@ -211,7 +211,7 @@ const (
 )
 
 func marshalCompressionType(p uintptr) (interface{}, error) {
-	return CompressionType(externglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+	return CompressionType(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
 }
 
 // String returns the name in string for CompressionType.
@@ -236,6 +236,8 @@ func FileLoaderErrorQuark() glib.Quark {
 	var _quark glib.Quark // out
 
 	_quark = uint32(_cret)
+	type _ = glib.Quark
+	type _ = uint32
 
 	return _quark
 }
@@ -250,6 +252,8 @@ func FileSaverErrorQuark() glib.Quark {
 	var _quark glib.Quark // out
 
 	_quark = uint32(_cret)
+	type _ = glib.Quark
+	type _ = uint32
 
 	return _quark
 }
@@ -267,7 +271,7 @@ const (
 )
 
 func marshalNewlineType(p uintptr) (interface{}, error) {
-	return NewlineType(externglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+	return NewlineType(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
 }
 
 // String returns the name in string for NewlineType.
@@ -303,7 +307,7 @@ const (
 )
 
 func marshalSmartHomeEndType(p uintptr) (interface{}, error) {
-	return SmartHomeEndType(externglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+	return SmartHomeEndType(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
 }
 
 // String returns the name in string for SmartHomeEndType.
@@ -332,7 +336,7 @@ const (
 )
 
 func marshalViewGutterPosition(p uintptr) (interface{}, error) {
-	return ViewGutterPosition(externglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+	return ViewGutterPosition(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
 }
 
 // String returns the name in string for ViewGutterPosition.
@@ -361,7 +365,7 @@ const (
 )
 
 func marshalSortFlags(p uintptr) (interface{}, error) {
-	return SortFlags(externglib.ValueFromNative(unsafe.Pointer(p)).Flags()), nil
+	return SortFlags(coreglib.ValueFromNative(unsafe.Pointer(p)).Flags()), nil
 }
 
 // String returns the names in string for SortFlags.

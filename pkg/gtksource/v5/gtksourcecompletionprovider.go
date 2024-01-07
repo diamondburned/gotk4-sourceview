@@ -3,15 +3,12 @@
 package gtksource
 
 import (
-	"context"
 	"runtime"
 	"unsafe"
 
-	"github.com/diamondburned/gotk4/pkg/core/gbox"
-	"github.com/diamondburned/gotk4/pkg/core/gcancel"
 	"github.com/diamondburned/gotk4/pkg/core/gerror"
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -20,41 +17,65 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
-// extern GListModel* _gotk4_gtksource5_CompletionProviderInterface_populate_finish(GtkSourceCompletionProvider*, GAsyncResult*, GError**);
-// extern char* _gotk4_gtksource5_CompletionProviderInterface_get_title(GtkSourceCompletionProvider*);
-// extern gboolean _gotk4_gtksource5_CompletionProviderInterface_is_trigger(GtkSourceCompletionProvider*, GtkTextIter*, gunichar);
-// extern gboolean _gotk4_gtksource5_CompletionProviderInterface_key_activates(GtkSourceCompletionProvider*, GtkSourceCompletionContext*, GtkSourceCompletionProposal*, guint, GdkModifierType);
-// extern int _gotk4_gtksource5_CompletionProviderInterface_get_priority(GtkSourceCompletionProvider*, GtkSourceCompletionContext*);
-// extern void _gotk4_gio2_AsyncReadyCallback(GObject*, GAsyncResult*, gpointer);
-// extern void _gotk4_gtksource5_CompletionProviderInterface_activate(GtkSourceCompletionProvider*, GtkSourceCompletionContext*, GtkSourceCompletionProposal*);
-// extern void _gotk4_gtksource5_CompletionProviderInterface_display(GtkSourceCompletionProvider*, GtkSourceCompletionContext*, GtkSourceCompletionProposal*, GtkSourceCompletionCell*);
-// extern void _gotk4_gtksource5_CompletionProviderInterface_refilter(GtkSourceCompletionProvider*, GtkSourceCompletionContext*, GListModel*);
+// GListModel* _gotk4_gtksource5_CompletionProvider_virtual_populate_finish(void* fnptr, GtkSourceCompletionProvider* arg0, GAsyncResult* arg1, GError** arg2) {
+//   return ((GListModel* (*)(GtkSourceCompletionProvider*, GAsyncResult*, GError**))(fnptr))(arg0, arg1, arg2);
+// };
+// char* _gotk4_gtksource5_CompletionProvider_virtual_get_title(void* fnptr, GtkSourceCompletionProvider* arg0) {
+//   return ((char* (*)(GtkSourceCompletionProvider*))(fnptr))(arg0);
+// };
+// gboolean _gotk4_gtksource5_CompletionProvider_virtual_is_trigger(void* fnptr, GtkSourceCompletionProvider* arg0, GtkTextIter* arg1, gunichar arg2) {
+//   return ((gboolean (*)(GtkSourceCompletionProvider*, GtkTextIter*, gunichar))(fnptr))(arg0, arg1, arg2);
+// };
+// gboolean _gotk4_gtksource5_CompletionProvider_virtual_key_activates(void* fnptr, GtkSourceCompletionProvider* arg0, GtkSourceCompletionContext* arg1, GtkSourceCompletionProposal* arg2, guint arg3, GdkModifierType arg4) {
+//   return ((gboolean (*)(GtkSourceCompletionProvider*, GtkSourceCompletionContext*, GtkSourceCompletionProposal*, guint, GdkModifierType))(fnptr))(arg0, arg1, arg2, arg3, arg4);
+// };
+// int _gotk4_gtksource5_CompletionProvider_virtual_get_priority(void* fnptr, GtkSourceCompletionProvider* arg0, GtkSourceCompletionContext* arg1) {
+//   return ((int (*)(GtkSourceCompletionProvider*, GtkSourceCompletionContext*))(fnptr))(arg0, arg1);
+// };
+// void _gotk4_gtksource5_CompletionProvider_virtual_activate(void* fnptr, GtkSourceCompletionProvider* arg0, GtkSourceCompletionContext* arg1, GtkSourceCompletionProposal* arg2) {
+//   ((void (*)(GtkSourceCompletionProvider*, GtkSourceCompletionContext*, GtkSourceCompletionProposal*))(fnptr))(arg0, arg1, arg2);
+// };
+// void _gotk4_gtksource5_CompletionProvider_virtual_display(void* fnptr, GtkSourceCompletionProvider* arg0, GtkSourceCompletionContext* arg1, GtkSourceCompletionProposal* arg2, GtkSourceCompletionCell* arg3) {
+//   ((void (*)(GtkSourceCompletionProvider*, GtkSourceCompletionContext*, GtkSourceCompletionProposal*, GtkSourceCompletionCell*))(fnptr))(arg0, arg1, arg2, arg3);
+// };
+// void _gotk4_gtksource5_CompletionProvider_virtual_refilter(void* fnptr, GtkSourceCompletionProvider* arg0, GtkSourceCompletionContext* arg1, GListModel* arg2) {
+//   ((void (*)(GtkSourceCompletionProvider*, GtkSourceCompletionContext*, GListModel*))(fnptr))(arg0, arg1, arg2);
+// };
 import "C"
 
-// glib.Type values for gtksourcecompletionprovider.go.
-var GTypeCompletionProvider = externglib.Type(C.gtk_source_completion_provider_get_type())
+// GType values.
+var (
+	GTypeCompletionProvider = coreglib.Type(C.gtk_source_completion_provider_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeCompletionProvider, F: marshalCompletionProvider},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeCompletionProvider, F: marshalCompletionProvider},
 	})
 }
 
+// CompletionProvider: completion provider interface.
+//
+// You must implement this interface to provide proposals to completion.
+//
+// In most cases, implementations of this interface will want to use
+// completionprovider.PopulateAsync to asynchronously populate the results to
+// avoid blocking the main loop.
 //
 // CompletionProvider wraps an interface. This means the user can get the
 // underlying type by calling Cast().
 type CompletionProvider struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*CompletionProvider)(nil)
+	_ coreglib.Objector = (*CompletionProvider)(nil)
 )
 
 // CompletionProviderer describes CompletionProvider's interface methods.
 type CompletionProviderer interface {
-	externglib.Objector
+	coreglib.Objector
 
 	// Activate: this function requests proposal to be activated by the
 	// SourceCompletionProvider.
@@ -66,7 +87,7 @@ type CompletionProviderer interface {
 	Priority(context *CompletionContext) int
 	// Title gets the title of the completion provider, if any.
 	Title() string
-	// IsTrigger: this function is used to determine of a character inserted
+	// IsTrigger: this function is used to determine if a character inserted
 	// into the text editor should cause a new completion request to be
 	// triggered.
 	IsTrigger(iter *gtk.TextIter, ch uint32) bool
@@ -74,27 +95,24 @@ type CompletionProviderer interface {
 	// user should activate proposal (resulting in committing the text to the
 	// editor).
 	KeyActivates(context *CompletionContext, proposal CompletionProposaller, keyval uint, state gdk.ModifierType) bool
-	// PopulateAsync: asynchronously requests that the provider populates the
-	// completion results for context.
-	PopulateAsync(ctx context.Context, context *CompletionContext, callback gio.AsyncReadyCallback)
 	// PopulateFinish completes an asynchronous operation to populate a
 	// completion provider.
 	PopulateFinish(result gio.AsyncResulter) (*gio.ListModel, error)
 	// Refilter: this function can be used to filter results previously provided
-	// to the SourceCompletionContext by the SourceCompletionProvider.
+	// to the completioncontext by the SourceCompletionProvider.
 	Refilter(context *CompletionContext, model gio.ListModeller)
 }
 
 var _ CompletionProviderer = (*CompletionProvider)(nil)
 
-func wrapCompletionProvider(obj *externglib.Object) *CompletionProvider {
+func wrapCompletionProvider(obj *coreglib.Object) *CompletionProvider {
 	return &CompletionProvider{
 		Object: obj,
 	}
 }
 
 func marshalCompletionProvider(p uintptr) (interface{}, error) {
-	return wrapCompletionProvider(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapCompletionProvider(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // Activate: this function requests proposal to be activated by the
@@ -104,21 +122,21 @@ func marshalCompletionProvider(p uintptr) (interface{}, error) {
 // Many providers may choose to insert a SourceSnippet with edit points the user
 // may cycle through.
 //
-// See also: SourceSnippet, SourceSnippetChunk, gtk_source_view_push_snippet().
+// See also: snippet, snippetchunk, view.PushSnippet.
 //
 // The function takes the following parameters:
 //
-//    - context: SourceCompletionContext.
-//    - proposal: SourceCompletionProposal.
+//   - context: SourceCompletionContext.
+//   - proposal: SourceCompletionProposal.
 //
 func (self *CompletionProvider) Activate(context *CompletionContext, proposal CompletionProposaller) {
 	var _arg0 *C.GtkSourceCompletionProvider // out
 	var _arg1 *C.GtkSourceCompletionContext  // out
 	var _arg2 *C.GtkSourceCompletionProposal // out
 
-	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
-	_arg2 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
+	_arg2 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(coreglib.InternObject(proposal).Native()))
 
 	C.gtk_source_completion_provider_activate(_arg0, _arg1, _arg2)
 	runtime.KeepAlive(self)
@@ -127,8 +145,9 @@ func (self *CompletionProvider) Activate(context *CompletionContext, proposal Co
 }
 
 // Display: this function requests that the SourceCompletionProvider prepares
-// cell to display the contents of proposal. Based on cells column type, you may
-// want to display different information.
+// cell to display the contents of proposal.
+//
+// Based on cells column type, you may want to display different information.
 //
 // This allows for columns of information among completion proposals resulting
 // in better alignment of similar content (icons, return types, method names,
@@ -136,9 +155,9 @@ func (self *CompletionProvider) Activate(context *CompletionContext, proposal Co
 //
 // The function takes the following parameters:
 //
-//    - context: SourceCompletionContext.
-//    - proposal: SourceCompletionProposal.
-//    - cell: SourceCompletionCell.
+//   - context: SourceCompletionContext.
+//   - proposal: SourceCompletionProposal.
+//   - cell: SourceCompletionCell.
 //
 func (self *CompletionProvider) Display(context *CompletionContext, proposal CompletionProposaller, cell *CompletionCell) {
 	var _arg0 *C.GtkSourceCompletionProvider // out
@@ -146,10 +165,10 @@ func (self *CompletionProvider) Display(context *CompletionContext, proposal Com
 	var _arg2 *C.GtkSourceCompletionProposal // out
 	var _arg3 *C.GtkSourceCompletionCell     // out
 
-	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
-	_arg2 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
-	_arg3 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(cell).Native()))
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
+	_arg2 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(coreglib.InternObject(proposal).Native()))
+	_arg3 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(coreglib.InternObject(cell).Native()))
 
 	C.gtk_source_completion_provider_display(_arg0, _arg1, _arg2, _arg3)
 	runtime.KeepAlive(self)
@@ -160,15 +179,15 @@ func (self *CompletionProvider) Display(context *CompletionContext, proposal Com
 
 // Priority: this function should return the priority of self in context.
 //
-// The priority is used to sort groups of completion proposals by provider so
-// that higher priority providers results are shown above lower priority
+// The priority is used to sort groups of completion proposals by provider
+// so that higher priority providers results are shown above lower priority
 // providers.
 //
-// Lower value indicates higher priority.
+// Higher value indicates higher priority.
 //
 // The function takes the following parameters:
 //
-//    - context: SourceCompletionContext.
+//   - context: SourceCompletionContext.
 //
 // The function returns the following values:
 //
@@ -177,8 +196,8 @@ func (self *CompletionProvider) Priority(context *CompletionContext) int {
 	var _arg1 *C.GtkSourceCompletionContext  // out
 	var _cret C.int                          // in
 
-	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
 
 	_cret = C.gtk_source_completion_provider_get_priority(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -198,13 +217,13 @@ func (self *CompletionProvider) Priority(context *CompletionContext) int {
 //
 // The function returns the following values:
 //
-//    - utf8 (optional): title for the provider or NULL.
+//   - utf8 (optional): title for the provider or NULL.
 //
 func (self *CompletionProvider) Title() string {
 	var _arg0 *C.GtkSourceCompletionProvider // out
 	var _cret *C.char                        // in
 
-	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_provider_get_title(_arg0)
 	runtime.KeepAlive(self)
@@ -219,16 +238,20 @@ func (self *CompletionProvider) Title() string {
 	return _utf8
 }
 
-// IsTrigger: this function is used to determine of a character inserted into
+// IsTrigger: this function is used to determine if a character inserted into
 // the text editor should cause a new completion request to be triggered.
 //
 // An example would be period '.' which might indicate that the user wants to
 // complete method or field names of an object.
 //
+// This method will only trigger when text is inserted into the TextBuffer
+// while the completion list is visible and a proposal is selected. Incremental
+// key-presses (like shift, control, or alt) are not triggerable.
+//
 // The function takes the following parameters:
 //
-//    - iter: TextIter.
-//    - ch of the character inserted.
+//   - iter: TextIter.
+//   - ch of the character inserted.
 //
 // The function returns the following values:
 //
@@ -238,7 +261,7 @@ func (self *CompletionProvider) IsTrigger(iter *gtk.TextIter, ch uint32) bool {
 	var _arg2 C.gunichar                     // out
 	var _cret C.gboolean                     // in
 
-	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	_arg2 = C.gunichar(ch)
 
@@ -265,10 +288,10 @@ func (self *CompletionProvider) IsTrigger(iter *gtk.TextIter, ch uint32) bool {
 //
 // The function takes the following parameters:
 //
-//    - context: SourceCompletionContext.
-//    - proposal: SourceCompletionProposal.
-//    - keyval such as GDK_KEY_period.
-//    - state or 0.
+//   - context: SourceCompletionContext.
+//   - proposal: SourceCompletionProposal.
+//   - keyval such as gdk.KEYPeriod.
+//   - state or 0.
 //
 // The function returns the following values:
 //
@@ -280,9 +303,9 @@ func (self *CompletionProvider) KeyActivates(context *CompletionContext, proposa
 	var _arg4 C.GdkModifierType              // out
 	var _cret C.gboolean                     // in
 
-	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
-	_arg2 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(externglib.InternObject(proposal).Native()))
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
+	_arg2 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(coreglib.InternObject(proposal).Native()))
 	_arg3 = C.guint(keyval)
 	_arg4 = C.GdkModifierType(state)
 
@@ -302,56 +325,16 @@ func (self *CompletionProvider) KeyActivates(context *CompletionContext, proposa
 	return _ok
 }
 
-// PopulateAsync: asynchronously requests that the provider populates the
-// completion results for context.
-//
-// For providers that would like to populate a Model while those results are
-// displayed to the user,
-// gtk_source_completion_context_set_proposals_for_provider() may be used to
-// reduce latency until the user sees results.
-//
-// The function takes the following parameters:
-//
-//    - ctx (optional) or NULL.
-//    - context: SourceCompletionContext.
-//    - callback (optional) to execute upon completion.
-//
-func (self *CompletionProvider) PopulateAsync(ctx context.Context, context *CompletionContext, callback gio.AsyncReadyCallback) {
-	var _arg0 *C.GtkSourceCompletionProvider // out
-	var _arg2 *C.GCancellable                // out
-	var _arg1 *C.GtkSourceCompletionContext  // out
-	var _arg3 C.GAsyncReadyCallback          // out
-	var _arg4 C.gpointer
-
-	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	{
-		cancellable := gcancel.GCancellableFromContext(ctx)
-		defer runtime.KeepAlive(cancellable)
-		_arg2 = (*C.GCancellable)(unsafe.Pointer(cancellable.Native()))
-	}
-	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
-	if callback != nil {
-		_arg3 = (*[0]byte)(C._gotk4_gio2_AsyncReadyCallback)
-		_arg4 = C.gpointer(gbox.AssignOnce(callback))
-	}
-
-	C.gtk_source_completion_provider_populate_async(_arg0, _arg1, _arg2, _arg3, _arg4)
-	runtime.KeepAlive(self)
-	runtime.KeepAlive(ctx)
-	runtime.KeepAlive(context)
-	runtime.KeepAlive(callback)
-}
-
 // PopulateFinish completes an asynchronous operation to populate a completion
 // provider.
 //
 // The function takes the following parameters:
 //
-//    - result provided to callback.
+//   - result provided to callback.
 //
 // The function returns the following values:
 //
-//    - listModel of SourceCompletionProposal.
+//   - listModel of SourceCompletionProposal.
 //
 func (self *CompletionProvider) PopulateFinish(result gio.AsyncResulter) (*gio.ListModel, error) {
 	var _arg0 *C.GtkSourceCompletionProvider // out
@@ -359,8 +342,8 @@ func (self *CompletionProvider) PopulateFinish(result gio.AsyncResulter) (*gio.L
 	var _cret *C.GListModel                  // in
 	var _cerr *C.GError                      // in
 
-	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(externglib.InternObject(result).Native()))
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(coreglib.InternObject(result).Native()))
 
 	_cret = C.gtk_source_completion_provider_populate_finish(_arg0, _arg1, &_cerr)
 	runtime.KeepAlive(self)
@@ -370,7 +353,7 @@ func (self *CompletionProvider) PopulateFinish(result gio.AsyncResulter) (*gio.L
 	var _goerr error              // out
 
 	{
-		obj := externglib.AssumeOwnership(unsafe.Pointer(_cret))
+		obj := coreglib.AssumeOwnership(unsafe.Pointer(_cret))
 		_listModel = &gio.ListModel{
 			Object: obj,
 		}
@@ -383,28 +366,340 @@ func (self *CompletionProvider) PopulateFinish(result gio.AsyncResulter) (*gio.L
 }
 
 // Refilter: this function can be used to filter results previously provided to
-// the SourceCompletionContext by the SourceCompletionProvider.
+// the completioncontext by the SourceCompletionProvider.
 //
-// This can happen as the user types additionl text onto the word so that
+// This can happen as the user types additional text onto the word so that
 // previously matched items may be removed from the list instead of generating
-// new Model of results.
+// new gio.ListModel of results.
 //
 // The function takes the following parameters:
 //
-//    - context: SourceCompletionContext.
-//    - model: Model.
+//   - context: SourceCompletionContext.
+//   - model: Model.
 //
 func (self *CompletionProvider) Refilter(context *CompletionContext, model gio.ListModeller) {
 	var _arg0 *C.GtkSourceCompletionProvider // out
 	var _arg1 *C.GtkSourceCompletionContext  // out
 	var _arg2 *C.GListModel                  // out
 
-	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
-	_arg2 = (*C.GListModel)(unsafe.Pointer(externglib.InternObject(model).Native()))
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
+	_arg2 = (*C.GListModel)(unsafe.Pointer(coreglib.InternObject(model).Native()))
 
 	C.gtk_source_completion_provider_refilter(_arg0, _arg1, _arg2)
 	runtime.KeepAlive(self)
 	runtime.KeepAlive(context)
 	runtime.KeepAlive(model)
+}
+
+// Activate: this function requests proposal to be activated by the
+// SourceCompletionProvider.
+//
+// What the provider does to activate the proposal is specific to that provider.
+// Many providers may choose to insert a SourceSnippet with edit points the user
+// may cycle through.
+//
+// See also: snippet, snippetchunk, view.PushSnippet.
+//
+// The function takes the following parameters:
+//
+//   - context: SourceCompletionContext.
+//   - proposal: SourceCompletionProposal.
+//
+func (self *CompletionProvider) activate(context *CompletionContext, proposal CompletionProposaller) {
+	gclass := (*C.GtkSourceCompletionProviderInterface)(coreglib.PeekParentClass(self))
+	fnarg := gclass.activate
+
+	var _arg0 *C.GtkSourceCompletionProvider // out
+	var _arg1 *C.GtkSourceCompletionContext  // out
+	var _arg2 *C.GtkSourceCompletionProposal // out
+
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
+	_arg2 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(coreglib.InternObject(proposal).Native()))
+
+	C._gotk4_gtksource5_CompletionProvider_virtual_activate(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2)
+	runtime.KeepAlive(self)
+	runtime.KeepAlive(context)
+	runtime.KeepAlive(proposal)
+}
+
+// Display: this function requests that the SourceCompletionProvider prepares
+// cell to display the contents of proposal.
+//
+// Based on cells column type, you may want to display different information.
+//
+// This allows for columns of information among completion proposals resulting
+// in better alignment of similar content (icons, return types, method names,
+// and parameter lists).
+//
+// The function takes the following parameters:
+//
+//   - context: SourceCompletionContext.
+//   - proposal: SourceCompletionProposal.
+//   - cell: SourceCompletionCell.
+//
+func (self *CompletionProvider) display(context *CompletionContext, proposal CompletionProposaller, cell *CompletionCell) {
+	gclass := (*C.GtkSourceCompletionProviderInterface)(coreglib.PeekParentClass(self))
+	fnarg := gclass.display
+
+	var _arg0 *C.GtkSourceCompletionProvider // out
+	var _arg1 *C.GtkSourceCompletionContext  // out
+	var _arg2 *C.GtkSourceCompletionProposal // out
+	var _arg3 *C.GtkSourceCompletionCell     // out
+
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
+	_arg2 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(coreglib.InternObject(proposal).Native()))
+	_arg3 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(coreglib.InternObject(cell).Native()))
+
+	C._gotk4_gtksource5_CompletionProvider_virtual_display(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2, _arg3)
+	runtime.KeepAlive(self)
+	runtime.KeepAlive(context)
+	runtime.KeepAlive(proposal)
+	runtime.KeepAlive(cell)
+}
+
+// Priority: this function should return the priority of self in context.
+//
+// The priority is used to sort groups of completion proposals by provider
+// so that higher priority providers results are shown above lower priority
+// providers.
+//
+// Higher value indicates higher priority.
+//
+// The function takes the following parameters:
+//
+//   - context: SourceCompletionContext.
+//
+// The function returns the following values:
+//
+func (self *CompletionProvider) priority(context *CompletionContext) int {
+	gclass := (*C.GtkSourceCompletionProviderInterface)(coreglib.PeekParentClass(self))
+	fnarg := gclass.get_priority
+
+	var _arg0 *C.GtkSourceCompletionProvider // out
+	var _arg1 *C.GtkSourceCompletionContext  // out
+	var _cret C.int                          // in
+
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
+
+	_cret = C._gotk4_gtksource5_CompletionProvider_virtual_get_priority(unsafe.Pointer(fnarg), _arg0, _arg1)
+	runtime.KeepAlive(self)
+	runtime.KeepAlive(context)
+
+	var _gint int // out
+
+	_gint = int(_cret)
+
+	return _gint
+}
+
+// Title gets the title of the completion provider, if any.
+//
+// Currently, titles are not displayed in the completion results, but may be at
+// some point in the future when non-NULL.
+//
+// The function returns the following values:
+//
+//   - utf8 (optional): title for the provider or NULL.
+//
+func (self *CompletionProvider) title() string {
+	gclass := (*C.GtkSourceCompletionProviderInterface)(coreglib.PeekParentClass(self))
+	fnarg := gclass.get_title
+
+	var _arg0 *C.GtkSourceCompletionProvider // out
+	var _cret *C.char                        // in
+
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+
+	_cret = C._gotk4_gtksource5_CompletionProvider_virtual_get_title(unsafe.Pointer(fnarg), _arg0)
+	runtime.KeepAlive(self)
+
+	var _utf8 string // out
+
+	if _cret != nil {
+		_utf8 = C.GoString((*C.gchar)(unsafe.Pointer(_cret)))
+		defer C.free(unsafe.Pointer(_cret))
+	}
+
+	return _utf8
+}
+
+// isTrigger: this function is used to determine if a character inserted into
+// the text editor should cause a new completion request to be triggered.
+//
+// An example would be period '.' which might indicate that the user wants to
+// complete method or field names of an object.
+//
+// This method will only trigger when text is inserted into the TextBuffer
+// while the completion list is visible and a proposal is selected. Incremental
+// key-presses (like shift, control, or alt) are not triggerable.
+//
+// The function takes the following parameters:
+//
+//   - iter: TextIter.
+//   - ch of the character inserted.
+//
+// The function returns the following values:
+//
+func (self *CompletionProvider) isTrigger(iter *gtk.TextIter, ch uint32) bool {
+	gclass := (*C.GtkSourceCompletionProviderInterface)(coreglib.PeekParentClass(self))
+	fnarg := gclass.is_trigger
+
+	var _arg0 *C.GtkSourceCompletionProvider // out
+	var _arg1 *C.GtkTextIter                 // out
+	var _arg2 C.gunichar                     // out
+	var _cret C.gboolean                     // in
+
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
+	_arg2 = C.gunichar(ch)
+
+	_cret = C._gotk4_gtksource5_CompletionProvider_virtual_is_trigger(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2)
+	runtime.KeepAlive(self)
+	runtime.KeepAlive(iter)
+	runtime.KeepAlive(ch)
+
+	var _ok bool // out
+
+	if _cret != 0 {
+		_ok = true
+	}
+
+	return _ok
+}
+
+// keyActivates: this function is used to determine if a key typed by the user
+// should activate proposal (resulting in committing the text to the editor).
+//
+// This is useful when using languages where convention may lead to less typing
+// by the user. One example may be the use of "." or "-" to expand a field
+// access in the C programming language.
+//
+// The function takes the following parameters:
+//
+//   - context: SourceCompletionContext.
+//   - proposal: SourceCompletionProposal.
+//   - keyval such as gdk.KEYPeriod.
+//   - state or 0.
+//
+// The function returns the following values:
+//
+func (self *CompletionProvider) keyActivates(context *CompletionContext, proposal CompletionProposaller, keyval uint, state gdk.ModifierType) bool {
+	gclass := (*C.GtkSourceCompletionProviderInterface)(coreglib.PeekParentClass(self))
+	fnarg := gclass.key_activates
+
+	var _arg0 *C.GtkSourceCompletionProvider // out
+	var _arg1 *C.GtkSourceCompletionContext  // out
+	var _arg2 *C.GtkSourceCompletionProposal // out
+	var _arg3 C.guint                        // out
+	var _arg4 C.GdkModifierType              // out
+	var _cret C.gboolean                     // in
+
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
+	_arg2 = (*C.GtkSourceCompletionProposal)(unsafe.Pointer(coreglib.InternObject(proposal).Native()))
+	_arg3 = C.guint(keyval)
+	_arg4 = C.GdkModifierType(state)
+
+	_cret = C._gotk4_gtksource5_CompletionProvider_virtual_key_activates(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2, _arg3, _arg4)
+	runtime.KeepAlive(self)
+	runtime.KeepAlive(context)
+	runtime.KeepAlive(proposal)
+	runtime.KeepAlive(keyval)
+	runtime.KeepAlive(state)
+
+	var _ok bool // out
+
+	if _cret != 0 {
+		_ok = true
+	}
+
+	return _ok
+}
+
+// populateFinish completes an asynchronous operation to populate a completion
+// provider.
+//
+// The function takes the following parameters:
+//
+//   - result provided to callback.
+//
+// The function returns the following values:
+//
+//   - listModel of SourceCompletionProposal.
+//
+func (self *CompletionProvider) populateFinish(result gio.AsyncResulter) (*gio.ListModel, error) {
+	gclass := (*C.GtkSourceCompletionProviderInterface)(coreglib.PeekParentClass(self))
+	fnarg := gclass.populate_finish
+
+	var _arg0 *C.GtkSourceCompletionProvider // out
+	var _arg1 *C.GAsyncResult                // out
+	var _cret *C.GListModel                  // in
+	var _cerr *C.GError                      // in
+
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(coreglib.InternObject(result).Native()))
+
+	_cret = C._gotk4_gtksource5_CompletionProvider_virtual_populate_finish(unsafe.Pointer(fnarg), _arg0, _arg1, &_cerr)
+	runtime.KeepAlive(self)
+	runtime.KeepAlive(result)
+
+	var _listModel *gio.ListModel // out
+	var _goerr error              // out
+
+	{
+		obj := coreglib.AssumeOwnership(unsafe.Pointer(_cret))
+		_listModel = &gio.ListModel{
+			Object: obj,
+		}
+	}
+	if _cerr != nil {
+		_goerr = gerror.Take(unsafe.Pointer(_cerr))
+	}
+
+	return _listModel, _goerr
+}
+
+// Refilter: this function can be used to filter results previously provided to
+// the completioncontext by the SourceCompletionProvider.
+//
+// This can happen as the user types additional text onto the word so that
+// previously matched items may be removed from the list instead of generating
+// new gio.ListModel of results.
+//
+// The function takes the following parameters:
+//
+//   - context: SourceCompletionContext.
+//   - model: Model.
+//
+func (self *CompletionProvider) refilter(context *CompletionContext, model gio.ListModeller) {
+	gclass := (*C.GtkSourceCompletionProviderInterface)(coreglib.PeekParentClass(self))
+	fnarg := gclass.refilter
+
+	var _arg0 *C.GtkSourceCompletionProvider // out
+	var _arg1 *C.GtkSourceCompletionContext  // out
+	var _arg2 *C.GListModel                  // out
+
+	_arg0 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
+	_arg2 = (*C.GListModel)(unsafe.Pointer(coreglib.InternObject(model).Native()))
+
+	C._gotk4_gtksource5_CompletionProvider_virtual_refilter(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2)
+	runtime.KeepAlive(self)
+	runtime.KeepAlive(context)
+	runtime.KeepAlive(model)
+}
+
+// CompletionProviderInterface: instance of this type is always passed by
+// reference.
+type CompletionProviderInterface struct {
+	*completionProviderInterface
+}
+
+// completionProviderInterface is the struct that's finalized.
+type completionProviderInterface struct {
+	native *C.GtkSourceCompletionProviderInterface
 }

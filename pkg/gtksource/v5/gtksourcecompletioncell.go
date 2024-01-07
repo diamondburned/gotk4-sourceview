@@ -7,7 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -19,19 +19,39 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcecompletioncell.go.
-var GTypeCompletionCell = externglib.Type(C.gtk_source_completion_cell_get_type())
+// GType values.
+var (
+	GTypeCompletionCell = coreglib.Type(C.gtk_source_completion_cell_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeCompletionCell, F: marshalCompletionCell},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeCompletionCell, F: marshalCompletionCell},
 	})
 }
 
-// CompletionCellOverrider contains methods that are overridable.
-type CompletionCellOverrider interface {
+// CompletionCellOverrides contains methods that are overridable.
+type CompletionCellOverrides struct {
 }
 
+func defaultCompletionCellOverrides(v *CompletionCell) CompletionCellOverrides {
+	return CompletionCellOverrides{}
+}
+
+// CompletionCell: widget for single cell of completion proposal.
+//
+// The GtkSourceCompletionCell widget provides a container to display various
+// types of information with the completion display.
+//
+// Each proposal may consist of multiple cells depending on the complexity of
+// the proposal. For example, programming language proposals may contain a cell
+// for the "left-hand-side" of an operation along with the "typed-text" for
+// a function name and "parameters". They may also optionally set an icon to
+// signify the kind of result.
+//
+// A completionprovider should implement the completionprovider.Display virtual
+// function to control how to convert data from their completionproposal to
+// content for the GtkSourceCompletionCell.
 type CompletionCell struct {
 	_ [0]func() // equal guard
 	gtk.Widget
@@ -41,18 +61,26 @@ var (
 	_ gtk.Widgetter = (*CompletionCell)(nil)
 )
 
-func classInitCompletionCeller(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*CompletionCell, *CompletionCellClass, CompletionCellOverrides](
+		GTypeCompletionCell,
+		initCompletionCellClass,
+		wrapCompletionCell,
+		defaultCompletionCellOverrides,
+	)
 }
 
-func wrapCompletionCell(obj *externglib.Object) *CompletionCell {
+func initCompletionCellClass(gclass unsafe.Pointer, overrides CompletionCellOverrides, classInitFunc func(*CompletionCellClass)) {
+	if classInitFunc != nil {
+		class := (*CompletionCellClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapCompletionCell(obj *coreglib.Object) *CompletionCell {
 	return &CompletionCell{
 		Widget: gtk.Widget{
-			InitiallyUnowned: externglib.InitiallyUnowned{
+			InitiallyUnowned: coreglib.InitiallyUnowned{
 				Object: obj,
 			},
 			Object: obj,
@@ -70,7 +98,7 @@ func wrapCompletionCell(obj *externglib.Object) *CompletionCell {
 }
 
 func marshalCompletionCell(p uintptr) (interface{}, error) {
-	return wrapCompletionCell(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapCompletionCell(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // The function returns the following values:
@@ -79,7 +107,7 @@ func (self *CompletionCell) Column() CompletionColumn {
 	var _arg0 *C.GtkSourceCompletionCell  // out
 	var _cret C.GtkSourceCompletionColumn // in
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_cell_get_column(_arg0)
 	runtime.KeepAlive(self)
@@ -95,13 +123,13 @@ func (self *CompletionCell) Column() CompletionColumn {
 //
 // The function returns the following values:
 //
-//    - widget (optional) or NULL.
+//   - widget (optional) or NULL.
 //
 func (self *CompletionCell) GetWidget() gtk.Widgetter {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _cret *C.GtkWidget               // in
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_cell_get_widget(_arg0)
 	runtime.KeepAlive(self)
@@ -112,8 +140,8 @@ func (self *CompletionCell) GetWidget() gtk.Widgetter {
 		{
 			objptr := unsafe.Pointer(_cret)
 
-			object := externglib.Take(objptr)
-			casted := object.WalkCast(func(obj externglib.Objector) bool {
+			object := coreglib.Take(objptr)
+			casted := object.WalkCast(func(obj coreglib.Objector) bool {
 				_, ok := obj.(gtk.Widgetter)
 				return ok
 			})
@@ -134,8 +162,8 @@ func (self *CompletionCell) SetGIcon(gicon gio.Iconner) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.GIcon                   // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GIcon)(unsafe.Pointer(externglib.InternObject(gicon).Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GIcon)(unsafe.Pointer(coreglib.InternObject(gicon).Native()))
 
 	C.gtk_source_completion_cell_set_gicon(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -148,7 +176,7 @@ func (self *CompletionCell) SetIconName(iconName string) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.char                    // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	_arg1 = (*C.char)(unsafe.Pointer(C.CString(iconName)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -163,7 +191,7 @@ func (self *CompletionCell) SetMarkup(markup string) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.char                    // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	_arg1 = (*C.char)(unsafe.Pointer(C.CString(markup)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -178,23 +206,29 @@ func (self *CompletionCell) SetPaintable(paintable gdk.Paintabler) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.GdkPaintable            // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GdkPaintable)(unsafe.Pointer(externglib.InternObject(paintable).Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GdkPaintable)(unsafe.Pointer(coreglib.InternObject(paintable).Native()))
 
 	C.gtk_source_completion_cell_set_paintable(_arg0, _arg1)
 	runtime.KeepAlive(self)
 	runtime.KeepAlive(paintable)
 }
 
+// SetText sets the text for the column cell. Use NULL to unset.
+//
 // The function takes the following parameters:
+//
+//   - text (optional) to set or NULL.
 //
 func (self *CompletionCell) SetText(text string) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.char                    // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.char)(unsafe.Pointer(C.CString(text)))
-	defer C.free(unsafe.Pointer(_arg1))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	if text != "" {
+		_arg1 = (*C.char)(unsafe.Pointer(C.CString(text)))
+		defer C.free(unsafe.Pointer(_arg1))
+	}
 
 	C.gtk_source_completion_cell_set_text(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -203,15 +237,15 @@ func (self *CompletionCell) SetText(text string) {
 
 // The function takes the following parameters:
 //
-//    - text
-//    - attrs
+//   - text
+//   - attrs
 //
 func (self *CompletionCell) SetTextWithAttributes(text string, attrs *pango.AttrList) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.char                    // out
 	var _arg2 *C.PangoAttrList           // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	_arg1 = (*C.char)(unsafe.Pointer(C.CString(text)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = (*C.PangoAttrList)(gextras.StructNative(unsafe.Pointer(attrs)))
@@ -228,10 +262,27 @@ func (self *CompletionCell) SetWidget(child gtk.Widgetter) {
 	var _arg0 *C.GtkSourceCompletionCell // out
 	var _arg1 *C.GtkWidget               // out
 
-	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GtkWidget)(unsafe.Pointer(externglib.InternObject(child).Native()))
+	_arg0 = (*C.GtkSourceCompletionCell)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkWidget)(unsafe.Pointer(coreglib.InternObject(child).Native()))
 
 	C.gtk_source_completion_cell_set_widget(_arg0, _arg1)
 	runtime.KeepAlive(self)
 	runtime.KeepAlive(child)
+}
+
+// CompletionCellClass: instance of this type is always passed by reference.
+type CompletionCellClass struct {
+	*completionCellClass
+}
+
+// completionCellClass is the struct that's finalized.
+type completionCellClass struct {
+	native *C.GtkSourceCompletionCellClass
+}
+
+func (c *CompletionCellClass) ParentClass() *gtk.WidgetClass {
+	valptr := &c.native.parent_class
+	var _v *gtk.WidgetClass // out
+	_v = (*gtk.WidgetClass)(gextras.NewStructNative(unsafe.Pointer(valptr)))
+	return _v
 }

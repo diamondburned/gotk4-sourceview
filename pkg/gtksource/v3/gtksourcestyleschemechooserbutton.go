@@ -6,7 +6,8 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/atk"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
@@ -15,47 +16,61 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcestyleschemechooserbutton.go.
-var GTypeStyleSchemeChooserButton = externglib.Type(C.gtk_source_style_scheme_chooser_button_get_type())
+// GType values.
+var (
+	GTypeStyleSchemeChooserButton = coreglib.Type(C.gtk_source_style_scheme_chooser_button_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeStyleSchemeChooserButton, F: marshalStyleSchemeChooserButton},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeStyleSchemeChooserButton, F: marshalStyleSchemeChooserButton},
 	})
 }
 
-// StyleSchemeChooserButtonOverrider contains methods that are overridable.
-type StyleSchemeChooserButtonOverrider interface {
+// StyleSchemeChooserButtonOverrides contains methods that are overridable.
+type StyleSchemeChooserButtonOverrides struct {
+}
+
+func defaultStyleSchemeChooserButtonOverrides(v *StyleSchemeChooserButton) StyleSchemeChooserButtonOverrides {
+	return StyleSchemeChooserButtonOverrides{}
 }
 
 type StyleSchemeChooserButton struct {
 	_ [0]func() // equal guard
 	gtk.Button
 
-	*externglib.Object
+	*coreglib.Object
 	StyleSchemeChooser
 }
 
 var (
-	_ externglib.Objector = (*StyleSchemeChooserButton)(nil)
-	_ gtk.Binner          = (*StyleSchemeChooserButton)(nil)
+	_ coreglib.Objector = (*StyleSchemeChooserButton)(nil)
+	_ gtk.Binner        = (*StyleSchemeChooserButton)(nil)
 )
 
-func classInitStyleSchemeChooserButtonner(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*StyleSchemeChooserButton, *StyleSchemeChooserButtonClass, StyleSchemeChooserButtonOverrides](
+		GTypeStyleSchemeChooserButton,
+		initStyleSchemeChooserButtonClass,
+		wrapStyleSchemeChooserButton,
+		defaultStyleSchemeChooserButtonOverrides,
+	)
 }
 
-func wrapStyleSchemeChooserButton(obj *externglib.Object) *StyleSchemeChooserButton {
+func initStyleSchemeChooserButtonClass(gclass unsafe.Pointer, overrides StyleSchemeChooserButtonOverrides, classInitFunc func(*StyleSchemeChooserButtonClass)) {
+	if classInitFunc != nil {
+		class := (*StyleSchemeChooserButtonClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapStyleSchemeChooserButton(obj *coreglib.Object) *StyleSchemeChooserButton {
 	return &StyleSchemeChooserButton{
 		Button: gtk.Button{
 			Bin: gtk.Bin{
 				Container: gtk.Container{
 					Widget: gtk.Widget{
-						InitiallyUnowned: externglib.InitiallyUnowned{
+						InitiallyUnowned: coreglib.InitiallyUnowned{
 							Object: obj,
 						},
 						Object: obj,
@@ -71,7 +86,7 @@ func wrapStyleSchemeChooserButton(obj *externglib.Object) *StyleSchemeChooserBut
 			Object: obj,
 			Actionable: gtk.Actionable{
 				Widget: gtk.Widget{
-					InitiallyUnowned: externglib.InitiallyUnowned{
+					InitiallyUnowned: coreglib.InitiallyUnowned{
 						Object: obj,
 					},
 					Object: obj,
@@ -95,14 +110,14 @@ func wrapStyleSchemeChooserButton(obj *externglib.Object) *StyleSchemeChooserBut
 }
 
 func marshalStyleSchemeChooserButton(p uintptr) (interface{}, error) {
-	return wrapStyleSchemeChooserButton(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapStyleSchemeChooserButton(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // NewStyleSchemeChooserButton creates a new SourceStyleSchemeChooserButton.
 //
 // The function returns the following values:
 //
-//    - styleSchemeChooserButton: new SourceStyleSchemeChooserButton.
+//   - styleSchemeChooserButton: new SourceStyleSchemeChooserButton.
 //
 func NewStyleSchemeChooserButton() *StyleSchemeChooserButton {
 	var _cret *C.GtkWidget // in
@@ -111,7 +126,25 @@ func NewStyleSchemeChooserButton() *StyleSchemeChooserButton {
 
 	var _styleSchemeChooserButton *StyleSchemeChooserButton // out
 
-	_styleSchemeChooserButton = wrapStyleSchemeChooserButton(externglib.Take(unsafe.Pointer(_cret)))
+	_styleSchemeChooserButton = wrapStyleSchemeChooserButton(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _styleSchemeChooserButton
+}
+
+// StyleSchemeChooserButtonClass: instance of this type is always passed by
+// reference.
+type StyleSchemeChooserButtonClass struct {
+	*styleSchemeChooserButtonClass
+}
+
+// styleSchemeChooserButtonClass is the struct that's finalized.
+type styleSchemeChooserButtonClass struct {
+	native *C.GtkSourceStyleSchemeChooserButtonClass
+}
+
+func (s *StyleSchemeChooserButtonClass) Parent() *gtk.ButtonClass {
+	valptr := &s.native.parent
+	var _v *gtk.ButtonClass // out
+	_v = (*gtk.ButtonClass)(gextras.NewStructNative(unsafe.Pointer(valptr)))
+	return _v
 }

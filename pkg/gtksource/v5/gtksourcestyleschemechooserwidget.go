@@ -5,7 +5,8 @@ package gtksource
 import (
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -14,44 +15,66 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcestyleschemechooserwidget.go.
-var GTypeStyleSchemeChooserWidget = externglib.Type(C.gtk_source_style_scheme_chooser_widget_get_type())
+// GType values.
+var (
+	GTypeStyleSchemeChooserWidget = coreglib.Type(C.gtk_source_style_scheme_chooser_widget_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeStyleSchemeChooserWidget, F: marshalStyleSchemeChooserWidget},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeStyleSchemeChooserWidget, F: marshalStyleSchemeChooserWidget},
 	})
 }
 
-// StyleSchemeChooserWidgetOverrider contains methods that are overridable.
-type StyleSchemeChooserWidgetOverrider interface {
+// StyleSchemeChooserWidgetOverrides contains methods that are overridable.
+type StyleSchemeChooserWidgetOverrides struct {
 }
 
+func defaultStyleSchemeChooserWidgetOverrides(v *StyleSchemeChooserWidget) StyleSchemeChooserWidgetOverrides {
+	return StyleSchemeChooserWidgetOverrides{}
+}
+
+// StyleSchemeChooserWidget: widget for choosing style schemes.
+//
+// The GtkSourceStyleSchemeChooserWidget widget lets the user select a style
+// scheme. By default, the chooser presents a predefined list of style schemes.
+//
+// To change the initially selected style scheme, use
+// styleschemechooser.SetStyleScheme. To get the selected style scheme use
+// styleschemechooser.GetStyleScheme.
 type StyleSchemeChooserWidget struct {
 	_ [0]func() // equal guard
 	gtk.Widget
 
-	*externglib.Object
+	*coreglib.Object
 	StyleSchemeChooser
 }
 
 var (
-	_ gtk.Widgetter       = (*StyleSchemeChooserWidget)(nil)
-	_ externglib.Objector = (*StyleSchemeChooserWidget)(nil)
+	_ gtk.Widgetter     = (*StyleSchemeChooserWidget)(nil)
+	_ coreglib.Objector = (*StyleSchemeChooserWidget)(nil)
 )
 
-func classInitStyleSchemeChooserWidgetter(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*StyleSchemeChooserWidget, *StyleSchemeChooserWidgetClass, StyleSchemeChooserWidgetOverrides](
+		GTypeStyleSchemeChooserWidget,
+		initStyleSchemeChooserWidgetClass,
+		wrapStyleSchemeChooserWidget,
+		defaultStyleSchemeChooserWidgetOverrides,
+	)
 }
 
-func wrapStyleSchemeChooserWidget(obj *externglib.Object) *StyleSchemeChooserWidget {
+func initStyleSchemeChooserWidgetClass(gclass unsafe.Pointer, overrides StyleSchemeChooserWidgetOverrides, classInitFunc func(*StyleSchemeChooserWidgetClass)) {
+	if classInitFunc != nil {
+		class := (*StyleSchemeChooserWidgetClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapStyleSchemeChooserWidget(obj *coreglib.Object) *StyleSchemeChooserWidget {
 	return &StyleSchemeChooserWidget{
 		Widget: gtk.Widget{
-			InitiallyUnowned: externglib.InitiallyUnowned{
+			InitiallyUnowned: coreglib.InitiallyUnowned{
 				Object: obj,
 			},
 			Object: obj,
@@ -73,14 +96,14 @@ func wrapStyleSchemeChooserWidget(obj *externglib.Object) *StyleSchemeChooserWid
 }
 
 func marshalStyleSchemeChooserWidget(p uintptr) (interface{}, error) {
-	return wrapStyleSchemeChooserWidget(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapStyleSchemeChooserWidget(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // NewStyleSchemeChooserWidget creates a new SourceStyleSchemeChooserWidget.
 //
 // The function returns the following values:
 //
-//    - styleSchemeChooserWidget: new SourceStyleSchemeChooserWidget.
+//   - styleSchemeChooserWidget: new SourceStyleSchemeChooserWidget.
 //
 func NewStyleSchemeChooserWidget() *StyleSchemeChooserWidget {
 	var _cret *C.GtkWidget // in
@@ -89,7 +112,25 @@ func NewStyleSchemeChooserWidget() *StyleSchemeChooserWidget {
 
 	var _styleSchemeChooserWidget *StyleSchemeChooserWidget // out
 
-	_styleSchemeChooserWidget = wrapStyleSchemeChooserWidget(externglib.Take(unsafe.Pointer(_cret)))
+	_styleSchemeChooserWidget = wrapStyleSchemeChooserWidget(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _styleSchemeChooserWidget
+}
+
+// StyleSchemeChooserWidgetClass: instance of this type is always passed by
+// reference.
+type StyleSchemeChooserWidgetClass struct {
+	*styleSchemeChooserWidgetClass
+}
+
+// styleSchemeChooserWidgetClass is the struct that's finalized.
+type styleSchemeChooserWidgetClass struct {
+	native *C.GtkSourceStyleSchemeChooserWidgetClass
+}
+
+func (s *StyleSchemeChooserWidgetClass) Parent() *gtk.WidgetClass {
+	valptr := &s.native.parent
+	var _v *gtk.WidgetClass // out
+	_v = (*gtk.WidgetClass)(gextras.NewStructNative(unsafe.Pointer(valptr)))
+	return _v
 }

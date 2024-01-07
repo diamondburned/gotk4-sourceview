@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
@@ -15,44 +16,58 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourceprintcompositor.go.
-var GTypePrintCompositor = externglib.Type(C.gtk_source_print_compositor_get_type())
+// GType values.
+var (
+	GTypePrintCompositor = coreglib.Type(C.gtk_source_print_compositor_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypePrintCompositor, F: marshalPrintCompositor},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypePrintCompositor, F: marshalPrintCompositor},
 	})
 }
 
-// PrintCompositorOverrider contains methods that are overridable.
-type PrintCompositorOverrider interface {
+// PrintCompositorOverrides contains methods that are overridable.
+type PrintCompositorOverrides struct {
+}
+
+func defaultPrintCompositorOverrides(v *PrintCompositor) PrintCompositorOverrides {
+	return PrintCompositorOverrides{}
 }
 
 type PrintCompositor struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*PrintCompositor)(nil)
+	_ coreglib.Objector = (*PrintCompositor)(nil)
 )
 
-func classInitPrintCompositorrer(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*PrintCompositor, *PrintCompositorClass, PrintCompositorOverrides](
+		GTypePrintCompositor,
+		initPrintCompositorClass,
+		wrapPrintCompositor,
+		defaultPrintCompositorOverrides,
+	)
 }
 
-func wrapPrintCompositor(obj *externglib.Object) *PrintCompositor {
+func initPrintCompositorClass(gclass unsafe.Pointer, overrides PrintCompositorOverrides, classInitFunc func(*PrintCompositorClass)) {
+	if classInitFunc != nil {
+		class := (*PrintCompositorClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapPrintCompositor(obj *coreglib.Object) *PrintCompositor {
 	return &PrintCompositor{
 		Object: obj,
 	}
 }
 
 func marshalPrintCompositor(p uintptr) (interface{}, error) {
-	return wrapPrintCompositor(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapPrintCompositor(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // NewPrintCompositor creates a new print compositor that can be used to print
@@ -60,56 +75,56 @@ func marshalPrintCompositor(p uintptr) (interface{}, error) {
 //
 // The function takes the following parameters:
 //
-//    - buffer to print.
+//   - buffer to print.
 //
 // The function returns the following values:
 //
-//    - printCompositor: new print compositor object.
+//   - printCompositor: new print compositor object.
 //
 func NewPrintCompositor(buffer *Buffer) *PrintCompositor {
 	var _arg1 *C.GtkSourceBuffer          // out
 	var _cret *C.GtkSourcePrintCompositor // in
 
-	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_print_compositor_new(_arg1)
 	runtime.KeepAlive(buffer)
 
 	var _printCompositor *PrintCompositor // out
 
-	_printCompositor = wrapPrintCompositor(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_printCompositor = wrapPrintCompositor(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _printCompositor
 }
 
-// NewPrintCompositorFromView creates a new print compositor that can be used to
-// print the buffer associated with view. This constructor sets some
-// configuration properties to make the printed output match view as much as
-// possible. The properties set are SourcePrintCompositor:tab-width,
-// SourcePrintCompositor:highlight-syntax, SourcePrintCompositor:wrap-mode,
-// SourcePrintCompositor:body-font-name and
+// NewPrintCompositorFromView creates a new print compositor
+// that can be used to print the buffer associated with view.
+// This constructor sets some configuration properties to make the
+// printed output match view as much as possible. The properties set are
+// SourcePrintCompositor:tab-width, SourcePrintCompositor:highlight-syntax,
+// SourcePrintCompositor:wrap-mode, SourcePrintCompositor:body-font-name and
 // SourcePrintCompositor:print-line-numbers.
 //
 // The function takes the following parameters:
 //
-//    - view to get configuration from.
+//   - view to get configuration from.
 //
 // The function returns the following values:
 //
-//    - printCompositor: new print compositor object.
+//   - printCompositor: new print compositor object.
 //
 func NewPrintCompositorFromView(view *View) *PrintCompositor {
 	var _arg1 *C.GtkSourceView            // out
 	var _cret *C.GtkSourcePrintCompositor // in
 
-	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
+	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(coreglib.InternObject(view).Native()))
 
 	_cret = C.gtk_source_print_compositor_new_from_view(_arg1)
 	runtime.KeepAlive(view)
 
 	var _printCompositor *PrintCompositor // out
 
-	_printCompositor = wrapPrintCompositor(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_printCompositor = wrapPrintCompositor(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _printCompositor
 }
@@ -127,27 +142,28 @@ func NewPrintCompositorFromView(view *View) *PrintCompositor {
 // *context, gint page_nr, gpointer user_data) { GtkSourcePrintCompositor
 // *compositor;
 //
-//    compositor = GTK_SOURCE_PRINT_COMPOSITOR (user_data);
+//        compositor = GTK_SOURCE_PRINT_COMPOSITOR (user_data);
 //
-//    gtk_source_print_compositor_draw_page (compositor,
-//                                           context,
-//                                           page_nr);
+//        gtk_source_print_compositor_draw_page (compositor,
+//                                               context,
+//                                               page_nr);
+//    }
 //
-// } </programlisting></informalexample>.
+// </programlisting></informalexample>.
 //
 // The function takes the following parameters:
 //
-//    - context encapsulating the context information that is required when
-//      drawing the page for printing.
-//    - pageNr: number of the page to print.
+//   - context encapsulating the context information that is required when
+//     drawing the page for printing.
+//   - pageNr: number of the page to print.
 //
 func (compositor *PrintCompositor) DrawPage(context *gtk.PrintContext, pageNr int) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 *C.GtkPrintContext          // out
 	var _arg2 C.gint                      // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
-	_arg1 = (*C.GtkPrintContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
+	_arg1 = (*C.GtkPrintContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
 	_arg2 = C.gint(pageNr)
 
 	C.gtk_source_print_compositor_draw_page(_arg0, _arg1, _arg2)
@@ -156,19 +172,19 @@ func (compositor *PrintCompositor) DrawPage(context *gtk.PrintContext, pageNr in
 	runtime.KeepAlive(pageNr)
 }
 
-// BodyFontName returns the name of the font used to print the text body. The
-// returned string must be freed with g_free().
+// BodyFontName returns the name of the font used to print the text body.
+// The returned string must be freed with g_free().
 //
 // The function returns the following values:
 //
-//    - utf8: new string containing the name of the font used to print the text
-//      body.
+//   - utf8: new string containing the name of the font used to print the text
+//     body.
 //
 func (compositor *PrintCompositor) BodyFontName() string {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret *C.gchar                    // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_body_font_name(_arg0)
 	runtime.KeepAlive(compositor)
@@ -185,18 +201,18 @@ func (compositor *PrintCompositor) BodyFontName() string {
 //
 // The function takes the following parameters:
 //
-//    - unit for the return value.
+//   - unit for the return value.
 //
 // The function returns the following values:
 //
-//    - gdouble: bottom margin.
+//   - gdouble: bottom margin.
 //
 func (compositor *PrintCompositor) BottomMargin(unit gtk.Unit) float64 {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.GtkUnit                   // out
 	var _cret C.gdouble                   // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = C.GtkUnit(unit)
 
 	_cret = C.gtk_source_print_compositor_get_bottom_margin(_arg0, _arg1)
@@ -216,20 +232,20 @@ func (compositor *PrintCompositor) BottomMargin(unit gtk.Unit) float64 {
 //
 // The function returns the following values:
 //
-//    - buffer associated with the compositor.
+//   - buffer associated with the compositor.
 //
 func (compositor *PrintCompositor) Buffer() *Buffer {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret *C.GtkSourceBuffer          // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_buffer(_arg0)
 	runtime.KeepAlive(compositor)
 
 	var _buffer *Buffer // out
 
-	_buffer = wrapBuffer(externglib.Take(unsafe.Pointer(_cret)))
+	_buffer = wrapBuffer(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _buffer
 }
@@ -239,14 +255,14 @@ func (compositor *PrintCompositor) Buffer() *Buffer {
 //
 // The function returns the following values:
 //
-//    - utf8: new string containing the name of the font used to print the page
-//      footer.
+//   - utf8: new string containing the name of the font used to print the page
+//     footer.
 //
 func (compositor *PrintCompositor) FooterFontName() string {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret *C.gchar                    // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_footer_font_name(_arg0)
 	runtime.KeepAlive(compositor)
@@ -264,14 +280,14 @@ func (compositor *PrintCompositor) FooterFontName() string {
 //
 // The function returns the following values:
 //
-//    - utf8: new string containing the name of the font used to print the page
-//      header.
+//   - utf8: new string containing the name of the font used to print the page
+//     header.
 //
 func (compositor *PrintCompositor) HeaderFontName() string {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret *C.gchar                    // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_header_font_name(_arg0)
 	runtime.KeepAlive(compositor)
@@ -290,13 +306,13 @@ func (compositor *PrintCompositor) HeaderFontName() string {
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if the printed output will be highlighted.
+//   - ok: TRUE if the printed output will be highlighted.
 //
 func (compositor *PrintCompositor) HighlightSyntax() bool {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.gboolean                  // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_highlight_syntax(_arg0)
 	runtime.KeepAlive(compositor)
@@ -314,18 +330,18 @@ func (compositor *PrintCompositor) HighlightSyntax() bool {
 //
 // The function takes the following parameters:
 //
-//    - unit for the return value.
+//   - unit for the return value.
 //
 // The function returns the following values:
 //
-//    - gdouble: left margin.
+//   - gdouble: left margin.
 //
 func (compositor *PrintCompositor) LeftMargin(unit gtk.Unit) float64 {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.GtkUnit                   // out
 	var _cret C.gdouble                   // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = C.GtkUnit(unit)
 
 	_cret = C.gtk_source_print_compositor_get_left_margin(_arg0, _arg1)
@@ -344,14 +360,14 @@ func (compositor *PrintCompositor) LeftMargin(unit gtk.Unit) float64 {
 //
 // The function returns the following values:
 //
-//    - utf8: new string containing the name of the font used to print line
-//      numbers on the left margin.
+//   - utf8: new string containing the name of the font used to print line
+//     numbers on the left margin.
 //
 func (compositor *PrintCompositor) LineNumbersFontName() string {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret *C.gchar                    // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_line_numbers_font_name(_arg0)
 	runtime.KeepAlive(compositor)
@@ -369,14 +385,14 @@ func (compositor *PrintCompositor) LineNumbersFontName() string {
 //
 // The function returns the following values:
 //
-//    - gint: number of pages in the document or <code>-1</code> if the document
-//      has not been completely paginated.
+//   - gint: number of pages in the document or <code>-1</code> if the document
+//     has not been completely paginated.
 //
 func (compositor *PrintCompositor) NPages() int {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.gint                      // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_n_pages(_arg0)
 	runtime.KeepAlive(compositor)
@@ -393,13 +409,13 @@ func (compositor *PrintCompositor) NPages() int {
 //
 // The function returns the following values:
 //
-//    - gdouble: fraction from 0.0 to 1.0 inclusive.
+//   - gdouble: fraction from 0.0 to 1.0 inclusive.
 //
 func (compositor *PrintCompositor) PaginationProgress() float64 {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.gdouble                   // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_pagination_progress(_arg0)
 	runtime.KeepAlive(compositor)
@@ -411,20 +427,20 @@ func (compositor *PrintCompositor) PaginationProgress() float64 {
 	return _gdouble
 }
 
-// PrintFooter determines if a footer is set to be printed for each page. A
-// footer will be printed if this function returns TRUE <emphasis>and</emphasis>
-// some format strings have been specified with
+// PrintFooter determines if a footer is set to be printed for each
+// page. A footer will be printed if this function returns TRUE
+// <emphasis>and</emphasis> some format strings have been specified with
 // gtk_source_print_compositor_set_footer_format().
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if the footer is set to be printed.
+//   - ok: TRUE if the footer is set to be printed.
 //
 func (compositor *PrintCompositor) PrintFooter() bool {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.gboolean                  // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_print_footer(_arg0)
 	runtime.KeepAlive(compositor)
@@ -438,20 +454,20 @@ func (compositor *PrintCompositor) PrintFooter() bool {
 	return _ok
 }
 
-// PrintHeader determines if a header is set to be printed for each page. A
-// header will be printed if this function returns TRUE <emphasis>and</emphasis>
-// some format strings have been specified with
+// PrintHeader determines if a header is set to be printed for each
+// page. A header will be printed if this function returns TRUE
+// <emphasis>and</emphasis> some format strings have been specified with
 // gtk_source_print_compositor_set_header_format().
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if the header is set to be printed.
+//   - ok: TRUE if the header is set to be printed.
 //
 func (compositor *PrintCompositor) PrintHeader() bool {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.gboolean                  // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_print_header(_arg0)
 	runtime.KeepAlive(compositor)
@@ -471,13 +487,13 @@ func (compositor *PrintCompositor) PrintHeader() bool {
 //
 // The function returns the following values:
 //
-//    - guint: interval of printed line numbers.
+//   - guint: interval of printed line numbers.
 //
 func (compositor *PrintCompositor) PrintLineNumbers() uint {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.guint                     // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_print_line_numbers(_arg0)
 	runtime.KeepAlive(compositor)
@@ -493,18 +509,18 @@ func (compositor *PrintCompositor) PrintLineNumbers() uint {
 //
 // The function takes the following parameters:
 //
-//    - unit for the return value.
+//   - unit for the return value.
 //
 // The function returns the following values:
 //
-//    - gdouble: right margin.
+//   - gdouble: right margin.
 //
 func (compositor *PrintCompositor) RightMargin(unit gtk.Unit) float64 {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.GtkUnit                   // out
 	var _cret C.gdouble                   // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = C.GtkUnit(unit)
 
 	_cret = C.gtk_source_print_compositor_get_right_margin(_arg0, _arg1)
@@ -522,13 +538,13 @@ func (compositor *PrintCompositor) RightMargin(unit gtk.Unit) float64 {
 //
 // The function returns the following values:
 //
-//    - guint: width of tab.
+//   - guint: width of tab.
 //
 func (compositor *PrintCompositor) TabWidth() uint {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.guint                     // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_tab_width(_arg0)
 	runtime.KeepAlive(compositor)
@@ -544,18 +560,18 @@ func (compositor *PrintCompositor) TabWidth() uint {
 //
 // The function takes the following parameters:
 //
-//    - unit for the return value.
+//   - unit for the return value.
 //
 // The function returns the following values:
 //
-//    - gdouble: top margin.
+//   - gdouble: top margin.
 //
 func (compositor *PrintCompositor) TopMargin(unit gtk.Unit) float64 {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.GtkUnit                   // out
 	var _cret C.gdouble                   // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = C.GtkUnit(unit)
 
 	_cret = C.gtk_source_print_compositor_get_top_margin(_arg0, _arg1)
@@ -573,13 +589,13 @@ func (compositor *PrintCompositor) TopMargin(unit gtk.Unit) float64 {
 //
 // The function returns the following values:
 //
-//    - wrapMode: line wrap mode.
+//   - wrapMode: line wrap mode.
 //
 func (compositor *PrintCompositor) WrapMode() gtk.WrapMode {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _cret C.GtkWrapMode               // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 
 	_cret = C.gtk_source_print_compositor_get_wrap_mode(_arg0)
 	runtime.KeepAlive(compositor)
@@ -593,11 +609,11 @@ func (compositor *PrintCompositor) WrapMode() gtk.WrapMode {
 
 // Paginate the document associated with the compositor.
 //
-// In order to support non-blocking pagination, document is paginated in small
-// chunks. Each time gtk_source_print_compositor_paginate() is invoked, a chunk
-// of the document is paginated. To paginate the entire document,
-// gtk_source_print_compositor_paginate() must be invoked multiple times. It
-// returns TRUE if the document has been completely paginated, otherwise it
+// In order to support non-blocking pagination, document is paginated in
+// small chunks. Each time gtk_source_print_compositor_paginate() is invoked,
+// a chunk of the document is paginated. To paginate the entire document,
+// gtk_source_print_compositor_paginate() must be invoked multiple times.
+// It returns TRUE if the document has been completely paginated, otherwise it
 // returns FALSE.
 //
 // This method has been designed to be invoked in the handler of the
@@ -609,21 +625,22 @@ func (compositor *PrintCompositor) WrapMode() gtk.WrapMode {
 // static gboolean paginate (GtkPrintOperation *operation, GtkPrintContext
 // *context, gpointer user_data) { GtkSourcePrintCompositor *compositor;
 //
-//    compositor = GTK_SOURCE_PRINT_COMPOSITOR (user_data);
+//        compositor = GTK_SOURCE_PRINT_COMPOSITOR (user_data);
 //
-//    if (gtk_source_print_compositor_paginate (compositor, context))
-//    {
-//        gint n_pages;
+//        if (gtk_source_print_compositor_paginate (compositor, context))
+//        {
+//            gint n_pages;
 //
-//        n_pages = gtk_source_print_compositor_get_n_pages (compositor);
-//        gtk_print_operation_set_n_pages (operation, n_pages);
+//            n_pages = gtk_source_print_compositor_get_n_pages (compositor);
+//            gtk_print_operation_set_n_pages (operation, n_pages);
 //
-//        return TRUE;
+//            return TRUE;
+//        }
+//
+//        return FALSE;
 //    }
 //
-//    return FALSE;
-//
-// } </programlisting></informalexample>
+// </programlisting></informalexample>
 //
 // If you don't need to do pagination in chunks, you can simply do it all in the
 // PrintOperation::begin-print handler, and set the number of pages from there,
@@ -633,34 +650,35 @@ func (compositor *PrintCompositor) WrapMode() gtk.WrapMode {
 // GtkPrintOperation::begin-print signal
 //
 // static void begin_print (GtkPrintOperation *operation, GtkPrintContext
-// *context, gpointer user_data) { GtkSourcePrintCompositor *compositor; gint
-// n_pages;
+// *context, gpointer user_data) { GtkSourcePrintCompositor *compositor;
+// gint n_pages;
 //
-//    compositor = GTK_SOURCE_PRINT_COMPOSITOR (user_data);
+//        compositor = GTK_SOURCE_PRINT_COMPOSITOR (user_data);
 //
-//    while (!gtk_source_print_compositor_paginate (compositor, context));
+//        while (!gtk_source_print_compositor_paginate (compositor, context));
 //
-//    n_pages = gtk_source_print_compositor_get_n_pages (compositor);
-//    gtk_print_operation_set_n_pages (operation, n_pages);
+//        n_pages = gtk_source_print_compositor_get_n_pages (compositor);
+//        gtk_print_operation_set_n_pages (operation, n_pages);
+//    }
 //
-// } </programlisting></informalexample>.
+// </programlisting></informalexample>.
 //
 // The function takes the following parameters:
 //
-//    - context whose parameters (e.g. paper size, print margins, etc.) are used
-//      by the the compositor to paginate the document.
+//   - context whose parameters (e.g. paper size, print margins, etc.) are used
+//     by the the compositor to paginate the document.
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if the document has been completely paginated, FALSE otherwise.
+//   - ok: TRUE if the document has been completely paginated, FALSE otherwise.
 //
 func (compositor *PrintCompositor) Paginate(context *gtk.PrintContext) bool {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 *C.GtkPrintContext          // out
 	var _cret C.gboolean                  // in
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
-	_arg1 = (*C.GtkPrintContext)(unsafe.Pointer(externglib.InternObject(context).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
+	_arg1 = (*C.GtkPrintContext)(unsafe.Pointer(coreglib.InternObject(context).Native()))
 
 	_cret = C.gtk_source_print_compositor_paginate(_arg0, _arg1)
 	runtime.KeepAlive(compositor)
@@ -677,8 +695,8 @@ func (compositor *PrintCompositor) Paginate(context *gtk.PrintContext) bool {
 
 // SetBodyFontName sets the default font for the printed text.
 //
-// font_name should be a string representation of a font description Pango can
-// understand. (e.g. &quot;Monospace 10&quot;). See
+// font_name should be a string representation of a font description
+// Pango can understand. (e.g. &quot;Monospace 10&quot;). See
 // pango_font_description_from_string() for a description of the format of the
 // string representation.
 //
@@ -687,13 +705,13 @@ func (compositor *PrintCompositor) Paginate(context *gtk.PrintContext) bool {
 //
 // The function takes the following parameters:
 //
-//    - fontName: name of the default font for the body text.
+//   - fontName: name of the default font for the body text.
 //
 func (compositor *PrintCompositor) SetBodyFontName(fontName string) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(fontName)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -706,15 +724,15 @@ func (compositor *PrintCompositor) SetBodyFontName(fontName string) {
 //
 // The function takes the following parameters:
 //
-//    - margin: new bottom margin in units of unit.
-//    - unit units for margin.
+//   - margin: new bottom margin in units of unit.
+//   - unit units for margin.
 //
 func (compositor *PrintCompositor) SetBottomMargin(margin float64, unit gtk.Unit) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.gdouble                   // out
 	var _arg2 C.GtkUnit                   // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = C.gdouble(margin)
 	_arg2 = C.GtkUnit(unit)
 
@@ -728,8 +746,8 @@ func (compositor *PrintCompositor) SetBottomMargin(margin float64, unit gtk.Unit
 // supplied, the default font (i.e. the one being used for the text) will be
 // used instead.
 //
-// font_name should be a string representation of a font description Pango can
-// understand. (e.g. &quot;Monospace 10&quot;). See
+// font_name should be a string representation of a font description
+// Pango can understand. (e.g. &quot;Monospace 10&quot;). See
 // pango_font_description_from_string() for a description of the format of the
 // string representation.
 //
@@ -738,13 +756,13 @@ func (compositor *PrintCompositor) SetBottomMargin(margin float64, unit gtk.Unit
 //
 // The function takes the following parameters:
 //
-//    - fontName (optional): name of the font for the footer text, or NULL.
+//   - fontName (optional): name of the font for the footer text, or NULL.
 //
 func (compositor *PrintCompositor) SetFooterFontName(fontName string) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	if fontName != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(fontName)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -760,10 +778,10 @@ func (compositor *PrintCompositor) SetFooterFontName(fontName string) {
 //
 // The function takes the following parameters:
 //
-//    - separator: TRUE if you want a separator line to be printed.
-//    - left (optional): format string to print on the left of the footer.
-//    - center (optional): format string to print on the center of the footer.
-//    - right (optional): format string to print on the right of the footer.
+//   - separator: TRUE if you want a separator line to be printed.
+//   - left (optional): format string to print on the left of the footer.
+//   - center (optional): format string to print on the center of the footer.
+//   - right (optional): format string to print on the right of the footer.
 //
 func (compositor *PrintCompositor) SetFooterFormat(separator bool, left, center, right string) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
@@ -772,7 +790,7 @@ func (compositor *PrintCompositor) SetFooterFormat(separator bool, left, center,
 	var _arg3 *C.gchar                    // out
 	var _arg4 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	if separator {
 		_arg1 = C.TRUE
 	}
@@ -801,8 +819,8 @@ func (compositor *PrintCompositor) SetFooterFormat(separator bool, left, center,
 // supplied, the default font (i.e. the one being used for the text) will be
 // used instead.
 //
-// font_name should be a string representation of a font description Pango can
-// understand. (e.g. &quot;Monospace 10&quot;). See
+// font_name should be a string representation of a font description
+// Pango can understand. (e.g. &quot;Monospace 10&quot;). See
 // pango_font_description_from_string() for a description of the format of the
 // string representation.
 //
@@ -811,13 +829,13 @@ func (compositor *PrintCompositor) SetFooterFormat(separator bool, left, center,
 //
 // The function takes the following parameters:
 //
-//    - fontName (optional): name of the font for header text, or NULL.
+//   - fontName (optional): name of the font for header text, or NULL.
 //
 func (compositor *PrintCompositor) SetHeaderFontName(fontName string) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	if fontName != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(fontName)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -828,9 +846,9 @@ func (compositor *PrintCompositor) SetHeaderFontName(fontName string) {
 	runtime.KeepAlive(fontName)
 }
 
-// SetHeaderFormat sets strftime like header format strings, to be printed on
-// the left, center and right of the top of each page. The strings may include
-// strftime(3) codes which will be expanded at print time. A subset of
+// SetHeaderFormat sets strftime like header format strings, to be printed
+// on the left, center and right of the top of each page. The strings may
+// include strftime(3) codes which will be expanded at print time. A subset of
 // strftime() codes are accepted, see g_date_time_format() for more details on
 // the accepted format specifiers. Additionally the following format specifiers
 // are accepted:
@@ -845,8 +863,8 @@ func (compositor *PrintCompositor) SetHeaderFontName(fontName string) {
 // If NULL is given for any of the three arguments, that particular string will
 // not be printed.
 //
-// For the header to be printed, in addition to specifying format strings, you
-// need to enable header printing with
+// For the header to be printed, in addition to specifying
+// format strings, you need to enable header printing with
 // gtk_source_print_compositor_set_print_header().
 //
 // This function cannot be called anymore after the first call to the
@@ -854,10 +872,10 @@ func (compositor *PrintCompositor) SetHeaderFontName(fontName string) {
 //
 // The function takes the following parameters:
 //
-//    - separator: TRUE if you want a separator line to be printed.
-//    - left (optional): format string to print on the left of the header.
-//    - center (optional): format string to print on the center of the header.
-//    - right (optional): format string to print on the right of the header.
+//   - separator: TRUE if you want a separator line to be printed.
+//   - left (optional): format string to print on the left of the header.
+//   - center (optional): format string to print on the center of the header.
+//   - right (optional): format string to print on the right of the header.
 //
 func (compositor *PrintCompositor) SetHeaderFormat(separator bool, left, center, right string) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
@@ -866,7 +884,7 @@ func (compositor *PrintCompositor) SetHeaderFormat(separator bool, left, center,
 	var _arg3 *C.gchar                    // out
 	var _arg4 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	if separator {
 		_arg1 = C.TRUE
 	}
@@ -899,13 +917,13 @@ func (compositor *PrintCompositor) SetHeaderFormat(separator bool, left, center,
 //
 // The function takes the following parameters:
 //
-//    - highlight: whether syntax should be highlighted.
+//   - highlight: whether syntax should be highlighted.
 //
 func (compositor *PrintCompositor) SetHighlightSyntax(highlight bool) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.gboolean                  // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	if highlight {
 		_arg1 = C.TRUE
 	}
@@ -919,15 +937,15 @@ func (compositor *PrintCompositor) SetHighlightSyntax(highlight bool) {
 //
 // The function takes the following parameters:
 //
-//    - margin: new left margin in units of unit.
-//    - unit units for margin.
+//   - margin: new left margin in units of unit.
+//   - unit units for margin.
 //
 func (compositor *PrintCompositor) SetLeftMargin(margin float64, unit gtk.Unit) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.gdouble                   // out
 	var _arg2 C.GtkUnit                   // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = C.gdouble(margin)
 	_arg2 = C.GtkUnit(unit)
 
@@ -941,8 +959,8 @@ func (compositor *PrintCompositor) SetLeftMargin(margin float64, unit gtk.Unit) 
 // margin. If NULL is supplied, the default font (i.e. the one being used for
 // the text) will be used instead.
 //
-// font_name should be a string representation of a font description Pango can
-// understand. (e.g. &quot;Monospace 10&quot;). See
+// font_name should be a string representation of a font description
+// Pango can understand. (e.g. &quot;Monospace 10&quot;). See
 // pango_font_description_from_string() for a description of the format of the
 // string representation.
 //
@@ -951,13 +969,13 @@ func (compositor *PrintCompositor) SetLeftMargin(margin float64, unit gtk.Unit) 
 //
 // The function takes the following parameters:
 //
-//    - fontName (optional): name of the font for line numbers, or NULL.
+//   - fontName (optional): name of the font for line numbers, or NULL.
 //
 func (compositor *PrintCompositor) SetLineNumbersFontName(fontName string) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 *C.gchar                    // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	if fontName != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(fontName)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -968,8 +986,8 @@ func (compositor *PrintCompositor) SetLineNumbersFontName(fontName string) {
 	runtime.KeepAlive(fontName)
 }
 
-// SetPrintFooter sets whether you want to print a footer in each page. The
-// footer consists of three pieces of text and an optional line separator,
+// SetPrintFooter sets whether you want to print a footer in each page.
+// The footer consists of three pieces of text and an optional line separator,
 // configurable with gtk_source_print_compositor_set_footer_format().
 //
 // Note that by default the footer format is unspecified, and if it's empty it
@@ -980,13 +998,13 @@ func (compositor *PrintCompositor) SetLineNumbersFontName(fontName string) {
 //
 // The function takes the following parameters:
 //
-//    - print: TRUE if you want the footer to be printed.
+//   - print: TRUE if you want the footer to be printed.
 //
 func (compositor *PrintCompositor) SetPrintFooter(print bool) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.gboolean                  // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	if print {
 		_arg1 = C.TRUE
 	}
@@ -996,8 +1014,8 @@ func (compositor *PrintCompositor) SetPrintFooter(print bool) {
 	runtime.KeepAlive(print)
 }
 
-// SetPrintHeader sets whether you want to print a header in each page. The
-// header consists of three pieces of text and an optional line separator,
+// SetPrintHeader sets whether you want to print a header in each page.
+// The header consists of three pieces of text and an optional line separator,
 // configurable with gtk_source_print_compositor_set_header_format().
 //
 // Note that by default the header format is unspecified, and if it's empty it
@@ -1008,13 +1026,13 @@ func (compositor *PrintCompositor) SetPrintFooter(print bool) {
 //
 // The function takes the following parameters:
 //
-//    - print: TRUE if you want the header to be printed.
+//   - print: TRUE if you want the header to be printed.
 //
 func (compositor *PrintCompositor) SetPrintHeader(print bool) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.gboolean                  // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	if print {
 		_arg1 = C.TRUE
 	}
@@ -1035,13 +1053,13 @@ func (compositor *PrintCompositor) SetPrintHeader(print bool) {
 //
 // The function takes the following parameters:
 //
-//    - interval for printed line numbers.
+//   - interval for printed line numbers.
 //
 func (compositor *PrintCompositor) SetPrintLineNumbers(interval uint) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.guint                     // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = C.guint(interval)
 
 	C.gtk_source_print_compositor_set_print_line_numbers(_arg0, _arg1)
@@ -1053,15 +1071,15 @@ func (compositor *PrintCompositor) SetPrintLineNumbers(interval uint) {
 //
 // The function takes the following parameters:
 //
-//    - margin: new right margin in units of unit.
-//    - unit units for margin.
+//   - margin: new right margin in units of unit.
+//   - unit units for margin.
 //
 func (compositor *PrintCompositor) SetRightMargin(margin float64, unit gtk.Unit) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.gdouble                   // out
 	var _arg2 C.GtkUnit                   // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = C.gdouble(margin)
 	_arg2 = C.GtkUnit(unit)
 
@@ -1078,13 +1096,13 @@ func (compositor *PrintCompositor) SetRightMargin(margin float64, unit gtk.Unit)
 //
 // The function takes the following parameters:
 //
-//    - width of tab in characters.
+//   - width of tab in characters.
 //
 func (compositor *PrintCompositor) SetTabWidth(width uint) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.guint                     // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = C.guint(width)
 
 	C.gtk_source_print_compositor_set_tab_width(_arg0, _arg1)
@@ -1096,15 +1114,15 @@ func (compositor *PrintCompositor) SetTabWidth(width uint) {
 //
 // The function takes the following parameters:
 //
-//    - margin: new top margin in units of unit.
-//    - unit units for margin.
+//   - margin: new top margin in units of unit.
+//   - unit units for margin.
 //
 func (compositor *PrintCompositor) SetTopMargin(margin float64, unit gtk.Unit) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.gdouble                   // out
 	var _arg2 C.GtkUnit                   // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = C.gdouble(margin)
 	_arg2 = C.GtkUnit(unit)
 
@@ -1121,16 +1139,26 @@ func (compositor *PrintCompositor) SetTopMargin(margin float64, unit gtk.Unit) {
 //
 // The function takes the following parameters:
 //
-//    - wrapMode: WrapMode.
+//   - wrapMode: WrapMode.
 //
 func (compositor *PrintCompositor) SetWrapMode(wrapMode gtk.WrapMode) {
 	var _arg0 *C.GtkSourcePrintCompositor // out
 	var _arg1 C.GtkWrapMode               // out
 
-	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(externglib.InternObject(compositor).Native()))
+	_arg0 = (*C.GtkSourcePrintCompositor)(unsafe.Pointer(coreglib.InternObject(compositor).Native()))
 	_arg1 = C.GtkWrapMode(wrapMode)
 
 	C.gtk_source_print_compositor_set_wrap_mode(_arg0, _arg1)
 	runtime.KeepAlive(compositor)
 	runtime.KeepAlive(wrapMode)
+}
+
+// PrintCompositorClass: instance of this type is always passed by reference.
+type PrintCompositorClass struct {
+	*printCompositorClass
+}
+
+// printCompositorClass is the struct that's finalized.
+type printCompositorClass struct {
+	native *C.GtkSourcePrintCompositorClass
 }

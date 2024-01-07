@@ -7,7 +7,8 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/atk"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
@@ -16,17 +17,23 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcemap.go.
-var GTypeMap = externglib.Type(C.gtk_source_map_get_type())
+// GType values.
+var (
+	GTypeMap = coreglib.Type(C.gtk_source_map_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeMap, F: marshalMap},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeMap, F: marshalMap},
 	})
 }
 
-// MapOverrider contains methods that are overridable.
-type MapOverrider interface {
+// MapOverrides contains methods that are overridable.
+type MapOverrides struct {
+}
+
+func defaultMapOverrides(v *Map) MapOverrides {
+	return MapOverrides{}
 }
 
 type Map struct {
@@ -35,25 +42,33 @@ type Map struct {
 }
 
 var (
-	_ gtk.Containerer     = (*Map)(nil)
-	_ externglib.Objector = (*Map)(nil)
+	_ gtk.Containerer   = (*Map)(nil)
+	_ coreglib.Objector = (*Map)(nil)
 )
 
-func classInitMapper(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*Map, *MapClass, MapOverrides](
+		GTypeMap,
+		initMapClass,
+		wrapMap,
+		defaultMapOverrides,
+	)
 }
 
-func wrapMap(obj *externglib.Object) *Map {
+func initMapClass(gclass unsafe.Pointer, overrides MapOverrides, classInitFunc func(*MapClass)) {
+	if classInitFunc != nil {
+		class := (*MapClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapMap(obj *coreglib.Object) *Map {
 	return &Map{
 		View: View{
 			TextView: gtk.TextView{
 				Container: gtk.Container{
 					Widget: gtk.Widget{
-						InitiallyUnowned: externglib.InitiallyUnowned{
+						InitiallyUnowned: coreglib.InitiallyUnowned{
 							Object: obj,
 						},
 						Object: obj,
@@ -75,14 +90,14 @@ func wrapMap(obj *externglib.Object) *Map {
 }
 
 func marshalMap(p uintptr) (interface{}, error) {
-	return wrapMap(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapMap(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // NewMap creates a new SourceMap.
 //
 // The function returns the following values:
 //
-//    - _map: new SourceMap.
+//   - _map: new SourceMap.
 //
 func NewMap() *Map {
 	var _cret *C.GtkWidget // in
@@ -91,7 +106,7 @@ func NewMap() *Map {
 
 	var __map *Map // out
 
-	__map = wrapMap(externglib.Take(unsafe.Pointer(_cret)))
+	__map = wrapMap(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return __map
 }
@@ -101,13 +116,13 @@ func NewMap() *Map {
 //
 // The function returns the following values:
 //
-//    - view (optional) or NULL.
+//   - view (optional) or NULL.
 //
 func (_map *Map) GetView() *View {
 	var _arg0 *C.GtkSourceMap  // out
 	var _cret *C.GtkSourceView // in
 
-	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(externglib.InternObject(_map).Native()))
+	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(coreglib.InternObject(_map).Native()))
 
 	_cret = C.gtk_source_map_get_view(_arg0)
 	runtime.KeepAlive(_map)
@@ -115,7 +130,7 @@ func (_map *Map) GetView() *View {
 	var _view *View // out
 
 	if _cret != nil {
-		_view = wrapView(externglib.Take(unsafe.Pointer(_cret)))
+		_view = wrapView(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _view
@@ -125,16 +140,45 @@ func (_map *Map) GetView() *View {
 //
 // The function takes the following parameters:
 //
-//    - view: SourceView.
+//   - view: SourceView.
 //
 func (_map *Map) SetView(view *View) {
 	var _arg0 *C.GtkSourceMap  // out
 	var _arg1 *C.GtkSourceView // out
 
-	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(externglib.InternObject(_map).Native()))
-	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
+	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(coreglib.InternObject(_map).Native()))
+	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(coreglib.InternObject(view).Native()))
 
 	C.gtk_source_map_set_view(_arg0, _arg1)
 	runtime.KeepAlive(_map)
 	runtime.KeepAlive(view)
+}
+
+// MapClass: instance of this type is always passed by reference.
+type MapClass struct {
+	*mapClass
+}
+
+// mapClass is the struct that's finalized.
+type mapClass struct {
+	native *C.GtkSourceMapClass
+}
+
+func (m *MapClass) ParentClass() *ViewClass {
+	valptr := &m.native.parent_class
+	var _v *ViewClass // out
+	_v = (*ViewClass)(gextras.NewStructNative(unsafe.Pointer(valptr)))
+	return _v
+}
+
+func (m *MapClass) Padding() [10]unsafe.Pointer {
+	valptr := &m.native.padding
+	var _v [10]unsafe.Pointer // out
+	{
+		src := &*valptr
+		for i := 0; i < 10; i++ {
+			_v[i] = (unsafe.Pointer)(unsafe.Pointer(src[i]))
+		}
+	}
+	return _v
 }

@@ -7,31 +7,41 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/atk"
-	"github.com/diamondburned/gotk4/pkg/core/gbox"
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
-// extern void _gotk4_gtksource3_CompletionInfoClass_before_show(GtkSourceCompletionInfo*);
 // extern void _gotk4_gtksource3_CompletionInfo_ConnectBeforeShow(gpointer, guintptr);
+// extern void _gotk4_gtksource3_CompletionInfoClass_before_show(GtkSourceCompletionInfo*);
+// void _gotk4_gtksource3_CompletionInfo_virtual_before_show(void* fnptr, GtkSourceCompletionInfo* arg0) {
+//   ((void (*)(GtkSourceCompletionInfo*))(fnptr))(arg0);
+// };
 import "C"
 
-// glib.Type values for gtksourcecompletioninfo.go.
-var GTypeCompletionInfo = externglib.Type(C.gtk_source_completion_info_get_type())
+// GType values.
+var (
+	GTypeCompletionInfo = coreglib.Type(C.gtk_source_completion_info_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeCompletionInfo, F: marshalCompletionInfo},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeCompletionInfo, F: marshalCompletionInfo},
 	})
 }
 
-// CompletionInfoOverrider contains methods that are overridable.
-type CompletionInfoOverrider interface {
-	BeforeShow()
+// CompletionInfoOverrides contains methods that are overridable.
+type CompletionInfoOverrides struct {
+	BeforeShow func()
+}
+
+func defaultCompletionInfoOverrides(v *CompletionInfo) CompletionInfoOverrides {
+	return CompletionInfoOverrides{
+		BeforeShow: v.beforeShow,
+	}
 }
 
 type CompletionInfo struct {
@@ -43,37 +53,35 @@ var (
 	_ gtk.Binner = (*CompletionInfo)(nil)
 )
 
-func classInitCompletionInfor(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+func init() {
+	coreglib.RegisterClassInfo[*CompletionInfo, *CompletionInfoClass, CompletionInfoOverrides](
+		GTypeCompletionInfo,
+		initCompletionInfoClass,
+		wrapCompletionInfo,
+		defaultCompletionInfoOverrides,
+	)
+}
 
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+func initCompletionInfoClass(gclass unsafe.Pointer, overrides CompletionInfoOverrides, classInitFunc func(*CompletionInfoClass)) {
+	pclass := (*C.GtkSourceCompletionInfoClass)(unsafe.Pointer(C.g_type_check_class_cast((*C.GTypeClass)(gclass), C.GType(GTypeCompletionInfo))))
 
-	goval := gbox.Get(uintptr(data))
-	pclass := (*C.GtkSourceCompletionInfoClass)(unsafe.Pointer(gclassPtr))
-	// gclass := (*C.GTypeClass)(unsafe.Pointer(gclassPtr))
-	// pclass := (*C.GtkSourceCompletionInfoClass)(unsafe.Pointer(C.g_type_class_peek_parent(gclass)))
-
-	if _, ok := goval.(interface{ BeforeShow() }); ok {
+	if overrides.BeforeShow != nil {
 		pclass.before_show = (*[0]byte)(C._gotk4_gtksource3_CompletionInfoClass_before_show)
+	}
+
+	if classInitFunc != nil {
+		class := (*CompletionInfoClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
 	}
 }
 
-//export _gotk4_gtksource3_CompletionInfoClass_before_show
-func _gotk4_gtksource3_CompletionInfoClass_before_show(arg0 *C.GtkSourceCompletionInfo) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface{ BeforeShow() })
-
-	iface.BeforeShow()
-}
-
-func wrapCompletionInfo(obj *externglib.Object) *CompletionInfo {
+func wrapCompletionInfo(obj *coreglib.Object) *CompletionInfo {
 	return &CompletionInfo{
 		Window: gtk.Window{
 			Bin: gtk.Bin{
 				Container: gtk.Container{
 					Widget: gtk.Widget{
-						InitiallyUnowned: externglib.InitiallyUnowned{
+						InitiallyUnowned: coreglib.InitiallyUnowned{
 							Object: obj,
 						},
 						Object: obj,
@@ -91,35 +99,19 @@ func wrapCompletionInfo(obj *externglib.Object) *CompletionInfo {
 }
 
 func marshalCompletionInfo(p uintptr) (interface{}, error) {
-	return wrapCompletionInfo(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
-}
-
-//export _gotk4_gtksource3_CompletionInfo_ConnectBeforeShow
-func _gotk4_gtksource3_CompletionInfo_ConnectBeforeShow(arg0 C.gpointer, arg1 C.guintptr) {
-	var f func()
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func())
-	}
-
-	f()
+	return wrapCompletionInfo(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // ConnectBeforeShow: this signal is emitted before any "show" management. You
 // can connect to this signal if you want to change some properties or position
 // before the real "show".
-func (info *CompletionInfo) ConnectBeforeShow(f func()) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(info, "before-show", false, unsafe.Pointer(C._gotk4_gtksource3_CompletionInfo_ConnectBeforeShow), f)
+func (info *CompletionInfo) ConnectBeforeShow(f func()) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(info, "before-show", false, unsafe.Pointer(C._gotk4_gtksource3_CompletionInfo_ConnectBeforeShow), f)
 }
 
 // The function returns the following values:
 //
-//    - completionInfo: new GtkSourceCompletionInfo.
+//   - completionInfo: new GtkSourceCompletionInfo.
 //
 func NewCompletionInfo() *CompletionInfo {
 	var _cret *C.GtkSourceCompletionInfo // in
@@ -128,7 +120,7 @@ func NewCompletionInfo() *CompletionInfo {
 
 	var _completionInfo *CompletionInfo // out
 
-	_completionInfo = wrapCompletionInfo(externglib.Take(unsafe.Pointer(_cret)))
+	_completionInfo = wrapCompletionInfo(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _completionInfo
 }
@@ -139,13 +131,13 @@ func NewCompletionInfo() *CompletionInfo {
 //
 // The function returns the following values:
 //
-//    - widget: current content widget.
+//   - widget: current content widget.
 //
 func (info *CompletionInfo) Widget() gtk.Widgetter {
 	var _arg0 *C.GtkSourceCompletionInfo // out
 	var _cret *C.GtkWidget               // in
 
-	_arg0 = (*C.GtkSourceCompletionInfo)(unsafe.Pointer(externglib.InternObject(info).Native()))
+	_arg0 = (*C.GtkSourceCompletionInfo)(unsafe.Pointer(coreglib.InternObject(info).Native()))
 
 	_cret = C.gtk_source_completion_info_get_widget(_arg0)
 	runtime.KeepAlive(info)
@@ -158,8 +150,8 @@ func (info *CompletionInfo) Widget() gtk.Widgetter {
 			panic("object of type gtk.Widgetter is nil")
 		}
 
-		object := externglib.Take(objptr)
-		casted := object.WalkCast(func(obj externglib.Objector) bool {
+		object := coreglib.Take(objptr)
+		casted := object.WalkCast(func(obj coreglib.Objector) bool {
 			_, ok := obj.(gtk.Widgetter)
 			return ok
 		})
@@ -179,16 +171,16 @@ func (info *CompletionInfo) Widget() gtk.Widgetter {
 //
 // The function takes the following parameters:
 //
-//    - view on which the info window should be positioned.
-//    - iter (optional): TextIter.
+//   - view on which the info window should be positioned.
+//   - iter (optional): TextIter.
 //
 func (info *CompletionInfo) MoveToIter(view *gtk.TextView, iter *gtk.TextIter) {
 	var _arg0 *C.GtkSourceCompletionInfo // out
 	var _arg1 *C.GtkTextView             // out
 	var _arg2 *C.GtkTextIter             // out
 
-	_arg0 = (*C.GtkSourceCompletionInfo)(unsafe.Pointer(externglib.InternObject(info).Native()))
-	_arg1 = (*C.GtkTextView)(unsafe.Pointer(externglib.InternObject(view).Native()))
+	_arg0 = (*C.GtkSourceCompletionInfo)(unsafe.Pointer(coreglib.InternObject(info).Native()))
+	_arg1 = (*C.GtkTextView)(unsafe.Pointer(coreglib.InternObject(view).Native()))
 	if iter != nil {
 		_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	}
@@ -208,18 +200,47 @@ func (info *CompletionInfo) MoveToIter(view *gtk.TextView, iter *gtk.TextIter) {
 //
 // The function takes the following parameters:
 //
-//    - widget (optional): Widget.
+//   - widget (optional): Widget.
 //
 func (info *CompletionInfo) SetWidget(widget gtk.Widgetter) {
 	var _arg0 *C.GtkSourceCompletionInfo // out
 	var _arg1 *C.GtkWidget               // out
 
-	_arg0 = (*C.GtkSourceCompletionInfo)(unsafe.Pointer(externglib.InternObject(info).Native()))
+	_arg0 = (*C.GtkSourceCompletionInfo)(unsafe.Pointer(coreglib.InternObject(info).Native()))
 	if widget != nil {
-		_arg1 = (*C.GtkWidget)(unsafe.Pointer(externglib.InternObject(widget).Native()))
+		_arg1 = (*C.GtkWidget)(unsafe.Pointer(coreglib.InternObject(widget).Native()))
 	}
 
 	C.gtk_source_completion_info_set_widget(_arg0, _arg1)
 	runtime.KeepAlive(info)
 	runtime.KeepAlive(widget)
+}
+
+func (info *CompletionInfo) beforeShow() {
+	gclass := (*C.GtkSourceCompletionInfoClass)(coreglib.PeekParentClass(info))
+	fnarg := gclass.before_show
+
+	var _arg0 *C.GtkSourceCompletionInfo // out
+
+	_arg0 = (*C.GtkSourceCompletionInfo)(unsafe.Pointer(coreglib.InternObject(info).Native()))
+
+	C._gotk4_gtksource3_CompletionInfo_virtual_before_show(unsafe.Pointer(fnarg), _arg0)
+	runtime.KeepAlive(info)
+}
+
+// CompletionInfoClass: instance of this type is always passed by reference.
+type CompletionInfoClass struct {
+	*completionInfoClass
+}
+
+// completionInfoClass is the struct that's finalized.
+type completionInfoClass struct {
+	native *C.GtkSourceCompletionInfoClass
+}
+
+func (c *CompletionInfoClass) ParentClass() *gtk.WindowClass {
+	valptr := &c.native.parent_class
+	var _v *gtk.WindowClass // out
+	_v = (*gtk.WindowClass)(gextras.NewStructNative(unsafe.Pointer(valptr)))
+	return _v
 }

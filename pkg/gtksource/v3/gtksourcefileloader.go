@@ -3,37 +3,31 @@
 package gtksource
 
 import (
-	"context"
 	"fmt"
 	"runtime"
 	"unsafe"
 
-	"github.com/diamondburned/gotk4/pkg/core/gbox"
-	"github.com/diamondburned/gotk4/pkg/core/gcancel"
 	"github.com/diamondburned/gotk4/pkg/core/gerror"
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 )
 
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
-// extern void _gotk4_gio2_AsyncReadyCallback(GObject*, GAsyncResult*, gpointer);
-// extern void _gotk4_gio2_FileProgressCallback(goffset, goffset, gpointer);
-// extern void callbackDelete(gpointer);
 import "C"
 
-// glib.Type values for gtksourcefileloader.go.
+// GType values.
 var (
-	GTypeFileLoaderError = externglib.Type(C.gtk_source_file_loader_error_get_type())
-	GTypeFileLoader      = externglib.Type(C.gtk_source_file_loader_get_type())
+	GTypeFileLoaderError = coreglib.Type(C.gtk_source_file_loader_error_get_type())
+	GTypeFileLoader      = coreglib.Type(C.gtk_source_file_loader_get_type())
 )
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeFileLoaderError, F: marshalFileLoaderError},
-		{T: GTypeFileLoader, F: marshalFileLoader},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeFileLoaderError, F: marshalFileLoaderError},
+		coreglib.TypeMarshaler{T: GTypeFileLoader, F: marshalFileLoader},
 	})
 }
 
@@ -53,7 +47,7 @@ const (
 )
 
 func marshalFileLoaderError(p uintptr) (interface{}, error) {
-	return FileLoaderError(externglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+	return FileLoaderError(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
 }
 
 // String returns the name in string for FileLoaderError.
@@ -70,59 +64,71 @@ func (f FileLoaderError) String() string {
 	}
 }
 
-// FileLoaderOverrider contains methods that are overridable.
-type FileLoaderOverrider interface {
+// FileLoaderOverrides contains methods that are overridable.
+type FileLoaderOverrides struct {
+}
+
+func defaultFileLoaderOverrides(v *FileLoader) FileLoaderOverrides {
+	return FileLoaderOverrides{}
 }
 
 type FileLoader struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*FileLoader)(nil)
+	_ coreglib.Objector = (*FileLoader)(nil)
 )
 
-func classInitFileLoaderer(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*FileLoader, *FileLoaderClass, FileLoaderOverrides](
+		GTypeFileLoader,
+		initFileLoaderClass,
+		wrapFileLoader,
+		defaultFileLoaderOverrides,
+	)
 }
 
-func wrapFileLoader(obj *externglib.Object) *FileLoader {
+func initFileLoaderClass(gclass unsafe.Pointer, overrides FileLoaderOverrides, classInitFunc func(*FileLoaderClass)) {
+	if classInitFunc != nil {
+		class := (*FileLoaderClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapFileLoader(obj *coreglib.Object) *FileLoader {
 	return &FileLoader{
 		Object: obj,
 	}
 }
 
 func marshalFileLoader(p uintptr) (interface{}, error) {
-	return wrapFileLoader(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapFileLoader(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
-// NewFileLoader creates a new SourceFileLoader object. The contents is read
-// from the SourceFile's location. If not already done, call
+// NewFileLoader creates a new SourceFileLoader object. The contents
+// is read from the SourceFile's location. If not already done, call
 // gtk_source_file_set_location() before calling this constructor. The previous
 // location is anyway not needed, because as soon as the file loading begins,
 // the buffer is emptied.
 //
 // The function takes the following parameters:
 //
-//    - buffer to load the contents into.
-//    - file: SourceFile.
+//   - buffer to load the contents into.
+//   - file: SourceFile.
 //
 // The function returns the following values:
 //
-//    - fileLoader: new SourceFileLoader object.
+//   - fileLoader: new SourceFileLoader object.
 //
 func NewFileLoader(buffer *Buffer, file *File) *FileLoader {
 	var _arg1 *C.GtkSourceBuffer     // out
 	var _arg2 *C.GtkSourceFile       // out
 	var _cret *C.GtkSourceFileLoader // in
 
-	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
-	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
+	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
+	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(coreglib.InternObject(file).Native()))
 
 	_cret = C.gtk_source_file_loader_new(_arg1, _arg2)
 	runtime.KeepAlive(buffer)
@@ -130,7 +136,7 @@ func NewFileLoader(buffer *Buffer, file *File) *FileLoader {
 
 	var _fileLoader *FileLoader // out
 
-	_fileLoader = wrapFileLoader(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_fileLoader = wrapFileLoader(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _fileLoader
 }
@@ -140,13 +146,13 @@ func NewFileLoader(buffer *Buffer, file *File) *FileLoader {
 //
 // The function takes the following parameters:
 //
-//    - buffer to load the contents into.
-//    - file: SourceFile.
-//    - stream to load, e.g. stdin.
+//   - buffer to load the contents into.
+//   - file: SourceFile.
+//   - stream to load, e.g. stdin.
 //
 // The function returns the following values:
 //
-//    - fileLoader: new SourceFileLoader object.
+//   - fileLoader: new SourceFileLoader object.
 //
 func NewFileLoaderFromStream(buffer *Buffer, file *File, stream gio.InputStreamer) *FileLoader {
 	var _arg1 *C.GtkSourceBuffer     // out
@@ -154,9 +160,9 @@ func NewFileLoaderFromStream(buffer *Buffer, file *File, stream gio.InputStreame
 	var _arg3 *C.GInputStream        // out
 	var _cret *C.GtkSourceFileLoader // in
 
-	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
-	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(externglib.InternObject(file).Native()))
-	_arg3 = (*C.GInputStream)(unsafe.Pointer(externglib.InternObject(stream).Native()))
+	_arg1 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
+	_arg2 = (*C.GtkSourceFile)(unsafe.Pointer(coreglib.InternObject(file).Native()))
+	_arg3 = (*C.GInputStream)(unsafe.Pointer(coreglib.InternObject(stream).Native()))
 
 	_cret = C.gtk_source_file_loader_new_from_stream(_arg1, _arg2, _arg3)
 	runtime.KeepAlive(buffer)
@@ -165,40 +171,40 @@ func NewFileLoaderFromStream(buffer *Buffer, file *File, stream gio.InputStreame
 
 	var _fileLoader *FileLoader // out
 
-	_fileLoader = wrapFileLoader(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_fileLoader = wrapFileLoader(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _fileLoader
 }
 
 // The function returns the following values:
 //
-//    - buffer to load the contents into.
+//   - buffer to load the contents into.
 //
 func (loader *FileLoader) Buffer() *Buffer {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret *C.GtkSourceBuffer     // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(coreglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_buffer(_arg0)
 	runtime.KeepAlive(loader)
 
 	var _buffer *Buffer // out
 
-	_buffer = wrapBuffer(externglib.Take(unsafe.Pointer(_cret)))
+	_buffer = wrapBuffer(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _buffer
 }
 
 // The function returns the following values:
 //
-//    - compressionType: detected compression type.
+//   - compressionType: detected compression type.
 //
 func (loader *FileLoader) CompressionType() CompressionType {
 	var _arg0 *C.GtkSourceFileLoader     // out
 	var _cret C.GtkSourceCompressionType // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(coreglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_compression_type(_arg0)
 	runtime.KeepAlive(loader)
@@ -212,13 +218,13 @@ func (loader *FileLoader) CompressionType() CompressionType {
 
 // The function returns the following values:
 //
-//    - encoding: detected file encoding.
+//   - encoding: detected file encoding.
 //
 func (loader *FileLoader) Encoding() *Encoding {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret *C.GtkSourceEncoding   // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(coreglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_encoding(_arg0)
 	runtime.KeepAlive(loader)
@@ -232,33 +238,33 @@ func (loader *FileLoader) Encoding() *Encoding {
 
 // The function returns the following values:
 //
-//    - file: SourceFile.
+//   - file: SourceFile.
 //
 func (loader *FileLoader) File() *File {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret *C.GtkSourceFile       // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(coreglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_file(_arg0)
 	runtime.KeepAlive(loader)
 
 	var _file *File // out
 
-	_file = wrapFile(externglib.Take(unsafe.Pointer(_cret)))
+	_file = wrapFile(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _file
 }
 
 // The function returns the following values:
 //
-//    - inputStream (optional) to load, or NULL if a #GFile is used.
+//   - inputStream (optional) to load, or NULL if a #GFile is used.
 //
 func (loader *FileLoader) InputStream() gio.InputStreamer {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret *C.GInputStream        // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(coreglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_input_stream(_arg0)
 	runtime.KeepAlive(loader)
@@ -269,8 +275,8 @@ func (loader *FileLoader) InputStream() gio.InputStreamer {
 		{
 			objptr := unsafe.Pointer(_cret)
 
-			object := externglib.Take(objptr)
-			casted := object.WalkCast(func(obj externglib.Objector) bool {
+			object := coreglib.Take(objptr)
+			casted := object.WalkCast(func(obj coreglib.Objector) bool {
 				_, ok := obj.(gio.InputStreamer)
 				return ok
 			})
@@ -287,13 +293,13 @@ func (loader *FileLoader) InputStream() gio.InputStreamer {
 
 // The function returns the following values:
 //
-//    - file (optional) to load, or NULL if an input stream is used.
+//   - file (optional) to load, or NULL if an input stream is used.
 //
 func (loader *FileLoader) Location() *gio.File {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret *C.GFile               // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(coreglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_location(_arg0)
 	runtime.KeepAlive(loader)
@@ -302,7 +308,7 @@ func (loader *FileLoader) Location() *gio.File {
 
 	if _cret != nil {
 		{
-			obj := externglib.Take(unsafe.Pointer(_cret))
+			obj := coreglib.Take(unsafe.Pointer(_cret))
 			_file = &gio.File{
 				Object: obj,
 			}
@@ -314,13 +320,13 @@ func (loader *FileLoader) Location() *gio.File {
 
 // The function returns the following values:
 //
-//    - newlineType: detected newline type.
+//   - newlineType: detected newline type.
 //
 func (loader *FileLoader) NewlineType() NewlineType {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _cret C.GtkSourceNewlineType // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(coreglib.InternObject(loader).Native()))
 
 	_cret = C.gtk_source_file_loader_get_newline_type(_arg0)
 	runtime.KeepAlive(loader)
@@ -332,53 +338,6 @@ func (loader *FileLoader) NewlineType() NewlineType {
 	return _newlineType
 }
 
-// LoadAsync loads asynchronously the file or input stream contents into the
-// SourceBuffer. See the Result documentation to know how to use this function.
-//
-// The function takes the following parameters:
-//
-//    - ctx (optional): optional #GCancellable object, NULL to ignore.
-//    - ioPriority: i/O priority of the request. E.g. G_PRIORITY_LOW,
-//      G_PRIORITY_DEFAULT or G_PRIORITY_HIGH.
-//    - progressCallback (optional): function to call back with progress
-//      information, or NULL if progress information is not needed.
-//    - callback (optional) to call when the request is satisfied.
-//
-func (loader *FileLoader) LoadAsync(ctx context.Context, ioPriority int, progressCallback gio.FileProgressCallback, callback gio.AsyncReadyCallback) {
-	var _arg0 *C.GtkSourceFileLoader  // out
-	var _arg2 *C.GCancellable         // out
-	var _arg1 C.gint                  // out
-	var _arg3 C.GFileProgressCallback // out
-	var _arg4 C.gpointer
-	var _arg5 C.GDestroyNotify
-	var _arg6 C.GAsyncReadyCallback // out
-	var _arg7 C.gpointer
-
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
-	{
-		cancellable := gcancel.GCancellableFromContext(ctx)
-		defer runtime.KeepAlive(cancellable)
-		_arg2 = (*C.GCancellable)(unsafe.Pointer(cancellable.Native()))
-	}
-	_arg1 = C.gint(ioPriority)
-	if progressCallback != nil {
-		_arg3 = (*[0]byte)(C._gotk4_gio2_FileProgressCallback)
-		_arg4 = C.gpointer(gbox.Assign(progressCallback))
-		_arg5 = (C.GDestroyNotify)((*[0]byte)(C.callbackDelete))
-	}
-	if callback != nil {
-		_arg6 = (*[0]byte)(C._gotk4_gio2_AsyncReadyCallback)
-		_arg7 = C.gpointer(gbox.AssignOnce(callback))
-	}
-
-	C.gtk_source_file_loader_load_async(_arg0, _arg1, _arg2, _arg3, _arg4, _arg5, _arg6, _arg7)
-	runtime.KeepAlive(loader)
-	runtime.KeepAlive(ctx)
-	runtime.KeepAlive(ioPriority)
-	runtime.KeepAlive(progressCallback)
-	runtime.KeepAlive(callback)
-}
-
 // LoadFinish finishes a file loading started with
 // gtk_source_file_loader_load_async().
 //
@@ -388,15 +347,15 @@ func (loader *FileLoader) LoadAsync(ctx context.Context, ioPriority int, progres
 //
 // The function takes the following parameters:
 //
-//    - result: Result.
+//   - result: Result.
 //
 func (loader *FileLoader) LoadFinish(result gio.AsyncResulter) error {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _arg1 *C.GAsyncResult        // out
 	var _cerr *C.GError              // in
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
-	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(externglib.InternObject(result).Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(coreglib.InternObject(loader).Native()))
+	_arg1 = (*C.GAsyncResult)(unsafe.Pointer(coreglib.InternObject(result).Native()))
 
 	C.gtk_source_file_loader_load_finish(_arg0, _arg1, &_cerr)
 	runtime.KeepAlive(loader)
@@ -411,26 +370,26 @@ func (loader *FileLoader) LoadFinish(result gio.AsyncResulter) error {
 	return _goerr
 }
 
-// SetCandidateEncodings sets the candidate encodings for the file loading. The
-// encodings are tried in the same order as the list.
+// SetCandidateEncodings sets the candidate encodings for the file loading.
+// The encodings are tried in the same order as the list.
 //
 // For convenience, candidate_encodings can contain duplicates. Only the first
 // occurrence of a duplicated encoding is kept in the list.
 //
-// By default the candidate encodings are (in that order in the list): 1. If
-// set, the SourceFile's encoding as returned by gtk_source_file_get_encoding().
-// 2. The default candidates as returned by
+// By default the candidate encodings are (in that order in the
+// list): 1. If set, the SourceFile's encoding as returned by
+// gtk_source_file_get_encoding(). 2. The default candidates as returned by
 // gtk_source_encoding_get_default_candidates().
 //
 // The function takes the following parameters:
 //
-//    - candidateEncodings: list of SourceEncoding<!-- -->s.
+//   - candidateEncodings: list of SourceEncoding<!-- -->s.
 //
 func (loader *FileLoader) SetCandidateEncodings(candidateEncodings []*Encoding) {
 	var _arg0 *C.GtkSourceFileLoader // out
 	var _arg1 *C.GSList              // out
 
-	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(externglib.InternObject(loader).Native()))
+	_arg0 = (*C.GtkSourceFileLoader)(unsafe.Pointer(coreglib.InternObject(loader).Native()))
 	for i := len(candidateEncodings) - 1; i >= 0; i-- {
 		src := candidateEncodings[i]
 		var dst *C.GtkSourceEncoding // out
@@ -442,4 +401,26 @@ func (loader *FileLoader) SetCandidateEncodings(candidateEncodings []*Encoding) 
 	C.gtk_source_file_loader_set_candidate_encodings(_arg0, _arg1)
 	runtime.KeepAlive(loader)
 	runtime.KeepAlive(candidateEncodings)
+}
+
+// FileLoaderClass: instance of this type is always passed by reference.
+type FileLoaderClass struct {
+	*fileLoaderClass
+}
+
+// fileLoaderClass is the struct that's finalized.
+type fileLoaderClass struct {
+	native *C.GtkSourceFileLoaderClass
+}
+
+func (f *FileLoaderClass) Padding() [10]unsafe.Pointer {
+	valptr := &f.native.padding
+	var _v [10]unsafe.Pointer // out
+	{
+		src := &*valptr
+		for i := 0; i < 10; i++ {
+			_v[i] = (unsafe.Pointer)(unsafe.Pointer(src[i]))
+		}
+	}
+	return _v
 }

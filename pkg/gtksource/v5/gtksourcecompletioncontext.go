@@ -7,7 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
@@ -15,41 +15,70 @@ import (
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
+// extern void _gotk4_gtksource5_CompletionContext_ConnectProviderModelChanged(gpointer, GtkSourceCompletionProvider*, GListModel*, guintptr);
 import "C"
 
-// glib.Type values for gtksourcecompletioncontext.go.
-var GTypeCompletionContext = externglib.Type(C.gtk_source_completion_context_get_type())
+// GType values.
+var (
+	GTypeCompletionContext = coreglib.Type(C.gtk_source_completion_context_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeCompletionContext, F: marshalCompletionContext},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeCompletionContext, F: marshalCompletionContext},
 	})
 }
 
-// CompletionContextOverrider contains methods that are overridable.
-type CompletionContextOverrider interface {
+// CompletionContextOverrides contains methods that are overridable.
+type CompletionContextOverrides struct {
 }
 
+func defaultCompletionContextOverrides(v *CompletionContext) CompletionContextOverrides {
+	return CompletionContextOverrides{}
+}
+
+// CompletionContext: context of a completion.
+//
+// GtkSourceCompletionContext contains information about an attept to display
+// completion proposals to the user based on typed text in the view.
+//
+// When typing, completion may use registered completionprovider to
+// determine if there may be results which could be displayed. If so,
+// a GtkSourceCompletionContext is created with information that is provided to
+// the completionprovider to populate results which might be useful to the user.
+//
+// completionprovider are expected to provide gio.ListModel with
+// completionproposal which may be joined together in a list of results for
+// the user. They are also responsible for how the contents are displayed using
+// completioncell which allows for some level of customization.
 type CompletionContext struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 
 	gio.ListModel
 }
 
 var (
-	_ externglib.Objector = (*CompletionContext)(nil)
+	_ coreglib.Objector = (*CompletionContext)(nil)
 )
 
-func classInitCompletionContexter(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*CompletionContext, *CompletionContextClass, CompletionContextOverrides](
+		GTypeCompletionContext,
+		initCompletionContextClass,
+		wrapCompletionContext,
+		defaultCompletionContextOverrides,
+	)
 }
 
-func wrapCompletionContext(obj *externglib.Object) *CompletionContext {
+func initCompletionContextClass(gclass unsafe.Pointer, overrides CompletionContextOverrides, classInitFunc func(*CompletionContextClass)) {
+	if classInitFunc != nil {
+		class := (*CompletionContextClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapCompletionContext(obj *coreglib.Object) *CompletionContext {
 	return &CompletionContext{
 		Object: obj,
 		ListModel: gio.ListModel{
@@ -59,7 +88,16 @@ func wrapCompletionContext(obj *externglib.Object) *CompletionContext {
 }
 
 func marshalCompletionContext(p uintptr) (interface{}, error) {
-	return wrapCompletionContext(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapCompletionContext(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+}
+
+// ConnectProviderModelChanged is emitted when a provider changes a model.
+//
+// This signal is primarily useful for SourceCompletionProvider's that want to
+// track other providers in context. For example, it can be used to create a
+// "top results" provider.
+func (self *CompletionContext) ConnectProviderModelChanged(f func(provider CompletionProviderer, model gio.ListModeller)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(self, "provider-model-changed", false, unsafe.Pointer(C._gotk4_gtksource5_CompletionContext_ConnectProviderModelChanged), f)
 }
 
 // Activation gets the mode for which the context was activated.
@@ -70,7 +108,7 @@ func (self *CompletionContext) Activation() CompletionActivation {
 	var _arg0 *C.GtkSourceCompletionContext   // out
 	var _cret C.GtkSourceCompletionActivation // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_activation(_arg0)
 	runtime.KeepAlive(self)
@@ -94,17 +132,17 @@ func (self *CompletionContext) Activation() CompletionActivation {
 //
 // The function returns the following values:
 //
-//    - begin (optional): TextIter.
-//    - end (optional): TextIter.
-//    - ok: TRUE if the marks are still valid and begin or end was set.
+//   - begin (optional): TextIter.
+//   - end (optional): TextIter.
+//   - ok: TRUE if the marks are still valid and begin or end was set.
 //
-func (self *CompletionContext) Bounds() (begin *gtk.TextIter, end *gtk.TextIter, ok bool) {
+func (self *CompletionContext) Bounds() (begin, end *gtk.TextIter, ok bool) {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _arg1 C.GtkTextIter                 // in
 	var _arg2 C.GtkTextIter                 // in
 	var _cret C.gboolean                    // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_bounds(_arg0, &_arg1, &_arg2)
 	runtime.KeepAlive(self)
@@ -129,13 +167,13 @@ func (self *CompletionContext) Bounds() (begin *gtk.TextIter, end *gtk.TextIter,
 //
 // The function returns the following values:
 //
-//    - buffer (optional) or NULL.
+//   - buffer (optional) or NULL.
 //
 func (self *CompletionContext) Buffer() *Buffer {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret *C.GtkSourceBuffer            // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_buffer(_arg0)
 	runtime.KeepAlive(self)
@@ -143,25 +181,25 @@ func (self *CompletionContext) Buffer() *Buffer {
 	var _buffer *Buffer // out
 
 	if _cret != nil {
-		_buffer = wrapBuffer(externglib.Take(unsafe.Pointer(_cret)))
+		_buffer = wrapBuffer(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _buffer
 }
 
-// Busy gets the "busy" property. This is set to TRUE while the completion
-// context is actively fetching proposals from registered
+// Busy gets the "busy" property. This is set to TRUE while the
+// completion context is actively fetching proposals from registered
 // SourceCompletionProvider's.
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if the context is busy.
+//   - ok: TRUE if the context is busy.
 //
 func (self *CompletionContext) Busy() bool {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret C.gboolean                    // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_busy(_arg0)
 	runtime.KeepAlive(self)
@@ -179,13 +217,13 @@ func (self *CompletionContext) Busy() bool {
 //
 // The function returns the following values:
 //
-//    - completion (optional) or NULL.
+//   - completion (optional) or NULL.
 //
 func (self *CompletionContext) Completion() *Completion {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret *C.GtkSourceCompletion        // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_completion(_arg0)
 	runtime.KeepAlive(self)
@@ -193,7 +231,7 @@ func (self *CompletionContext) Completion() *Completion {
 	var _completion *Completion // out
 
 	if _cret != nil {
-		_completion = wrapCompletion(externglib.Take(unsafe.Pointer(_cret)))
+		_completion = wrapCompletion(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _completion
@@ -205,13 +243,13 @@ func (self *CompletionContext) Completion() *Completion {
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if there are no proposals in the context.
+//   - ok: TRUE if there are no proposals in the context.
 //
 func (self *CompletionContext) Empty() bool {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret C.gboolean                    // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_empty(_arg0)
 	runtime.KeepAlive(self)
@@ -229,13 +267,13 @@ func (self *CompletionContext) Empty() bool {
 //
 // The function returns the following values:
 //
-//    - language (optional) or NULL.
+//   - language (optional) or NULL.
 //
 func (self *CompletionContext) Language() *Language {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret *C.GtkSourceLanguage          // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_language(_arg0)
 	runtime.KeepAlive(self)
@@ -243,23 +281,62 @@ func (self *CompletionContext) Language() *Language {
 	var _language *Language // out
 
 	if _cret != nil {
-		_language = wrapLanguage(externglib.Take(unsafe.Pointer(_cret)))
+		_language = wrapLanguage(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _language
+}
+
+// ProposalsForProvider gets the Model associated with the provider.
+//
+// You can connect to SourceCompletionContext::model-changed to receive
+// notifications about when the model has been replaced by a new model.
+//
+// The function takes the following parameters:
+//
+//   - provider: SourceCompletionProvider.
+//
+// The function returns the following values:
+//
+//   - listModel (optional) or NULL.
+//
+func (self *CompletionContext) ProposalsForProvider(provider CompletionProviderer) *gio.ListModel {
+	var _arg0 *C.GtkSourceCompletionContext  // out
+	var _arg1 *C.GtkSourceCompletionProvider // out
+	var _cret *C.GListModel                  // in
+
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(provider).Native()))
+
+	_cret = C.gtk_source_completion_context_get_proposals_for_provider(_arg0, _arg1)
+	runtime.KeepAlive(self)
+	runtime.KeepAlive(provider)
+
+	var _listModel *gio.ListModel // out
+
+	if _cret != nil {
+		{
+			obj := coreglib.Take(unsafe.Pointer(_cret))
+			_listModel = &gio.ListModel{
+				Object: obj,
+			}
+		}
+	}
+
+	return _listModel
 }
 
 // View gets the text view for the context.
 //
 // The function returns the following values:
 //
-//    - view (optional) or NULL.
+//   - view (optional) or NULL.
 //
 func (self *CompletionContext) View() *View {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret *C.GtkSourceView              // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_view(_arg0)
 	runtime.KeepAlive(self)
@@ -267,7 +344,7 @@ func (self *CompletionContext) View() *View {
 	var _view *View // out
 
 	if _cret != nil {
-		_view = wrapView(externglib.Take(unsafe.Pointer(_cret)))
+		_view = wrapView(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _view
@@ -278,13 +355,13 @@ func (self *CompletionContext) View() *View {
 //
 // The function returns the following values:
 //
-//    - utf8: string containing the current word.
+//   - utf8: string containing the current word.
 //
 func (self *CompletionContext) Word() string {
 	var _arg0 *C.GtkSourceCompletionContext // out
 	var _cret *C.char                       // in
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_context_get_word(_arg0)
 	runtime.KeepAlive(self)
@@ -297,31 +374,68 @@ func (self *CompletionContext) Word() string {
 	return _utf8
 }
 
+// ListProviders gets the providers that are associated with the context.
+//
+// The function returns the following values:
+//
+//   - listModel of SourceCompletionProvider.
+//
+func (self *CompletionContext) ListProviders() *gio.ListModel {
+	var _arg0 *C.GtkSourceCompletionContext // out
+	var _cret *C.GListModel                 // in
+
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+
+	_cret = C.gtk_source_completion_context_list_providers(_arg0)
+	runtime.KeepAlive(self)
+
+	var _listModel *gio.ListModel // out
+
+	{
+		obj := coreglib.AssumeOwnership(unsafe.Pointer(_cret))
+		_listModel = &gio.ListModel{
+			Object: obj,
+		}
+	}
+
+	return _listModel
+}
+
 // SetProposalsForProvider: this function allows providers to update their
-// results for a context outside of a call to
-// gtk_source_completion_provider_populate_async(). This can be used to
-// immediately return results for a provider while it does additional
-// asynchronous work. Doing so will allow the completions to update while the
-// operation is in progress.
+// results for a context outside of a call to completionprovider.PopulateAsync.
+//
+// This can be used to immediately return results for a provider while it does
+// additional asynchronous work. Doing so will allow the completions to update
+// while the operation is in progress.
 //
 // The function takes the following parameters:
 //
-//    - provider: SourceCompletionProvider.
-//    - results (optional) or NULL.
+//   - provider: SourceCompletionProvider.
+//   - results (optional) or NULL.
 //
 func (self *CompletionContext) SetProposalsForProvider(provider CompletionProviderer, results gio.ListModeller) {
 	var _arg0 *C.GtkSourceCompletionContext  // out
 	var _arg1 *C.GtkSourceCompletionProvider // out
 	var _arg2 *C.GListModel                  // out
 
-	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(provider).Native()))
+	_arg0 = (*C.GtkSourceCompletionContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(provider).Native()))
 	if results != nil {
-		_arg2 = (*C.GListModel)(unsafe.Pointer(externglib.InternObject(results).Native()))
+		_arg2 = (*C.GListModel)(unsafe.Pointer(coreglib.InternObject(results).Native()))
 	}
 
 	C.gtk_source_completion_context_set_proposals_for_provider(_arg0, _arg1, _arg2)
 	runtime.KeepAlive(self)
 	runtime.KeepAlive(provider)
 	runtime.KeepAlive(results)
+}
+
+// CompletionContextClass: instance of this type is always passed by reference.
+type CompletionContextClass struct {
+	*completionContextClass
+}
+
+// completionContextClass is the struct that's finalized.
+type completionContextClass struct {
+	native *C.GtkSourceCompletionContextClass
 }

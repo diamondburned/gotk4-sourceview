@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
@@ -15,17 +16,23 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcemark.go.
-var GTypeMark = externglib.Type(C.gtk_source_mark_get_type())
+// GType values.
+var (
+	GTypeMark = coreglib.Type(C.gtk_source_mark_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeMark, F: marshalMark},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeMark, F: marshalMark},
 	})
 }
 
-// MarkOverrider contains methods that are overridable.
-type MarkOverrider interface {
+// MarkOverrides contains methods that are overridable.
+type MarkOverrides struct {
+}
+
+func defaultMarkOverrides(v *Mark) MarkOverrides {
+	return MarkOverrides{}
 }
 
 type Mark struct {
@@ -34,18 +41,26 @@ type Mark struct {
 }
 
 var (
-	_ externglib.Objector = (*Mark)(nil)
+	_ coreglib.Objector = (*Mark)(nil)
 )
 
-func classInitMarker(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*Mark, *MarkClass, MarkOverrides](
+		GTypeMark,
+		initMarkClass,
+		wrapMark,
+		defaultMarkOverrides,
+	)
 }
 
-func wrapMark(obj *externglib.Object) *Mark {
+func initMarkClass(gclass unsafe.Pointer, overrides MarkOverrides, classInitFunc func(*MarkClass)) {
+	if classInitFunc != nil {
+		class := (*MarkClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapMark(obj *coreglib.Object) *Mark {
 	return &Mark{
 		TextMark: gtk.TextMark{
 			Object: obj,
@@ -54,26 +69,26 @@ func wrapMark(obj *externglib.Object) *Mark {
 }
 
 func marshalMark(p uintptr) (interface{}, error) {
-	return wrapMark(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapMark(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // NewMark creates a text mark. Add it to a buffer using
-// gtk_text_buffer_add_mark(). If name is NULL, the mark is anonymous;
-// otherwise, the mark can be retrieved by name using
+// gtk_text_buffer_add_mark(). If name is NULL, the mark is
+// anonymous; otherwise, the mark can be retrieved by name using
 // gtk_text_buffer_get_mark(). Normally marks are created using the utility
 // function gtk_source_buffer_create_source_mark().
 //
 // The function takes the following parameters:
 //
-//    - name (optional): name of the SourceMark or NULL.
-//    - category is used to classify marks according to common characteristics
-//      (e.g. all the marks representing a bookmark could belong to the
-//      "bookmark" category, or all the marks representing a compilation error
-//      could belong to "error" category).
+//   - name (optional): name of the SourceMark or NULL.
+//   - category is used to classify marks according to common characteristics
+//     (e.g. all the marks representing a bookmark could belong to the
+//     "bookmark" category, or all the marks representing a compilation error
+//     could belong to "error" category).
 //
 // The function returns the following values:
 //
-//    - mark: new SourceMark that can be added using gtk_text_buffer_add_mark().
+//   - mark: new SourceMark that can be added using gtk_text_buffer_add_mark().
 //
 func NewMark(name, category string) *Mark {
 	var _arg1 *C.gchar         // out
@@ -93,7 +108,7 @@ func NewMark(name, category string) *Mark {
 
 	var _mark *Mark // out
 
-	_mark = wrapMark(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_mark = wrapMark(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _mark
 }
@@ -102,13 +117,13 @@ func NewMark(name, category string) *Mark {
 //
 // The function returns the following values:
 //
-//    - utf8: category of the SourceMark.
+//   - utf8: category of the SourceMark.
 //
 func (mark *Mark) Category() string {
 	var _arg0 *C.GtkSourceMark // out
 	var _cret *C.gchar         // in
 
-	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(externglib.InternObject(mark).Native()))
+	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(coreglib.InternObject(mark).Native()))
 
 	_cret = C.gtk_source_mark_get_category(_arg0)
 	runtime.KeepAlive(mark)
@@ -127,18 +142,18 @@ func (mark *Mark) Category() string {
 //
 // The function takes the following parameters:
 //
-//    - category (optional): string specifying the mark category, or NULL.
+//   - category (optional): string specifying the mark category, or NULL.
 //
 // The function returns the following values:
 //
-//    - ret (optional): next SourceMark, or NULL.
+//   - ret (optional): next SourceMark, or NULL.
 //
 func (mark *Mark) Next(category string) *Mark {
 	var _arg0 *C.GtkSourceMark // out
 	var _arg1 *C.gchar         // out
 	var _cret *C.GtkSourceMark // in
 
-	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(externglib.InternObject(mark).Native()))
+	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(coreglib.InternObject(mark).Native()))
 	if category != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -151,7 +166,7 @@ func (mark *Mark) Next(category string) *Mark {
 	var _ret *Mark // out
 
 	if _cret != nil {
-		_ret = wrapMark(externglib.Take(unsafe.Pointer(_cret)))
+		_ret = wrapMark(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _ret
@@ -164,18 +179,18 @@ func (mark *Mark) Next(category string) *Mark {
 //
 // The function takes the following parameters:
 //
-//    - category: string specifying the mark category, or NULL.
+//   - category: string specifying the mark category, or NULL.
 //
 // The function returns the following values:
 //
-//    - ret (optional) previous SourceMark, or NULL.
+//   - ret (optional) previous SourceMark, or NULL.
 //
 func (mark *Mark) Prev(category string) *Mark {
 	var _arg0 *C.GtkSourceMark // out
 	var _arg1 *C.gchar         // out
 	var _cret *C.GtkSourceMark // in
 
-	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(externglib.InternObject(mark).Native()))
+	_arg0 = (*C.GtkSourceMark)(unsafe.Pointer(coreglib.InternObject(mark).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -186,8 +201,37 @@ func (mark *Mark) Prev(category string) *Mark {
 	var _ret *Mark // out
 
 	if _cret != nil {
-		_ret = wrapMark(externglib.Take(unsafe.Pointer(_cret)))
+		_ret = wrapMark(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _ret
+}
+
+// MarkClass: instance of this type is always passed by reference.
+type MarkClass struct {
+	*markClass
+}
+
+// markClass is the struct that's finalized.
+type markClass struct {
+	native *C.GtkSourceMarkClass
+}
+
+func (m *MarkClass) ParentClass() *gtk.TextMarkClass {
+	valptr := &m.native.parent_class
+	var _v *gtk.TextMarkClass // out
+	_v = (*gtk.TextMarkClass)(gextras.NewStructNative(unsafe.Pointer(valptr)))
+	return _v
+}
+
+func (m *MarkClass) Padding() [10]unsafe.Pointer {
+	valptr := &m.native.padding
+	var _v [10]unsafe.Pointer // out
+	{
+		src := &*valptr
+		for i := 0; i < 10; i++ {
+			_v[i] = (unsafe.Pointer)(unsafe.Pointer(src[i]))
+		}
+	}
+	return _v
 }

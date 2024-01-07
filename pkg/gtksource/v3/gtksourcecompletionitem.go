@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdkpixbuf/v2"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 )
@@ -16,39 +17,53 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcecompletionitem.go.
-var GTypeCompletionItem = externglib.Type(C.gtk_source_completion_item_get_type())
+// GType values.
+var (
+	GTypeCompletionItem = coreglib.Type(C.gtk_source_completion_item_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeCompletionItem, F: marshalCompletionItem},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeCompletionItem, F: marshalCompletionItem},
 	})
 }
 
-// CompletionItemOverrider contains methods that are overridable.
-type CompletionItemOverrider interface {
+// CompletionItemOverrides contains methods that are overridable.
+type CompletionItemOverrides struct {
+}
+
+func defaultCompletionItemOverrides(v *CompletionItem) CompletionItemOverrides {
+	return CompletionItemOverrides{}
 }
 
 type CompletionItem struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 
 	CompletionProposal
 }
 
 var (
-	_ externglib.Objector = (*CompletionItem)(nil)
+	_ coreglib.Objector = (*CompletionItem)(nil)
 )
 
-func classInitCompletionItemmer(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*CompletionItem, *CompletionItemClass, CompletionItemOverrides](
+		GTypeCompletionItem,
+		initCompletionItemClass,
+		wrapCompletionItem,
+		defaultCompletionItemOverrides,
+	)
 }
 
-func wrapCompletionItem(obj *externglib.Object) *CompletionItem {
+func initCompletionItemClass(gclass unsafe.Pointer, overrides CompletionItemOverrides, classInitFunc func(*CompletionItemClass)) {
+	if classInitFunc != nil {
+		class := (*CompletionItemClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapCompletionItem(obj *coreglib.Object) *CompletionItem {
 	return &CompletionItem{
 		Object: obj,
 		CompletionProposal: CompletionProposal{
@@ -58,25 +73,25 @@ func wrapCompletionItem(obj *externglib.Object) *CompletionItem {
 }
 
 func marshalCompletionItem(p uintptr) (interface{}, error) {
-	return wrapCompletionItem(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapCompletionItem(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
-// NewCompletionItem: create a new SourceCompletionItem with label label, icon
-// icon and extra information info. Both icon and info can be NULL in which case
-// there will be no icon shown and no extra information available.
+// NewCompletionItem: create a new SourceCompletionItem with label label,
+// icon icon and extra information info. Both icon and info can be NULL in which
+// case there will be no icon shown and no extra information available.
 //
 // Deprecated: Use gtk_source_completion_item_new2() instead.
 //
 // The function takes the following parameters:
 //
-//    - label: item label.
-//    - text: item text.
-//    - icon (optional): item icon.
-//    - info (optional): item extra information.
+//   - label: item label.
+//   - text: item text.
+//   - icon (optional): item icon.
+//   - info (optional): item extra information.
 //
 // The function returns the following values:
 //
-//    - completionItem: new SourceCompletionItem.
+//   - completionItem: new SourceCompletionItem.
 //
 func NewCompletionItem(label, text string, icon *gdkpixbuf.Pixbuf, info string) *CompletionItem {
 	var _arg1 *C.gchar                   // out
@@ -90,7 +105,7 @@ func NewCompletionItem(label, text string, icon *gdkpixbuf.Pixbuf, info string) 
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(text)))
 	defer C.free(unsafe.Pointer(_arg2))
 	if icon != nil {
-		_arg3 = (*C.GdkPixbuf)(unsafe.Pointer(externglib.InternObject(icon).Native()))
+		_arg3 = (*C.GdkPixbuf)(unsafe.Pointer(coreglib.InternObject(icon).Native()))
 	}
 	if info != "" {
 		_arg4 = (*C.gchar)(unsafe.Pointer(C.CString(info)))
@@ -105,7 +120,7 @@ func NewCompletionItem(label, text string, icon *gdkpixbuf.Pixbuf, info string) 
 
 	var _completionItem *CompletionItem // out
 
-	_completionItem = wrapCompletionItem(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_completionItem = wrapCompletionItem(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _completionItem
 }
@@ -117,14 +132,14 @@ func NewCompletionItem(label, text string, icon *gdkpixbuf.Pixbuf, info string) 
 //
 // The function takes the following parameters:
 //
-//    - label (optional): item label.
-//    - text: item text.
-//    - stock icon.
-//    - info (optional): item extra information.
+//   - label (optional): item label.
+//   - text: item text.
+//   - stock icon.
+//   - info (optional): item extra information.
 //
 // The function returns the following values:
 //
-//    - completionItem: new SourceCompletionItem.
+//   - completionItem: new SourceCompletionItem.
 //
 func NewCompletionItemFromStock(label, text, stock, info string) *CompletionItem {
 	var _arg1 *C.gchar                   // out
@@ -154,28 +169,28 @@ func NewCompletionItemFromStock(label, text, stock, info string) *CompletionItem
 
 	var _completionItem *CompletionItem // out
 
-	_completionItem = wrapCompletionItem(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_completionItem = wrapCompletionItem(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _completionItem
 }
 
 // NewCompletionItemWithMarkup: create a new SourceCompletionItem with markup
-// label markup, icon icon and extra information info. Both icon and info can be
-// NULL in which case there will be no icon shown and no extra information
+// label markup, icon icon and extra information info. Both icon and info can
+// be NULL in which case there will be no icon shown and no extra information
 // available.
 //
 // Deprecated: Use gtk_source_completion_item_new2() instead.
 //
 // The function takes the following parameters:
 //
-//    - markup: item markup label.
-//    - text: item text.
-//    - icon (optional): item icon.
-//    - info (optional): item extra information.
+//   - markup: item markup label.
+//   - text: item text.
+//   - icon (optional): item icon.
+//   - info (optional): item extra information.
 //
 // The function returns the following values:
 //
-//    - completionItem: new SourceCompletionItem.
+//   - completionItem: new SourceCompletionItem.
 //
 func NewCompletionItemWithMarkup(markup, text string, icon *gdkpixbuf.Pixbuf, info string) *CompletionItem {
 	var _arg1 *C.gchar                   // out
@@ -189,7 +204,7 @@ func NewCompletionItemWithMarkup(markup, text string, icon *gdkpixbuf.Pixbuf, in
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(text)))
 	defer C.free(unsafe.Pointer(_arg2))
 	if icon != nil {
-		_arg3 = (*C.GdkPixbuf)(unsafe.Pointer(externglib.InternObject(icon).Native()))
+		_arg3 = (*C.GdkPixbuf)(unsafe.Pointer(coreglib.InternObject(icon).Native()))
 	}
 	if info != "" {
 		_arg4 = (*C.gchar)(unsafe.Pointer(C.CString(info)))
@@ -204,22 +219,22 @@ func NewCompletionItemWithMarkup(markup, text string, icon *gdkpixbuf.Pixbuf, in
 
 	var _completionItem *CompletionItem // out
 
-	_completionItem = wrapCompletionItem(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_completionItem = wrapCompletionItem(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _completionItem
 }
 
 // The function takes the following parameters:
 //
-//    - gicon (optional) or NULL.
+//   - gicon (optional) or NULL.
 //
 func (item *CompletionItem) SetGIcon(gicon gio.Iconner) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.GIcon                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(coreglib.InternObject(item).Native()))
 	if gicon != nil {
-		_arg1 = (*C.GIcon)(unsafe.Pointer(externglib.InternObject(gicon).Native()))
+		_arg1 = (*C.GIcon)(unsafe.Pointer(coreglib.InternObject(gicon).Native()))
 	}
 
 	C.gtk_source_completion_item_set_gicon(_arg0, _arg1)
@@ -229,15 +244,15 @@ func (item *CompletionItem) SetGIcon(gicon gio.Iconner) {
 
 // The function takes the following parameters:
 //
-//    - icon (optional) or NULL.
+//   - icon (optional) or NULL.
 //
 func (item *CompletionItem) SetIcon(icon *gdkpixbuf.Pixbuf) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.GdkPixbuf               // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(coreglib.InternObject(item).Native()))
 	if icon != nil {
-		_arg1 = (*C.GdkPixbuf)(unsafe.Pointer(externglib.InternObject(icon).Native()))
+		_arg1 = (*C.GdkPixbuf)(unsafe.Pointer(coreglib.InternObject(icon).Native()))
 	}
 
 	C.gtk_source_completion_item_set_icon(_arg0, _arg1)
@@ -247,13 +262,13 @@ func (item *CompletionItem) SetIcon(icon *gdkpixbuf.Pixbuf) {
 
 // The function takes the following parameters:
 //
-//    - iconName (optional): icon name, or NULL.
+//   - iconName (optional): icon name, or NULL.
 //
 func (item *CompletionItem) SetIconName(iconName string) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(coreglib.InternObject(item).Native()))
 	if iconName != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(iconName)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -266,13 +281,13 @@ func (item *CompletionItem) SetIconName(iconName string) {
 
 // The function takes the following parameters:
 //
-//    - info (optional): info, or NULL.
+//   - info (optional): info, or NULL.
 //
 func (item *CompletionItem) SetInfo(info string) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(coreglib.InternObject(item).Native()))
 	if info != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(info)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -285,13 +300,13 @@ func (item *CompletionItem) SetInfo(info string) {
 
 // The function takes the following parameters:
 //
-//    - label (optional): label, or NULL.
+//   - label (optional): label, or NULL.
 //
 func (item *CompletionItem) SetLabel(label string) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(coreglib.InternObject(item).Native()))
 	if label != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(label)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -304,13 +319,13 @@ func (item *CompletionItem) SetLabel(label string) {
 
 // The function takes the following parameters:
 //
-//    - markup (optional): markup, or NULL.
+//   - markup (optional): markup, or NULL.
 //
 func (item *CompletionItem) SetMarkup(markup string) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(coreglib.InternObject(item).Native()))
 	if markup != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(markup)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -323,13 +338,13 @@ func (item *CompletionItem) SetMarkup(markup string) {
 
 // The function takes the following parameters:
 //
-//    - text (optional): text, or NULL.
+//   - text (optional): text, or NULL.
 //
 func (item *CompletionItem) SetText(text string) {
 	var _arg0 *C.GtkSourceCompletionItem // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(externglib.InternObject(item).Native()))
+	_arg0 = (*C.GtkSourceCompletionItem)(unsafe.Pointer(coreglib.InternObject(item).Native()))
 	if text != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(text)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -340,21 +355,12 @@ func (item *CompletionItem) SetText(text string) {
 	runtime.KeepAlive(text)
 }
 
-// NewCompletionItem2 creates a new SourceCompletionItem. The desired properties
-// need to be set afterwards.
-//
-// The function returns the following values:
-//
-//    - completionItem: new SourceCompletionItem.
-//
-func NewCompletionItem2() *CompletionItem {
-	var _cret *C.GtkSourceCompletionItem // in
+// CompletionItemClass: instance of this type is always passed by reference.
+type CompletionItemClass struct {
+	*completionItemClass
+}
 
-	_cret = C.gtk_source_completion_item_new2()
-
-	var _completionItem *CompletionItem // out
-
-	_completionItem = wrapCompletionItem(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
-
-	return _completionItem
+// completionItemClass is the struct that's finalized.
+type completionItemClass struct {
+	native *C.GtkSourceCompletionItemClass
 }

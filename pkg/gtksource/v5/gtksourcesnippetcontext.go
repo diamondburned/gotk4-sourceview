@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 )
 
 // #include <stdlib.h>
@@ -15,67 +16,73 @@ import (
 // extern void _gotk4_gtksource5_SnippetContext_ConnectChanged(gpointer, guintptr);
 import "C"
 
-// glib.Type values for gtksourcesnippetcontext.go.
-var GTypeSnippetContext = externglib.Type(C.gtk_source_snippet_context_get_type())
+// GType values.
+var (
+	GTypeSnippetContext = coreglib.Type(C.gtk_source_snippet_context_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeSnippetContext, F: marshalSnippetContext},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeSnippetContext, F: marshalSnippetContext},
 	})
 }
 
-// SnippetContextOverrider contains methods that are overridable.
-type SnippetContextOverrider interface {
+// SnippetContextOverrides contains methods that are overridable.
+type SnippetContextOverrides struct {
 }
 
+func defaultSnippetContextOverrides(v *SnippetContext) SnippetContextOverrides {
+	return SnippetContextOverrides{}
+}
+
+// SnippetContext: context for expanding snippetchunk.
+//
+// This class is currently used primary as a hashtable. However, the longer term
+// goal is to have it hold onto a GjsContext as well as other languages so that
+// snippetchunk can expand themselves by executing script within the context.
+//
+// The snippet will build the context and then expand each of the chunks during
+// the insertion/edit phase.
 type SnippetContext struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*SnippetContext)(nil)
+	_ coreglib.Objector = (*SnippetContext)(nil)
 )
 
-func classInitSnippetContexter(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*SnippetContext, *SnippetContextClass, SnippetContextOverrides](
+		GTypeSnippetContext,
+		initSnippetContextClass,
+		wrapSnippetContext,
+		defaultSnippetContextOverrides,
+	)
 }
 
-func wrapSnippetContext(obj *externglib.Object) *SnippetContext {
+func initSnippetContextClass(gclass unsafe.Pointer, overrides SnippetContextOverrides, classInitFunc func(*SnippetContextClass)) {
+	if classInitFunc != nil {
+		class := (*SnippetContextClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapSnippetContext(obj *coreglib.Object) *SnippetContext {
 	return &SnippetContext{
 		Object: obj,
 	}
 }
 
 func marshalSnippetContext(p uintptr) (interface{}, error) {
-	return wrapSnippetContext(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapSnippetContext(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
-//export _gotk4_gtksource5_SnippetContext_ConnectChanged
-func _gotk4_gtksource5_SnippetContext_ConnectChanged(arg0 C.gpointer, arg1 C.guintptr) {
-	var f func()
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func())
-	}
-
-	f()
-}
-
-// ConnectChanged: "changed" signal is emitted when a change has been discovered
-// in one of the chunks of the snippet which has caused a variable or other
-// dynamic data within the context to have changed.
-func (self *SnippetContext) ConnectChanged(f func()) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(self, "changed", false, unsafe.Pointer(C._gotk4_gtksource5_SnippetContext_ConnectChanged), f)
+// ConnectChanged: signal is emitted when a change has been discovered in one of
+// the chunks of the snippet which has caused a variable or other dynamic data
+// within the context to have changed.
+func (self *SnippetContext) ConnectChanged(f func()) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(self, "changed", false, unsafe.Pointer(C._gotk4_gtksource5_SnippetContext_ConnectChanged), f)
 }
 
 // NewSnippetContext creates a new SourceSnippetContext.
@@ -85,7 +92,7 @@ func (self *SnippetContext) ConnectChanged(f func()) externglib.SignalHandle {
 //
 // The function returns the following values:
 //
-//    - snippetContext: SourceSnippetContext.
+//   - snippetContext: SourceSnippetContext.
 //
 func NewSnippetContext() *SnippetContext {
 	var _cret *C.GtkSourceSnippetContext // in
@@ -94,7 +101,7 @@ func NewSnippetContext() *SnippetContext {
 
 	var _snippetContext *SnippetContext // out
 
-	_snippetContext = wrapSnippetContext(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_snippetContext = wrapSnippetContext(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _snippetContext
 }
@@ -103,7 +110,7 @@ func NewSnippetContext() *SnippetContext {
 func (self *SnippetContext) ClearVariables() {
 	var _arg0 *C.GtkSourceSnippetContext // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	C.gtk_source_snippet_context_clear_variables(_arg0)
 	runtime.KeepAlive(self)
@@ -118,7 +125,7 @@ func (self *SnippetContext) Expand(input string) string {
 	var _arg1 *C.gchar                   // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(input)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -138,18 +145,18 @@ func (self *SnippetContext) Expand(input string) string {
 //
 // The function takes the following parameters:
 //
-//    - key: name of the variable.
+//   - key: name of the variable.
 //
 // The function returns the following values:
 //
-//    - utf8 (optional): value for the variable, or NULL.
+//   - utf8 (optional): value for the variable, or NULL.
 //
 func (self *SnippetContext) Variable(key string) string {
 	var _arg0 *C.GtkSourceSnippetContext // out
 	var _arg1 *C.gchar                   // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(key)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -166,23 +173,24 @@ func (self *SnippetContext) Variable(key string) string {
 	return _utf8
 }
 
-// SetConstant sets a constatnt within the context. This is similar to a
-// variable set with gtk_source_snippet_context_set_variable() but is expected
-// to not change during use of the snippet.
+// SetConstant sets a constatnt within the context.
+//
+// This is similar to a variable set with snippetcontext.SetVariable but is
+// expected to not change during use of the snippet.
 //
 // Examples would be the date or users name.
 //
 // The function takes the following parameters:
 //
-//    - key: constant name.
-//    - value of the constant.
+//   - key: constant name.
+//   - value of the constant.
 //
 func (self *SnippetContext) SetConstant(key, value string) {
 	var _arg0 *C.GtkSourceSnippetContext // out
 	var _arg1 *C.gchar                   // out
 	var _arg2 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(key)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(value)))
@@ -200,7 +208,7 @@ func (self *SnippetContext) SetLinePrefix(linePrefix string) {
 	var _arg0 *C.GtkSourceSnippetContext // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(linePrefix)))
 	defer C.free(unsafe.Pointer(_arg1))
 
@@ -215,7 +223,7 @@ func (self *SnippetContext) SetTabWidth(tabWidth int) {
 	var _arg0 *C.GtkSourceSnippetContext // out
 	var _arg1 C.gint                     // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	_arg1 = C.gint(tabWidth)
 
 	C.gtk_source_snippet_context_set_tab_width(_arg0, _arg1)
@@ -229,7 +237,7 @@ func (self *SnippetContext) SetUseSpaces(useSpaces bool) {
 	var _arg0 *C.GtkSourceSnippetContext // out
 	var _arg1 C.gboolean                 // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	if useSpaces {
 		_arg1 = C.TRUE
 	}
@@ -245,15 +253,15 @@ func (self *SnippetContext) SetUseSpaces(useSpaces bool) {
 //
 // The function takes the following parameters:
 //
-//    - key: variable name.
-//    - value for the variable.
+//   - key: variable name.
+//   - value for the variable.
 //
 func (self *SnippetContext) SetVariable(key, value string) {
 	var _arg0 *C.GtkSourceSnippetContext // out
 	var _arg1 *C.gchar                   // out
 	var _arg2 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceSnippetContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(key)))
 	defer C.free(unsafe.Pointer(_arg1))
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(value)))
@@ -263,4 +271,14 @@ func (self *SnippetContext) SetVariable(key, value string) {
 	runtime.KeepAlive(self)
 	runtime.KeepAlive(key)
 	runtime.KeepAlive(value)
+}
+
+// SnippetContextClass: instance of this type is always passed by reference.
+type SnippetContextClass struct {
+	*snippetContextClass
+}
+
+// snippetContextClass is the struct that's finalized.
+type snippetContextClass struct {
+	native *C.GtkSourceSnippetContextClass
 }

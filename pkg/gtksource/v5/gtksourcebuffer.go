@@ -6,85 +6,144 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/diamondburned/gotk4/pkg/core/gbox"
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
-// extern void _gotk4_gtksource5_BufferClass_bracket_matched(GtkSourceBuffer*, GtkTextIter*, GtkSourceBracketMatchType);
-// extern void _gotk4_gtksource5_Buffer_ConnectBracketMatched(gpointer, GtkTextIter*, GtkSourceBracketMatchType, guintptr);
-// extern void _gotk4_gtksource5_Buffer_ConnectCursorMoved(gpointer, guintptr);
-// extern void _gotk4_gtksource5_Buffer_ConnectHighlightUpdated(gpointer, GtkTextIter*, GtkTextIter*, guintptr);
 // extern void _gotk4_gtksource5_Buffer_ConnectSourceMarkUpdated(gpointer, GtkTextMark*, guintptr);
+// extern void _gotk4_gtksource5_Buffer_ConnectHighlightUpdated(gpointer, GtkTextIter*, GtkTextIter*, guintptr);
+// extern void _gotk4_gtksource5_Buffer_ConnectCursorMoved(gpointer, guintptr);
+// extern void _gotk4_gtksource5_Buffer_ConnectBracketMatched(gpointer, GtkTextIter*, GtkSourceBracketMatchType, guintptr);
+// extern void _gotk4_gtksource5_BufferClass_bracket_matched(GtkSourceBuffer*, GtkTextIter*, GtkSourceBracketMatchType);
+// void _gotk4_gtksource5_Buffer_virtual_bracket_matched(void* fnptr, GtkSourceBuffer* arg0, GtkTextIter* arg1, GtkSourceBracketMatchType arg2) {
+//   ((void (*)(GtkSourceBuffer*, GtkTextIter*, GtkSourceBracketMatchType))(fnptr))(arg0, arg1, arg2);
+// };
 import "C"
 
-// glib.Type values for gtksourcebuffer.go.
-var GTypeBuffer = externglib.Type(C.gtk_source_buffer_get_type())
+// GType values.
+var (
+	GTypeBuffer = coreglib.Type(C.gtk_source_buffer_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeBuffer, F: marshalBuffer},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeBuffer, F: marshalBuffer},
 	})
 }
 
-// BufferOverrider contains methods that are overridable.
-type BufferOverrider interface {
+// BufferOverrides contains methods that are overridable.
+type BufferOverrides struct {
 	// The function takes the following parameters:
 	//
-	//    - iter
-	//    - state
+	//   - iter
+	//   - state
 	//
-	BracketMatched(iter *gtk.TextIter, state BracketMatchType)
+	BracketMatched func(iter *gtk.TextIter, state BracketMatchType)
 }
 
+func defaultBufferOverrides(v *Buffer) BufferOverrides {
+	return BufferOverrides{
+		BracketMatched: v.bracketMatched,
+	}
+}
+
+// Buffer subclass of gtk.TextBuffer.
+//
+// A GtkSourceBuffer object is the model for view widgets. It extends the
+// gtk.TextBuffer class by adding features useful to display and edit source
+// code such as syntax highlighting and bracket matching.
+//
+// To create a GtkSourceBuffer use gtksource.Buffer.New or
+// gtksource.Buffer.NewWithLanguage. The second form is just a convenience
+// function which allows you to initially set a language. You can also directly
+// create a view and get its buffer with gtk.TextView.GetBuffer().
+//
+// The highlighting is enabled by default, but you can disable it with
+// buffer.SetHighlightSyntax.
+//
+// Context Classes:
+//
+// It is possible to retrieve some information from the syntax highlighting
+// engine. The default context classes that are applied to regions of a
+// GtkSourceBuffer:
+//
+//   - **comment**: the region delimits a comment;
+//   - **no-spell-check**: the region should not be spell checked;
+//   - **path**: the region delimits a path to a file;
+//   - **string**: the region delimits a string.
+//
+// Custom language definition files can create their own context classes,
+// since the functions like buffer.IterHasContextClass take a string parameter
+// as the context class.
+//
+// GtkSourceBuffer provides an API to access the context classes:
+// buffer.IterHasContextClass, buffer.GetContextClassesAtIter,
+// buffer.IterForwardToContextClassToggle and
+// buffer.IterBackwardToContextClassToggle.
+//
+// And the gtksource.Buffer::highlight-updated signal permits to be notified
+// when a context class region changes.
+//
+// Each context class has also an associated gtk.TextTag with the name
+// gtksourceview:context-classes:<name>. For example to retrieve the gtk.TextTag
+// for the string context class, one can write:
+//
+//    GtkTextTagTable *tag_table;
+//    GtkTextTag *tag;
+//
+//    tag_table = gtk_text_buffer_get_tag_table (buffer);
+//    tag = gtk_text_tag_table_lookup (tag_table, "gtksourceview:context-classes:string");
+//
+// The tag must be used for read-only purposes.
+//
+// Accessing a context class via the associated gtk.TextTag is less convenient
+// than the GtkSourceBuffer API, because:
+//
+//   - The tag doesn't always exist, you need to listen to the
+//     gtk.TextTagTable::tag-added and gtk.TextTagTable::tag-removed signals.
+//   - Instead of the gtksource.Buffer::highlight-updated signal, you can listen
+//     to the gtk.TextBuffer::apply-tag and gtk.TextBuffer::remove-tag signals.
+//
+// A possible use-case for accessing a context class via the associated
+// gtk.TextTag is to read the region but without adding a hard dependency on the
+// GtkSourceView library (for example for a spell-checking library that wants to
+// read the no-spell-check region).
 type Buffer struct {
 	_ [0]func() // equal guard
 	gtk.TextBuffer
 }
 
 var (
-	_ externglib.Objector = (*Buffer)(nil)
+	_ coreglib.Objector = (*Buffer)(nil)
 )
 
-func classInitBufferer(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
+func init() {
+	coreglib.RegisterClassInfo[*Buffer, *BufferClass, BufferOverrides](
+		GTypeBuffer,
+		initBufferClass,
+		wrapBuffer,
+		defaultBufferOverrides,
+	)
+}
 
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
+func initBufferClass(gclass unsafe.Pointer, overrides BufferOverrides, classInitFunc func(*BufferClass)) {
+	pclass := (*C.GtkSourceBufferClass)(unsafe.Pointer(C.g_type_check_class_cast((*C.GTypeClass)(gclass), C.GType(GTypeBuffer))))
 
-	goval := gbox.Get(uintptr(data))
-	pclass := (*C.GtkSourceBufferClass)(unsafe.Pointer(gclassPtr))
-	// gclass := (*C.GTypeClass)(unsafe.Pointer(gclassPtr))
-	// pclass := (*C.GtkSourceBufferClass)(unsafe.Pointer(C.g_type_class_peek_parent(gclass)))
-
-	if _, ok := goval.(interface {
-		BracketMatched(iter *gtk.TextIter, state BracketMatchType)
-	}); ok {
+	if overrides.BracketMatched != nil {
 		pclass.bracket_matched = (*[0]byte)(C._gotk4_gtksource5_BufferClass_bracket_matched)
+	}
+
+	if classInitFunc != nil {
+		class := (*BufferClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
 	}
 }
 
-//export _gotk4_gtksource5_BufferClass_bracket_matched
-func _gotk4_gtksource5_BufferClass_bracket_matched(arg0 *C.GtkSourceBuffer, arg1 *C.GtkTextIter, arg2 C.GtkSourceBracketMatchType) {
-	goval := externglib.GoPrivateFromObject(unsafe.Pointer(arg0))
-	iface := goval.(interface {
-		BracketMatched(iter *gtk.TextIter, state BracketMatchType)
-	})
-
-	var _iter *gtk.TextIter     // out
-	var _state BracketMatchType // out
-
-	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
-	_state = BracketMatchType(arg2)
-
-	iface.BracketMatched(_iter, _state)
-}
-
-func wrapBuffer(obj *externglib.Object) *Buffer {
+func wrapBuffer(obj *coreglib.Object) *Buffer {
 	return &Buffer{
 		TextBuffer: gtk.TextBuffer{
 			Object: obj,
@@ -93,31 +152,7 @@ func wrapBuffer(obj *externglib.Object) *Buffer {
 }
 
 func marshalBuffer(p uintptr) (interface{}, error) {
-	return wrapBuffer(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
-}
-
-//export _gotk4_gtksource5_Buffer_ConnectBracketMatched
-func _gotk4_gtksource5_Buffer_ConnectBracketMatched(arg0 C.gpointer, arg1 *C.GtkTextIter, arg2 C.GtkSourceBracketMatchType, arg3 C.guintptr) {
-	var f func(iter *gtk.TextIter, state BracketMatchType)
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg3))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func(iter *gtk.TextIter, state BracketMatchType))
-	}
-
-	var _iter *gtk.TextIter     // out
-	var _state BracketMatchType // out
-
-	if arg1 != nil {
-		_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
-	}
-	_state = BracketMatchType(arg2)
-
-	f(_iter, _state)
+	return wrapBuffer(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // ConnectBracketMatched: iter is set to a valid iterator pointing to the
@@ -127,109 +162,46 @@ func _gotk4_gtksource5_Buffer_ConnectBracketMatched(arg0 C.gpointer, arg1 *C.Gtk
 // The signal is emitted only when the state changes, typically when the cursor
 // moves.
 //
-// A use-case for this signal is to show messages in a Statusbar.
-func (buffer *Buffer) ConnectBracketMatched(f func(iter *gtk.TextIter, state BracketMatchType)) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(buffer, "bracket-matched", false, unsafe.Pointer(C._gotk4_gtksource5_Buffer_ConnectBracketMatched), f)
-}
-
-//export _gotk4_gtksource5_Buffer_ConnectCursorMoved
-func _gotk4_gtksource5_Buffer_ConnectCursorMoved(arg0 C.gpointer, arg1 C.guintptr) {
-	var f func()
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func())
-	}
-
-	f()
+// A use-case for this signal is to show messages in a gtk.Statusbar.
+func (buffer *Buffer) ConnectBracketMatched(f func(iter *gtk.TextIter, state BracketMatchType)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(buffer, "bracket-matched", false, unsafe.Pointer(C._gotk4_gtksource5_Buffer_ConnectBracketMatched), f)
 }
 
 // ConnectCursorMoved: "cursor-moved" signal is emitted when then insertion mark
 // has moved.
-func (buffer *Buffer) ConnectCursorMoved(f func()) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(buffer, "cursor-moved", false, unsafe.Pointer(C._gotk4_gtksource5_Buffer_ConnectCursorMoved), f)
+func (buffer *Buffer) ConnectCursorMoved(f func()) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(buffer, "cursor-moved", false, unsafe.Pointer(C._gotk4_gtksource5_Buffer_ConnectCursorMoved), f)
 }
 
-//export _gotk4_gtksource5_Buffer_ConnectHighlightUpdated
-func _gotk4_gtksource5_Buffer_ConnectHighlightUpdated(arg0 C.gpointer, arg1 *C.GtkTextIter, arg2 *C.GtkTextIter, arg3 C.guintptr) {
-	var f func(start, end *gtk.TextIter)
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg3))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func(start, end *gtk.TextIter))
-	}
-
-	var _start *gtk.TextIter // out
-	var _end *gtk.TextIter   // out
-
-	_start = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg1)))
-	_end = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer(arg2)))
-
-	f(_start, _end)
-}
-
-// ConnectHighlightUpdated signal is emitted when the syntax highlighting and
-// [context classes][context-classes] are updated in a certain region of the
-// buffer.
-func (buffer *Buffer) ConnectHighlightUpdated(f func(start, end *gtk.TextIter)) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(buffer, "highlight-updated", false, unsafe.Pointer(C._gotk4_gtksource5_Buffer_ConnectHighlightUpdated), f)
-}
-
-//export _gotk4_gtksource5_Buffer_ConnectSourceMarkUpdated
-func _gotk4_gtksource5_Buffer_ConnectSourceMarkUpdated(arg0 C.gpointer, arg1 *C.GtkTextMark, arg2 C.guintptr) {
-	var f func(mark *gtk.TextMark)
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func(mark *gtk.TextMark))
-	}
-
-	var _mark *gtk.TextMark // out
-
-	{
-		obj := externglib.Take(unsafe.Pointer(arg1))
-		_mark = &gtk.TextMark{
-			Object: obj,
-		}
-	}
-
-	f(_mark)
+// ConnectHighlightUpdated signal is emitted when the syntax highlighting
+// and context classes (./class.Buffer.html#context-classes) are updated in a
+// certain region of the buffer.
+func (buffer *Buffer) ConnectHighlightUpdated(f func(start, end *gtk.TextIter)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(buffer, "highlight-updated", false, unsafe.Pointer(C._gotk4_gtksource5_Buffer_ConnectHighlightUpdated), f)
 }
 
 // ConnectSourceMarkUpdated signal is emitted each time a mark is added to,
 // moved or removed from the buffer.
-func (buffer *Buffer) ConnectSourceMarkUpdated(f func(mark *gtk.TextMark)) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(buffer, "source-mark-updated", false, unsafe.Pointer(C._gotk4_gtksource5_Buffer_ConnectSourceMarkUpdated), f)
+func (buffer *Buffer) ConnectSourceMarkUpdated(f func(mark *gtk.TextMark)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(buffer, "source-mark-updated", false, unsafe.Pointer(C._gotk4_gtksource5_Buffer_ConnectSourceMarkUpdated), f)
 }
 
 // NewBuffer creates a new source buffer.
 //
 // The function takes the following parameters:
 //
-//    - table (optional) or NULL to create a new one.
+//   - table (optional) or NULL to create a new one.
 //
 // The function returns the following values:
 //
-//    - buffer: new source buffer.
+//   - buffer: new source buffer.
 //
 func NewBuffer(table *gtk.TextTagTable) *Buffer {
 	var _arg1 *C.GtkTextTagTable // out
 	var _cret *C.GtkSourceBuffer // in
 
 	if table != nil {
-		_arg1 = (*C.GtkTextTagTable)(unsafe.Pointer(externglib.InternObject(table).Native()))
+		_arg1 = (*C.GtkTextTagTable)(unsafe.Pointer(coreglib.InternObject(table).Native()))
 	}
 
 	_cret = C.gtk_source_buffer_new(_arg1)
@@ -237,47 +209,52 @@ func NewBuffer(table *gtk.TextTagTable) *Buffer {
 
 	var _buffer *Buffer // out
 
-	_buffer = wrapBuffer(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_buffer = wrapBuffer(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _buffer
 }
 
 // NewBufferWithLanguage creates a new source buffer using the highlighting
-// patterns in language. This is equivalent to creating a new source buffer with
-// a new tag table and then calling gtk_source_buffer_set_language().
+// patterns in language.
+//
+// This is equivalent to creating a new source buffer with a new tag table and
+// then calling buffer.SetLanguage.
 //
 // The function takes the following parameters:
 //
-//    - language: SourceLanguage.
+//   - language: SourceLanguage.
 //
 // The function returns the following values:
 //
-//    - buffer: new source buffer which will highlight text according to the
-//      highlighting patterns in language.
+//   - buffer: new source buffer which will highlight text according to the
+//     highlighting patterns in language.
 //
 func NewBufferWithLanguage(language *Language) *Buffer {
 	var _arg1 *C.GtkSourceLanguage // out
 	var _cret *C.GtkSourceBuffer   // in
 
-	_arg1 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
+	_arg1 = (*C.GtkSourceLanguage)(unsafe.Pointer(coreglib.InternObject(language).Native()))
 
 	_cret = C.gtk_source_buffer_new_with_language(_arg1)
 	runtime.KeepAlive(language)
 
 	var _buffer *Buffer // out
 
-	_buffer = wrapBuffer(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_buffer = wrapBuffer(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _buffer
 }
 
 // ChangeCase changes the case of the text between the specified iterators.
 //
+// Since 5.4, this function will update the position of start and end to
+// surround the modified text.
+//
 // The function takes the following parameters:
 //
-//    - caseType: how to change the case.
-//    - start: TextIter.
-//    - end: TextIter.
+//   - caseType: how to change the case.
+//   - start: TextIter.
+//   - end: TextIter.
 //
 func (buffer *Buffer) ChangeCase(caseType ChangeCaseType, start, end *gtk.TextIter) {
 	var _arg0 *C.GtkSourceBuffer        // out
@@ -285,7 +262,7 @@ func (buffer *Buffer) ChangeCase(caseType ChangeCaseType, start, end *gtk.TextIt
 	var _arg2 *C.GtkTextIter            // out
 	var _arg3 *C.GtkTextIter            // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	_arg1 = C.GtkSourceChangeCaseType(caseType)
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg3 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
@@ -297,12 +274,13 @@ func (buffer *Buffer) ChangeCase(caseType ChangeCaseType, start, end *gtk.TextIt
 	runtime.KeepAlive(end)
 }
 
-// CreateSourceMark creates a source mark in the buffer of category category. A
-// source mark is a TextMark but organised into categories. Depending on the
-// category a pixbuf can be specified that will be displayed along the line of
-// the mark.
+// CreateSourceMark creates a source mark in the buffer of category category.
 //
-// Like a TextMark, a SourceMark can be anonymous if the passed name is NULL.
+// A source mark is a gtk.TextMark but organized into categories. Depending on
+// the category a pixbuf can be specified that will be displayed along the line
+// of the mark.
+//
+// Like a gtk.TextMark, a mark can be anonymous if the passed name is NULL.
 // Also, the buffer owns the marks so you shouldn't unreference it.
 //
 // Marks always have left gravity and are moved to the beginning of the line
@@ -313,13 +291,13 @@ func (buffer *Buffer) ChangeCase(caseType ChangeCaseType, start, end *gtk.TextIt
 //
 // The function takes the following parameters:
 //
-//    - name (optional) of the mark, or NULL.
-//    - category: string defining the mark category.
-//    - where: location to place the mark.
+//   - name (optional) of the mark, or NULL.
+//   - category: string defining the mark category.
+//   - where: location to place the mark.
 //
 // The function returns the following values:
 //
-//    - mark: new SourceMark, owned by the buffer.
+//   - mark: new mark, owned by the buffer.
 //
 func (buffer *Buffer) CreateSourceMark(name, category string, where *gtk.TextIter) *Mark {
 	var _arg0 *C.GtkSourceBuffer // out
@@ -328,7 +306,7 @@ func (buffer *Buffer) CreateSourceMark(name, category string, where *gtk.TextIte
 	var _arg3 *C.GtkTextIter     // out
 	var _cret *C.GtkSourceMark   // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	if name != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(name)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -345,7 +323,7 @@ func (buffer *Buffer) CreateSourceMark(name, category string, where *gtk.TextIte
 
 	var _mark *Mark // out
 
-	_mark = wrapMark(externglib.Take(unsafe.Pointer(_cret)))
+	_mark = wrapMark(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _mark
 }
@@ -353,21 +331,23 @@ func (buffer *Buffer) CreateSourceMark(name, category string, where *gtk.TextIte
 // EnsureHighlight forces buffer to analyze and highlight the given area
 // synchronously.
 //
-// <note> <para> This is a potentially slow operation and should be used only
-// when you need to make sure that some text not currently visible is
-// highlighted, for instance before printing. </para> </note>.
+// **Note**:
+//
+// This is a potentially slow operation and should be used only when you need to
+// make sure that some text not currently visible is highlighted, for instance
+// before printing.
 //
 // The function takes the following parameters:
 //
-//    - start of the area to highlight.
-//    - end of the area to highlight.
+//   - start of the area to highlight.
+//   - end of the area to highlight.
 //
 func (buffer *Buffer) EnsureHighlight(start, end *gtk.TextIter) {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 *C.GtkTextIter     // out
 	var _arg2 *C.GtkTextIter     // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 
@@ -379,23 +359,23 @@ func (buffer *Buffer) EnsureHighlight(start, end *gtk.TextIter) {
 
 // ContextClassesAtIter: get all defined context classes at iter.
 //
-// See the SourceBuffer description for the list of default context classes.
+// See the buffer description for the list of default context classes.
 //
 // The function takes the following parameters:
 //
-//    - iter: TextIter.
+//   - iter: TextIter.
 //
 // The function returns the following values:
 //
-//    - utf8s: new NULL terminated array of context class names. Use g_strfreev()
-//      to free the array if it is no longer needed.
+//   - utf8s: new NULL terminated array of context class names. Use g_strfreev()
+//     to free the array if it is no longer needed.
 //
 func (buffer *Buffer) ContextClassesAtIter(iter *gtk.TextIter) []string {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 *C.GtkTextIter     // out
 	var _cret **C.gchar          // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 
 	_cret = C.gtk_source_buffer_get_context_classes_at_iter(_arg0, _arg1)
@@ -428,13 +408,13 @@ func (buffer *Buffer) ContextClassesAtIter(iter *gtk.TextIter) []string {
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if the source buffer will highlight matching brackets.
+//   - ok: TRUE if the source buffer will highlight matching brackets.
 //
 func (buffer *Buffer) HighlightMatchingBrackets() bool {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_highlight_matching_brackets(_arg0)
 	runtime.KeepAlive(buffer)
@@ -453,13 +433,13 @@ func (buffer *Buffer) HighlightMatchingBrackets() bool {
 //
 // The function returns the following values:
 //
-//    - ok: TRUE if syntax highlighting is enabled, FALSE otherwise.
+//   - ok: TRUE if syntax highlighting is enabled, FALSE otherwise.
 //
 func (buffer *Buffer) HighlightSyntax() bool {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_highlight_syntax(_arg0)
 	runtime.KeepAlive(buffer)
@@ -475,13 +455,13 @@ func (buffer *Buffer) HighlightSyntax() bool {
 
 // The function returns the following values:
 //
-//    - ok: whether the buffer has an implicit trailing newline.
+//   - ok: whether the buffer has an implicit trailing newline.
 //
 func (buffer *Buffer) ImplicitTrailingNewline() bool {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_implicit_trailing_newline(_arg0)
 	runtime.KeepAlive(buffer)
@@ -495,19 +475,20 @@ func (buffer *Buffer) ImplicitTrailingNewline() bool {
 	return _ok
 }
 
-// Language returns the SourceLanguage associated with the buffer, see
-// gtk_source_buffer_set_language(). The returned object should not be
-// unreferenced by the user.
+// Language returns the language associated with the buffer, see
+// buffer.SetLanguage.
+//
+// The returned object should not be unreferenced by the user.
 //
 // The function returns the following values:
 //
-//    - language (optional) associated with the buffer, or NULL.
+//   - language (optional): language associated with the buffer, or NULL.
 //
 func (buffer *Buffer) Language() *Language {
 	var _arg0 *C.GtkSourceBuffer   // out
 	var _cret *C.GtkSourceLanguage // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_language(_arg0)
 	runtime.KeepAlive(buffer)
@@ -515,23 +496,24 @@ func (buffer *Buffer) Language() *Language {
 	var _language *Language // out
 
 	if _cret != nil {
-		_language = wrapLanguage(externglib.Take(unsafe.Pointer(_cret)))
+		_language = wrapLanguage(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _language
 }
 
-// SourceMarksAtIter returns the list of marks of the given category at iter. If
-// category is NULL it returns all marks at iter.
+// SourceMarksAtIter returns the list of marks of the given category at iter.
+//
+// If category is NULL it returns all marks at iter.
 //
 // The function takes the following parameters:
 //
-//    - iter: iterator.
-//    - category (optional) to search for, or NULL.
+//   - iter: iterator.
+//   - category (optional) to search for, or NULL.
 //
 // The function returns the following values:
 //
-//    - sList: a newly allocated List.
+//   - sList: a newly allocated List.
 //
 func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []*Mark {
 	var _arg0 *C.GtkSourceBuffer // out
@@ -539,7 +521,7 @@ func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []*
 	var _arg2 *C.gchar           // out
 	var _cret *C.GSList          // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	if category != "" {
 		_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
@@ -557,24 +539,25 @@ func (buffer *Buffer) SourceMarksAtIter(iter *gtk.TextIter, category string) []*
 	gextras.MoveSList(unsafe.Pointer(_cret), true, func(v unsafe.Pointer) {
 		src := (*C.GtkSourceMark)(v)
 		var dst *Mark // out
-		dst = wrapMark(externglib.Take(unsafe.Pointer(src)))
+		dst = wrapMark(coreglib.Take(unsafe.Pointer(src)))
 		_sList = append(_sList, dst)
 	})
 
 	return _sList
 }
 
-// SourceMarksAtLine returns the list of marks of the given category at line. If
-// category is NULL, all marks at line are returned.
+// SourceMarksAtLine returns the list of marks of the given category at line.
+//
+// If category is NULL, all marks at line are returned.
 //
 // The function takes the following parameters:
 //
-//    - line number.
-//    - category (optional) to search for, or NULL.
+//   - line number.
+//   - category (optional) to search for, or NULL.
 //
 // The function returns the following values:
 //
-//    - sList: a newly allocated List.
+//   - sList: a newly allocated List.
 //
 func (buffer *Buffer) SourceMarksAtLine(line int, category string) []*Mark {
 	var _arg0 *C.GtkSourceBuffer // out
@@ -582,7 +565,7 @@ func (buffer *Buffer) SourceMarksAtLine(line int, category string) []*Mark {
 	var _arg2 *C.gchar           // out
 	var _cret *C.GSList          // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	_arg1 = C.gint(line)
 	if category != "" {
 		_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(category)))
@@ -600,26 +583,27 @@ func (buffer *Buffer) SourceMarksAtLine(line int, category string) []*Mark {
 	gextras.MoveSList(unsafe.Pointer(_cret), true, func(v unsafe.Pointer) {
 		src := (*C.GtkSourceMark)(v)
 		var dst *Mark // out
-		dst = wrapMark(externglib.Take(unsafe.Pointer(src)))
+		dst = wrapMark(coreglib.Take(unsafe.Pointer(src)))
 		_sList = append(_sList, dst)
 	})
 
 	return _sList
 }
 
-// StyleScheme returns the SourceStyleScheme associated with the buffer, see
-// gtk_source_buffer_set_style_scheme(). The returned object should not be
-// unreferenced by the user.
+// StyleScheme returns the stylescheme associated with the buffer, see
+// buffer.SetStyleScheme.
+//
+// The returned object should not be unreferenced by the user.
 //
 // The function returns the following values:
 //
-//    - styleScheme (optional) with the buffer, or NULL.
+//   - styleScheme (optional): stylescheme associated with the buffer, or NULL.
 //
 func (buffer *Buffer) StyleScheme() *StyleScheme {
 	var _arg0 *C.GtkSourceBuffer      // out
 	var _cret *C.GtkSourceStyleScheme // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_buffer_get_style_scheme(_arg0)
 	runtime.KeepAlive(buffer)
@@ -627,7 +611,7 @@ func (buffer *Buffer) StyleScheme() *StyleScheme {
 	var _styleScheme *StyleScheme // out
 
 	if _cret != nil {
-		_styleScheme = wrapStyleScheme(externglib.Take(unsafe.Pointer(_cret)))
+		_styleScheme = wrapStyleScheme(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _styleScheme
@@ -635,16 +619,16 @@ func (buffer *Buffer) StyleScheme() *StyleScheme {
 
 // IterHasContextClass: check if the class context_class is set on iter.
 //
-// See the SourceBuffer description for the list of default context classes.
+// See the buffer description for the list of default context classes.
 //
 // The function takes the following parameters:
 //
-//    - iter: TextIter.
-//    - contextClass class to search for.
+//   - iter: TextIter.
+//   - contextClass class to search for.
 //
 // The function returns the following values:
 //
-//    - ok: whether iter has the context class.
+//   - ok: whether iter has the context class.
 //
 func (buffer *Buffer) IterHasContextClass(iter *gtk.TextIter, contextClass string) bool {
 	var _arg0 *C.GtkSourceBuffer // out
@@ -652,7 +636,7 @@ func (buffer *Buffer) IterHasContextClass(iter *gtk.TextIter, contextClass strin
 	var _arg2 *C.gchar           // out
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(contextClass)))
 	defer C.free(unsafe.Pointer(_arg2))
@@ -675,15 +659,15 @@ func (buffer *Buffer) IterHasContextClass(iter *gtk.TextIter, contextClass strin
 //
 // The function takes the following parameters:
 //
-//    - start: TextIter.
-//    - end: TextIter.
+//   - start: TextIter.
+//   - end: TextIter.
 //
 func (buffer *Buffer) JoinLines(start, end *gtk.TextIter) {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 *C.GtkTextIter     // out
 	var _arg2 *C.GtkTextIter     // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 
@@ -694,13 +678,15 @@ func (buffer *Buffer) JoinLines(start, end *gtk.TextIter) {
 }
 
 // RemoveSourceMarks: remove all marks of category between start and end from
-// the buffer. If category is NULL, all marks in the range will be removed.
+// the buffer.
+//
+// If category is NULL, all marks in the range will be removed.
 //
 // The function takes the following parameters:
 //
-//    - start: TextIter.
-//    - end: TextIter.
-//    - category (optional) to search for, or NULL.
+//   - start: TextIter.
+//   - end: TextIter.
+//   - category (optional) to search for, or NULL.
 //
 func (buffer *Buffer) RemoveSourceMarks(start, end *gtk.TextIter, category string) {
 	var _arg0 *C.GtkSourceBuffer // out
@@ -708,7 +694,7 @@ func (buffer *Buffer) RemoveSourceMarks(start, end *gtk.TextIter, category strin
 	var _arg2 *C.GtkTextIter     // out
 	var _arg3 *C.gchar           // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 	if category != "" {
@@ -724,19 +710,21 @@ func (buffer *Buffer) RemoveSourceMarks(start, end *gtk.TextIter, category strin
 }
 
 // SetHighlightMatchingBrackets controls the bracket match highlighting function
-// in the buffer. If activated, when you position your cursor over a bracket
-// character (a parenthesis, a square bracket, etc.) the matching opening or
-// closing bracket character will be highlighted.
+// in the buffer.
+//
+// If activated, when you position your cursor over a bracket character (a
+// parenthesis, a square bracket, etc.) the matching opening or closing bracket
+// character will be highlighted.
 //
 // The function takes the following parameters:
 //
-//    - highlight: TRUE if you want matching brackets highlighted.
+//   - highlight: TRUE if you want matching brackets highlighted.
 //
 func (buffer *Buffer) SetHighlightMatchingBrackets(highlight bool) {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 C.gboolean         // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	if highlight {
 		_arg1 = C.TRUE
 	}
@@ -749,22 +737,21 @@ func (buffer *Buffer) SetHighlightMatchingBrackets(highlight bool) {
 // SetHighlightSyntax controls whether syntax is highlighted in the buffer.
 //
 // If highlight is TRUE, the text will be highlighted according to the syntax
-// patterns specified in the SourceLanguage set with
-// gtk_source_buffer_set_language().
+// patterns specified in the language set with buffer.SetLanguage.
 //
-// If highlight is FALSE, syntax highlighting is disabled and all the TextTag
-// objects that have been added by the syntax highlighting engine are removed
-// from the buffer.
+// If highlight is FALSE, syntax highlighting is disabled and all the
+// gtk.TextTag objects that have been added by the syntax highlighting engine
+// are removed from the buffer.
 //
 // The function takes the following parameters:
 //
-//    - highlight: TRUE to enable syntax highlighting, FALSE to disable it.
+//   - highlight: TRUE to enable syntax highlighting, FALSE to disable it.
 //
 func (buffer *Buffer) SetHighlightSyntax(highlight bool) {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 C.gboolean         // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	if highlight {
 		_arg1 = C.TRUE
 	}
@@ -777,14 +764,13 @@ func (buffer *Buffer) SetHighlightSyntax(highlight bool) {
 // SetImplicitTrailingNewline sets whether the buffer has an implicit trailing
 // newline.
 //
-// If an explicit trailing newline is present in a TextBuffer, TextView shows it
-// as an empty line. This is generally not what the user expects.
+// If an explicit trailing newline is present in a gtk.TextBuffer, gtk.TextView
+// shows it as an empty line. This is generally not what the user expects.
 //
-// If implicit_trailing_newline is TRUE (the default value): - when a
-// SourceFileLoader loads the content of a file into the buffer, the trailing
-// newline (if present in the file) is not inserted into the buffer. - when a
-// SourceFileSaver saves the content of the buffer into a file, a trailing
-// newline is added to the file.
+// If implicit_trailing_newline is TRUE (the default value): - when a fileloader
+// loads the content of a file into the buffer, the trailing newline (if present
+// in the file) is not inserted into the buffer. - when a filesaver saves the
+// content of the buffer into a file, a trailing newline is added to the file.
 //
 // On the other hand, if implicit_trailing_newline is FALSE, the file's content
 // is not modified when loaded into the buffer, and the buffer's content is not
@@ -792,13 +778,13 @@ func (buffer *Buffer) SetHighlightSyntax(highlight bool) {
 //
 // The function takes the following parameters:
 //
-//    - implicitTrailingNewline: new value.
+//   - implicitTrailingNewline: new value.
 //
 func (buffer *Buffer) SetImplicitTrailingNewline(implicitTrailingNewline bool) {
 	var _arg0 *C.GtkSourceBuffer // out
 	var _arg1 C.gboolean         // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	if implicitTrailingNewline {
 		_arg1 = C.TRUE
 	}
@@ -808,25 +794,25 @@ func (buffer *Buffer) SetImplicitTrailingNewline(implicitTrailingNewline bool) {
 	runtime.KeepAlive(implicitTrailingNewline)
 }
 
-// SetLanguage associates a SourceLanguage with the buffer.
+// SetLanguage associates a language with the buffer.
 //
-// Note that a SourceLanguage affects not only the syntax highlighting, but also
-// the [context classes][context-classes]. If you want to disable just the
-// syntax highlighting, see gtk_source_buffer_set_highlight_syntax().
+// Note that a language affects not only the syntax highlighting, but also the
+// context classes (./class.Buffer.html#context-classes). If you want to disable
+// just the syntax highlighting, see buffer.SetHighlightSyntax.
 //
 // The buffer holds a reference to language.
 //
 // The function takes the following parameters:
 //
-//    - language (optional) to set, or NULL.
+//   - language (optional) to set, or NULL.
 //
 func (buffer *Buffer) SetLanguage(language *Language) {
 	var _arg0 *C.GtkSourceBuffer   // out
 	var _arg1 *C.GtkSourceLanguage // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	if language != nil {
-		_arg1 = (*C.GtkSourceLanguage)(unsafe.Pointer(externglib.InternObject(language).Native()))
+		_arg1 = (*C.GtkSourceLanguage)(unsafe.Pointer(coreglib.InternObject(language).Native()))
 	}
 
 	C.gtk_source_buffer_set_language(_arg0, _arg1)
@@ -834,32 +820,30 @@ func (buffer *Buffer) SetLanguage(language *Language) {
 	runtime.KeepAlive(language)
 }
 
-// SetStyleScheme sets a SourceStyleScheme to be used by the buffer and the
-// view.
+// SetStyleScheme sets a stylescheme to be used by the buffer and the view.
 //
-// Note that a SourceStyleScheme affects not only the syntax highlighting, but
-// also other SourceView features such as highlighting the current line,
-// matching brackets, the line numbers, etc.
+// Note that a stylescheme affects not only the syntax highlighting, but also
+// other view features such as highlighting the current line, matching brackets,
+// the line numbers, etc.
 //
 // Instead of setting a NULL scheme, it is better to disable syntax highlighting
-// with gtk_source_buffer_set_highlight_syntax(), and setting the
-// SourceStyleScheme with the "classic" or "tango" ID, because those two style
-// schemes follow more closely the GTK+ theme (for example for the background
-// color).
+// with buffer.SetHighlightSyntax, and setting the stylescheme with the
+// "classic" or "tango" ID, because those two style schemes follow more closely
+// the GTK theme (for example for the background color).
 //
 // The buffer holds a reference to scheme.
 //
 // The function takes the following parameters:
 //
-//    - scheme (optional) or NULL.
+//   - scheme (optional) or NULL.
 //
 func (buffer *Buffer) SetStyleScheme(scheme *StyleScheme) {
 	var _arg0 *C.GtkSourceBuffer      // out
 	var _arg1 *C.GtkSourceStyleScheme // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	if scheme != nil {
-		_arg1 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(externglib.InternObject(scheme).Native()))
+		_arg1 = (*C.GtkSourceStyleScheme)(unsafe.Pointer(coreglib.InternObject(scheme).Native()))
 	}
 
 	C.gtk_source_buffer_set_style_scheme(_arg0, _arg1)
@@ -871,10 +855,10 @@ func (buffer *Buffer) SetStyleScheme(scheme *StyleScheme) {
 //
 // The function takes the following parameters:
 //
-//    - start: TextIter.
-//    - end: TextIter.
-//    - flags specifying how the sort should behave.
-//    - column: sort considering the text starting at the given column.
+//   - start: TextIter.
+//   - end: TextIter.
+//   - flags specifying how the sort should behave.
+//   - column: sort considering the text starting at the given column.
 //
 func (buffer *Buffer) SortLines(start, end *gtk.TextIter, flags SortFlags, column int) {
 	var _arg0 *C.GtkSourceBuffer   // out
@@ -883,7 +867,7 @@ func (buffer *Buffer) SortLines(start, end *gtk.TextIter, flags SortFlags, colum
 	var _arg3 C.GtkSourceSortFlags // out
 	var _arg4 C.gint               // out
 
-	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
 	_arg3 = C.GtkSourceSortFlags(flags)
@@ -895,4 +879,44 @@ func (buffer *Buffer) SortLines(start, end *gtk.TextIter, flags SortFlags, colum
 	runtime.KeepAlive(end)
 	runtime.KeepAlive(flags)
 	runtime.KeepAlive(column)
+}
+
+// The function takes the following parameters:
+//
+//   - iter
+//   - state
+//
+func (buffer *Buffer) bracketMatched(iter *gtk.TextIter, state BracketMatchType) {
+	gclass := (*C.GtkSourceBufferClass)(coreglib.PeekParentClass(buffer))
+	fnarg := gclass.bracket_matched
+
+	var _arg0 *C.GtkSourceBuffer          // out
+	var _arg1 *C.GtkTextIter              // out
+	var _arg2 C.GtkSourceBracketMatchType // out
+
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
+	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
+	_arg2 = C.GtkSourceBracketMatchType(state)
+
+	C._gotk4_gtksource5_Buffer_virtual_bracket_matched(unsafe.Pointer(fnarg), _arg0, _arg1, _arg2)
+	runtime.KeepAlive(buffer)
+	runtime.KeepAlive(iter)
+	runtime.KeepAlive(state)
+}
+
+// BufferClass: instance of this type is always passed by reference.
+type BufferClass struct {
+	*bufferClass
+}
+
+// bufferClass is the struct that's finalized.
+type bufferClass struct {
+	native *C.GtkSourceBufferClass
+}
+
+func (b *BufferClass) ParentClass() *gtk.TextBufferClass {
+	valptr := &b.native.parent_class
+	var _v *gtk.TextBufferClass // out
+	_v = (*gtk.TextBufferClass)(gextras.NewStructNative(unsafe.Pointer(valptr)))
+	return _v
 }

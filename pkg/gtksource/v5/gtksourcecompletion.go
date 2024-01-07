@@ -7,200 +7,140 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/pango"
 )
 
 // #include <stdlib.h>
 // #include <glib-object.h>
 // #include <gtksourceview/gtksource.h>
-// extern void _gotk4_gtksource5_Completion_ConnectHide(gpointer, guintptr);
-// extern void _gotk4_gtksource5_Completion_ConnectProviderAdded(gpointer, GtkSourceCompletionProvider*, guintptr);
-// extern void _gotk4_gtksource5_Completion_ConnectProviderRemoved(gpointer, GtkSourceCompletionProvider*, guintptr);
 // extern void _gotk4_gtksource5_Completion_ConnectShow(gpointer, guintptr);
+// extern void _gotk4_gtksource5_Completion_ConnectProviderRemoved(gpointer, GtkSourceCompletionProvider*, guintptr);
+// extern void _gotk4_gtksource5_Completion_ConnectProviderAdded(gpointer, GtkSourceCompletionProvider*, guintptr);
+// extern void _gotk4_gtksource5_Completion_ConnectHide(gpointer, guintptr);
 import "C"
 
-// glib.Type values for gtksourcecompletion.go.
-var GTypeCompletion = externglib.Type(C.gtk_source_completion_get_type())
+// GType values.
+var (
+	GTypeCompletion = coreglib.Type(C.gtk_source_completion_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeCompletion, F: marshalCompletion},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeCompletion, F: marshalCompletion},
 	})
 }
 
-// CompletionOverrider contains methods that are overridable.
-type CompletionOverrider interface {
+// CompletionOverrides contains methods that are overridable.
+type CompletionOverrides struct {
 }
 
+func defaultCompletionOverrides(v *Completion) CompletionOverrides {
+	return CompletionOverrides{}
+}
+
+// Completion: main Completion Object.
+//
+// The completion system helps the user when they writes some text, such as
+// words, command names, functions, and suchlike. Proposals can be shown,
+// to complete the text the user is writing. Each proposal can contain an
+// additional piece of information (for example documentation), that is
+// displayed when the "Details" button is clicked.
+//
+// Proposals are created via a completionprovider. There can be for example
+// a provider to complete words (see completionwords), another provider
+// for the completion of function names, etc. To add a provider, call
+// completion.AddProvider.
+//
+// When several providers match, they are all shown in the completion window,
+// but one can switch between providers: see the SourceCompletion::move-page
+// signal. It is also possible to activate the first proposals with key
+// bindings, see the SourceCompletion:accelerators property.
+//
+// The completionproposal interface represents a proposal.
+//
+// If a proposal contains extra information (see
+// GTK_SOURCE_COMPLETION_COLUMN_DETAILS), it will be displayed in a supplemental
+// details window, which appears when the "Details" button is clicked.
+//
+// Each view object is associated with a completion instance. This instance
+// can be obtained with view.GetCompletion. The view class contains also the
+// view::show-completion signal.
+//
+// A same completionprovider object can be used for several
+// GtkSourceCompletion's.
 type Completion struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*Completion)(nil)
+	_ coreglib.Objector = (*Completion)(nil)
 )
 
-func classInitCompletioner(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*Completion, *CompletionClass, CompletionOverrides](
+		GTypeCompletion,
+		initCompletionClass,
+		wrapCompletion,
+		defaultCompletionOverrides,
+	)
 }
 
-func wrapCompletion(obj *externglib.Object) *Completion {
+func initCompletionClass(gclass unsafe.Pointer, overrides CompletionOverrides, classInitFunc func(*CompletionClass)) {
+	if classInitFunc != nil {
+		class := (*CompletionClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapCompletion(obj *coreglib.Object) *Completion {
 	return &Completion{
 		Object: obj,
 	}
 }
 
 func marshalCompletion(p uintptr) (interface{}, error) {
-	return wrapCompletion(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
-}
-
-//export _gotk4_gtksource5_Completion_ConnectHide
-func _gotk4_gtksource5_Completion_ConnectHide(arg0 C.gpointer, arg1 C.guintptr) {
-	var f func()
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func())
-	}
-
-	f()
+	return wrapCompletion(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // ConnectHide: "hide" signal is emitted when the completion window should be
 // hidden.
-func (self *Completion) ConnectHide(f func()) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(self, "hide", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectHide), f)
-}
-
-//export _gotk4_gtksource5_Completion_ConnectProviderAdded
-func _gotk4_gtksource5_Completion_ConnectProviderAdded(arg0 C.gpointer, arg1 *C.GtkSourceCompletionProvider, arg2 C.guintptr) {
-	var f func(provider CompletionProviderer)
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func(provider CompletionProviderer))
-	}
-
-	var _provider CompletionProviderer // out
-
-	{
-		objptr := unsafe.Pointer(arg1)
-		if objptr == nil {
-			panic("object of type gtksource.CompletionProviderer is nil")
-		}
-
-		object := externglib.Take(objptr)
-		casted := object.WalkCast(func(obj externglib.Objector) bool {
-			_, ok := obj.(CompletionProviderer)
-			return ok
-		})
-		rv, ok := casted.(CompletionProviderer)
-		if !ok {
-			panic("no marshaler for " + object.TypeFromInstance().String() + " matching gtksource.CompletionProviderer")
-		}
-		_provider = rv
-	}
-
-	f(_provider)
+func (self *Completion) ConnectHide(f func()) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(self, "hide", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectHide), f)
 }
 
 // ConnectProviderAdded: "provided-added" signal is emitted when a new provider
 // is added to the completion.
-func (self *Completion) ConnectProviderAdded(f func(provider CompletionProviderer)) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(self, "provider-added", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectProviderAdded), f)
-}
-
-//export _gotk4_gtksource5_Completion_ConnectProviderRemoved
-func _gotk4_gtksource5_Completion_ConnectProviderRemoved(arg0 C.gpointer, arg1 *C.GtkSourceCompletionProvider, arg2 C.guintptr) {
-	var f func(provider CompletionProviderer)
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg2))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func(provider CompletionProviderer))
-	}
-
-	var _provider CompletionProviderer // out
-
-	{
-		objptr := unsafe.Pointer(arg1)
-		if objptr == nil {
-			panic("object of type gtksource.CompletionProviderer is nil")
-		}
-
-		object := externglib.Take(objptr)
-		casted := object.WalkCast(func(obj externglib.Objector) bool {
-			_, ok := obj.(CompletionProviderer)
-			return ok
-		})
-		rv, ok := casted.(CompletionProviderer)
-		if !ok {
-			panic("no marshaler for " + object.TypeFromInstance().String() + " matching gtksource.CompletionProviderer")
-		}
-		_provider = rv
-	}
-
-	f(_provider)
+func (self *Completion) ConnectProviderAdded(f func(provider CompletionProviderer)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(self, "provider-added", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectProviderAdded), f)
 }
 
 // ConnectProviderRemoved: "provided-removed" signal is emitted when a provider
 // has been removed from the completion.
-func (self *Completion) ConnectProviderRemoved(f func(provider CompletionProviderer)) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(self, "provider-removed", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectProviderRemoved), f)
-}
-
-//export _gotk4_gtksource5_Completion_ConnectShow
-func _gotk4_gtksource5_Completion_ConnectShow(arg0 C.gpointer, arg1 C.guintptr) {
-	var f func()
-	{
-		closure := externglib.ConnectedGeneratedClosure(uintptr(arg1))
-		if closure == nil {
-			panic("given unknown closure user_data")
-		}
-		defer closure.TryRepanic()
-
-		f = closure.Func.(func())
-	}
-
-	f()
+func (self *Completion) ConnectProviderRemoved(f func(provider CompletionProviderer)) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(self, "provider-removed", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectProviderRemoved), f)
 }
 
 // ConnectShow: "show" signal is emitted when the completion window should be
 // shown.
-func (self *Completion) ConnectShow(f func()) externglib.SignalHandle {
-	return externglib.ConnectGeneratedClosure(self, "show", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectShow), f)
+func (self *Completion) ConnectShow(f func()) coreglib.SignalHandle {
+	return coreglib.ConnectGeneratedClosure(self, "show", false, unsafe.Pointer(C._gotk4_gtksource5_Completion_ConnectShow), f)
 }
 
-// AddProvider adds an SourceCompletionProvider to the list of providers to be
-// queried for completion results.
+// AddProvider adds a completionprovider to the list of providers to be queried
+// for completion results.
 //
 // The function takes the following parameters:
 //
-//    - provider: SourceCompletionProvider.
+//   - provider: SourceCompletionProvider.
 //
 func (self *Completion) AddProvider(provider CompletionProviderer) {
 	var _arg0 *C.GtkSourceCompletion         // out
 	var _arg1 *C.GtkSourceCompletionProvider // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(provider).Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(provider).Native()))
 
 	C.gtk_source_completion_add_provider(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -210,30 +150,30 @@ func (self *Completion) AddProvider(provider CompletionProviderer) {
 func (self *Completion) BlockInteractive() {
 	var _arg0 *C.GtkSourceCompletion // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	C.gtk_source_completion_block_interactive(_arg0)
 	runtime.KeepAlive(self)
 }
 
-// Buffer gets the connected SourceView's SourceBuffer.
+// Buffer gets the connected view's buffer.
 //
 // The function returns the following values:
 //
-//    - buffer: SourceBuffer.
+//   - buffer: SourceBuffer.
 //
 func (self *Completion) Buffer() *Buffer {
 	var _arg0 *C.GtkSourceCompletion // out
 	var _cret *C.GtkSourceBuffer     // in
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_get_buffer(_arg0)
 	runtime.KeepAlive(self)
 
 	var _buffer *Buffer // out
 
-	_buffer = wrapBuffer(externglib.Take(unsafe.Pointer(_cret)))
+	_buffer = wrapBuffer(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _buffer
 }
@@ -244,7 +184,7 @@ func (self *Completion) PageSize() uint {
 	var _arg0 *C.GtkSourceCompletion // out
 	var _cret C.guint                // in
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_get_page_size(_arg0)
 	runtime.KeepAlive(self)
@@ -256,24 +196,24 @@ func (self *Completion) PageSize() uint {
 	return _guint
 }
 
-// View gets the SourceView that owns the SourceCompletion.
+// View gets the view that owns the completion.
 //
 // The function returns the following values:
 //
-//    - view: SourceView.
+//   - view: SourceView.
 //
 func (self *Completion) View() *View {
 	var _arg0 *C.GtkSourceCompletion // out
 	var _cret *C.GtkSourceView       // in
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	_cret = C.gtk_source_completion_get_view(_arg0)
 	runtime.KeepAlive(self)
 
 	var _view *View // out
 
-	_view = wrapView(externglib.Take(unsafe.Pointer(_cret)))
+	_view = wrapView(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _view
 }
@@ -284,25 +224,25 @@ func (self *Completion) View() *View {
 func (self *Completion) Hide() {
 	var _arg0 *C.GtkSourceCompletion // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	C.gtk_source_completion_hide(_arg0)
 	runtime.KeepAlive(self)
 }
 
-// RemoveProvider removes an SourceCompletionProvider previously added with
-// gtk_source_completion_add_provider().
+// RemoveProvider removes a completionprovider previously added with
+// completion.AddProvider.
 //
 // The function takes the following parameters:
 //
-//    - provider: SourceCompletionProvider.
+//   - provider: SourceCompletionProvider.
 //
 func (self *Completion) RemoveProvider(provider CompletionProviderer) {
 	var _arg0 *C.GtkSourceCompletion         // out
 	var _arg1 *C.GtkSourceCompletionProvider // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
-	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(externglib.InternObject(provider).Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(coreglib.InternObject(self).Native()))
+	_arg1 = (*C.GtkSourceCompletionProvider)(unsafe.Pointer(coreglib.InternObject(provider).Native()))
 
 	C.gtk_source_completion_remove_provider(_arg0, _arg1)
 	runtime.KeepAlive(self)
@@ -315,7 +255,7 @@ func (self *Completion) SetPageSize(pageSize uint) {
 	var _arg0 *C.GtkSourceCompletion // out
 	var _arg1 C.guint                // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 	_arg1 = C.guint(pageSize)
 
 	C.gtk_source_completion_set_page_size(_arg0, _arg1)
@@ -330,7 +270,7 @@ func (self *Completion) SetPageSize(pageSize uint) {
 func (self *Completion) Show() {
 	var _arg0 *C.GtkSourceCompletion // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	C.gtk_source_completion_show(_arg0)
 	runtime.KeepAlive(self)
@@ -339,23 +279,23 @@ func (self *Completion) Show() {
 func (self *Completion) UnblockInteractive() {
 	var _arg0 *C.GtkSourceCompletion // out
 
-	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(externglib.InternObject(self).Native()))
+	_arg0 = (*C.GtkSourceCompletion)(unsafe.Pointer(coreglib.InternObject(self).Native()))
 
 	C.gtk_source_completion_unblock_interactive(_arg0)
 	runtime.KeepAlive(self)
 }
 
-// CompletionFuZZYHighlight: this will add &lt;b&gt; tags around matched
-// characters in haystack based on casefold_query.
+// CompletionFuZZYHighlight: this will add <b> tags around matched characters in
+// haystack based on casefold_query.
 //
 // The function takes the following parameters:
 //
-//    - haystack: string to be highlighted.
-//    - casefoldQuery: typed-text used to highlight haystack.
+//   - haystack: string to be highlighted.
+//   - casefoldQuery: typed-text used to highlight haystack.
 //
 // The function returns the following values:
 //
-//    - attrList (optional) or NULL.
+//   - attrList (optional) or NULL.
 //
 func CompletionFuZZYHighlight(haystack, casefoldQuery string) *pango.AttrList {
 	var _arg1 *C.char          // out
@@ -387,21 +327,22 @@ func CompletionFuZZYHighlight(haystack, casefoldQuery string) *pango.AttrList {
 }
 
 // CompletionFuZZYMatch: this helper function can do a fuzzy match for you
-// giving a haystack and casefolded needle. Casefold your needle using
-// g_utf8_casefold() before running the query.
+// giving a haystack and casefolded needle.
 //
-// Score will be set with the score of the match upon success. Otherwise, it
-// will be set to zero.
+// Casefold your needle using glib.UTF8Casefold() before running the query.
+//
+// Score will be set with the score of the match upon success. Otherwise,
+// it will be set to zero.
 //
 // The function takes the following parameters:
 //
-//    - haystack (optional): string to be searched.
-//    - casefoldNeedle: g_utf8_casefold() version of the needle.
+//   - haystack (optional): string to be searched.
+//   - casefoldNeedle: g_utf8_casefold() version of the needle.
 //
 // The function returns the following values:
 //
-//    - priority (optional): optional location for the score of the match.
-//    - ok: TRUE if haystack matched casefold_needle, otherwise FALSE.
+//   - priority (optional): optional location for the score of the match.
+//   - ok: TRUE if haystack matched casefold_needle, otherwise FALSE.
 //
 func CompletionFuZZYMatch(haystack, casefoldNeedle string) (uint, bool) {
 	var _arg1 *C.char    // out
@@ -429,4 +370,14 @@ func CompletionFuZZYMatch(haystack, casefoldNeedle string) (uint, bool) {
 	}
 
 	return _priority, _ok
+}
+
+// CompletionClass: instance of this type is always passed by reference.
+type CompletionClass struct {
+	*completionClass
+}
+
+// completionClass is the struct that's finalized.
+type completionClass struct {
+	native *C.GtkSourceCompletionClass
 }

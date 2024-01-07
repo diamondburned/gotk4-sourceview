@@ -7,7 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v3"
 )
 
@@ -16,66 +16,80 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourceregion.go.
-var GTypeRegion = externglib.Type(C.gtk_source_region_get_type())
+// GType values.
+var (
+	GTypeRegion = coreglib.Type(C.gtk_source_region_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeRegion, F: marshalRegion},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeRegion, F: marshalRegion},
 	})
 }
 
-// RegionOverrider contains methods that are overridable.
-type RegionOverrider interface {
+// RegionOverrides contains methods that are overridable.
+type RegionOverrides struct {
+}
+
+func defaultRegionOverrides(v *Region) RegionOverrides {
+	return RegionOverrides{}
 }
 
 type Region struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*Region)(nil)
+	_ coreglib.Objector = (*Region)(nil)
 )
 
-func classInitRegioner(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*Region, *RegionClass, RegionOverrides](
+		GTypeRegion,
+		initRegionClass,
+		wrapRegion,
+		defaultRegionOverrides,
+	)
 }
 
-func wrapRegion(obj *externglib.Object) *Region {
+func initRegionClass(gclass unsafe.Pointer, overrides RegionOverrides, classInitFunc func(*RegionClass)) {
+	if classInitFunc != nil {
+		class := (*RegionClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapRegion(obj *coreglib.Object) *Region {
 	return &Region{
 		Object: obj,
 	}
 }
 
 func marshalRegion(p uintptr) (interface{}, error) {
-	return wrapRegion(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapRegion(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // The function takes the following parameters:
 //
-//    - buffer: TextBuffer.
+//   - buffer: TextBuffer.
 //
 // The function returns the following values:
 //
-//    - region: new SourceRegion object for buffer.
+//   - region: new SourceRegion object for buffer.
 //
 func NewRegion(buffer *gtk.TextBuffer) *Region {
 	var _arg1 *C.GtkTextBuffer   // out
 	var _cret *C.GtkSourceRegion // in
 
-	_arg1 = (*C.GtkTextBuffer)(unsafe.Pointer(externglib.InternObject(buffer).Native()))
+	_arg1 = (*C.GtkTextBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
 
 	_cret = C.gtk_source_region_new(_arg1)
 	runtime.KeepAlive(buffer)
 
 	var _region *Region // out
 
-	_region = wrapRegion(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_region = wrapRegion(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _region
 }
@@ -84,15 +98,15 @@ func NewRegion(buffer *gtk.TextBuffer) *Region {
 //
 // The function takes the following parameters:
 //
-//    - regionToAdd (optional) to add to region, or NULL.
+//   - regionToAdd (optional) to add to region, or NULL.
 //
 func (region *Region) AddRegion(regionToAdd *Region) {
 	var _arg0 *C.GtkSourceRegion // out
 	var _arg1 *C.GtkSourceRegion // out
 
-	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region).Native()))
+	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region).Native()))
 	if regionToAdd != nil {
-		_arg1 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(regionToAdd).Native()))
+		_arg1 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(regionToAdd).Native()))
 	}
 
 	C.gtk_source_region_add_region(_arg0, _arg1)
@@ -104,15 +118,15 @@ func (region *Region) AddRegion(regionToAdd *Region) {
 //
 // The function takes the following parameters:
 //
-//    - Start: start of the subregion.
-//    - End: end of the subregion.
+//   - Start: start of the subregion.
+//   - End: end of the subregion.
 //
 func (region *Region) AddSubregion(Start, End *gtk.TextIter) {
 	var _arg0 *C.GtkSourceRegion // out
 	var _arg1 *C.GtkTextIter     // out
 	var _arg2 *C.GtkTextIter     // out
 
-	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region).Native()))
+	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(Start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(End)))
 
@@ -126,19 +140,19 @@ func (region *Region) AddSubregion(Start, End *gtk.TextIter) {
 //
 // The function returns the following values:
 //
-//    - start (optional): iterator to initialize with the start of region, or
-//      NULL.
-//    - end (optional): iterator to initialize with the end of region, or NULL.
-//    - ok: TRUE if start and end have been set successfully (if non-NULL), or
-//      FALSE if the region is empty.
+//   - start (optional): iterator to initialize with the start of region,
+//     or NULL.
+//   - end (optional): iterator to initialize with the end of region, or NULL.
+//   - ok: TRUE if start and end have been set successfully (if non-NULL),
+//     or FALSE if the region is empty.
 //
-func (region *Region) Bounds() (start *gtk.TextIter, end *gtk.TextIter, ok bool) {
+func (region *Region) Bounds() (start, end *gtk.TextIter, ok bool) {
 	var _arg0 *C.GtkSourceRegion // out
 	var _arg1 C.GtkTextIter      // in
 	var _arg2 C.GtkTextIter      // in
 	var _cret C.gboolean         // in
 
-	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region).Native()))
+	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region).Native()))
 
 	_cret = C.gtk_source_region_get_bounds(_arg0, &_arg1, &_arg2)
 	runtime.KeepAlive(region)
@@ -158,13 +172,13 @@ func (region *Region) Bounds() (start *gtk.TextIter, end *gtk.TextIter, ok bool)
 
 // The function returns the following values:
 //
-//    - textBuffer (optional): TextBuffer.
+//   - textBuffer (optional): TextBuffer.
 //
 func (region *Region) Buffer() *gtk.TextBuffer {
 	var _arg0 *C.GtkSourceRegion // out
 	var _cret *C.GtkTextBuffer   // in
 
-	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region).Native()))
+	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region).Native()))
 
 	_cret = C.gtk_source_region_get_buffer(_arg0)
 	runtime.KeepAlive(region)
@@ -173,7 +187,7 @@ func (region *Region) Buffer() *gtk.TextBuffer {
 
 	if _cret != nil {
 		{
-			obj := externglib.Take(unsafe.Pointer(_cret))
+			obj := coreglib.Take(unsafe.Pointer(_cret))
 			_textBuffer = &gtk.TextBuffer{
 				Object: obj,
 			}
@@ -188,13 +202,13 @@ func (region *Region) Buffer() *gtk.TextBuffer {
 //
 // The function returns the following values:
 //
-//    - iter: iterator to initialize to the first subregion.
+//   - iter: iterator to initialize to the first subregion.
 //
 func (region *Region) StartRegionIter() *RegionIter {
 	var _arg0 *C.GtkSourceRegion    // out
 	var _arg1 C.GtkSourceRegionIter // in
 
-	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region).Native()))
+	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region).Native()))
 
 	C.gtk_source_region_get_start_region_iter(_arg0, &_arg1)
 	runtime.KeepAlive(region)
@@ -211,11 +225,11 @@ func (region *Region) StartRegionIter() *RegionIter {
 //
 // The function takes the following parameters:
 //
-//    - region2 (optional) or NULL.
+//   - region2 (optional) or NULL.
 //
 // The function returns the following values:
 //
-//    - region (optional): intersection as a SourceRegion object.
+//   - region (optional): intersection as a SourceRegion object.
 //
 func (region1 *Region) IntersectRegion(region2 *Region) *Region {
 	var _arg0 *C.GtkSourceRegion // out
@@ -223,10 +237,10 @@ func (region1 *Region) IntersectRegion(region2 *Region) *Region {
 	var _cret *C.GtkSourceRegion // in
 
 	if region1 != nil {
-		_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region1).Native()))
+		_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region1).Native()))
 	}
 	if region2 != nil {
-		_arg1 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region2).Native()))
+		_arg1 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region2).Native()))
 	}
 
 	_cret = C.gtk_source_region_intersect_region(_arg0, _arg1)
@@ -236,7 +250,7 @@ func (region1 *Region) IntersectRegion(region2 *Region) *Region {
 	var _region *Region // out
 
 	if _cret != nil {
-		_region = wrapRegion(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+		_region = wrapRegion(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 	}
 
 	return _region
@@ -247,12 +261,12 @@ func (region1 *Region) IntersectRegion(region2 *Region) *Region {
 //
 // The function takes the following parameters:
 //
-//    - Start: start of the subregion.
-//    - End: end of the subregion.
+//   - Start: start of the subregion.
+//   - End: end of the subregion.
 //
 // The function returns the following values:
 //
-//    - ret (optional): intersection as a new SourceRegion.
+//   - ret (optional): intersection as a new SourceRegion.
 //
 func (region *Region) IntersectSubregion(Start, End *gtk.TextIter) *Region {
 	var _arg0 *C.GtkSourceRegion // out
@@ -260,7 +274,7 @@ func (region *Region) IntersectSubregion(Start, End *gtk.TextIter) *Region {
 	var _arg2 *C.GtkTextIter     // out
 	var _cret *C.GtkSourceRegion // in
 
-	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region).Native()))
+	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(Start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(End)))
 
@@ -272,7 +286,7 @@ func (region *Region) IntersectSubregion(Start, End *gtk.TextIter) *Region {
 	var _ret *Region // out
 
 	if _cret != nil {
-		_ret = wrapRegion(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+		_ret = wrapRegion(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 	}
 
 	return _ret
@@ -283,14 +297,14 @@ func (region *Region) IntersectSubregion(Start, End *gtk.TextIter) *Region {
 //
 // The function returns the following values:
 //
-//    - ok: whether the region is empty.
+//   - ok: whether the region is empty.
 //
 func (region *Region) IsEmpty() bool {
 	var _arg0 *C.GtkSourceRegion // out
 	var _cret C.gboolean         // in
 
 	if region != nil {
-		_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region).Native()))
+		_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region).Native()))
 	}
 
 	_cret = C.gtk_source_region_is_empty(_arg0)
@@ -310,15 +324,15 @@ func (region *Region) IsEmpty() bool {
 //
 // The function takes the following parameters:
 //
-//    - regionToSubtract (optional) to subtract from region, or NULL.
+//   - regionToSubtract (optional) to subtract from region, or NULL.
 //
 func (region *Region) SubtractRegion(regionToSubtract *Region) {
 	var _arg0 *C.GtkSourceRegion // out
 	var _arg1 *C.GtkSourceRegion // out
 
-	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region).Native()))
+	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region).Native()))
 	if regionToSubtract != nil {
-		_arg1 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(regionToSubtract).Native()))
+		_arg1 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(regionToSubtract).Native()))
 	}
 
 	C.gtk_source_region_subtract_region(_arg0, _arg1)
@@ -331,15 +345,15 @@ func (region *Region) SubtractRegion(regionToSubtract *Region) {
 //
 // The function takes the following parameters:
 //
-//    - Start: start of the subregion.
-//    - End: end of the subregion.
+//   - Start: start of the subregion.
+//   - End: end of the subregion.
 //
 func (region *Region) SubtractSubregion(Start, End *gtk.TextIter) {
 	var _arg0 *C.GtkSourceRegion // out
 	var _arg1 *C.GtkTextIter     // out
 	var _arg2 *C.GtkTextIter     // out
 
-	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region).Native()))
+	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region).Native()))
 	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(Start)))
 	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(End)))
 
@@ -351,19 +365,19 @@ func (region *Region) SubtractSubregion(Start, End *gtk.TextIter) {
 
 // String gets a string represention of region, for debugging purposes.
 //
-// The returned string contains the character offsets of the subregions. It
-// doesn't include a newline character at the end of the string.
+// The returned string contains the character offsets of the subregions.
+// It doesn't include a newline character at the end of the string.
 //
 // The function returns the following values:
 //
-//    - utf8 (optional): string represention of region. Free with g_free() when
-//      no longer needed.
+//   - utf8 (optional): string represention of region. Free with g_free() when
+//     no longer needed.
 //
 func (region *Region) String() string {
 	var _arg0 *C.GtkSourceRegion // out
 	var _cret *C.gchar           // in
 
-	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(externglib.InternObject(region).Native()))
+	_arg0 = (*C.GtkSourceRegion)(unsafe.Pointer(coreglib.InternObject(region).Native()))
 
 	_cret = C.gtk_source_region_to_string(_arg0)
 	runtime.KeepAlive(region)
@@ -378,96 +392,24 @@ func (region *Region) String() string {
 	return _utf8
 }
 
-// RegionIter is an opaque datatype; ignore all its fields. Initialize the iter
-// with gtk_source_region_get_start_region_iter().
-//
-// An instance of this type is always passed by reference.
-type RegionIter struct {
-	*regionIter
+// RegionClass: instance of this type is always passed by reference.
+type RegionClass struct {
+	*regionClass
 }
 
-// regionIter is the struct that's finalized.
-type regionIter struct {
-	native *C.GtkSourceRegionIter
+// regionClass is the struct that's finalized.
+type regionClass struct {
+	native *C.GtkSourceRegionClass
 }
 
-// Subregion gets the subregion at this iterator.
-//
-// The function returns the following values:
-//
-//    - start (optional): iterator to initialize with the subregion start, or
-//      NULL.
-//    - end (optional): iterator to initialize with the subregion end, or NULL.
-//    - ok: TRUE if start and end have been set successfully (if non-NULL), or
-//      FALSE if iter is the end iterator or if the region is empty.
-//
-func (iter *RegionIter) Subregion() (start *gtk.TextIter, end *gtk.TextIter, ok bool) {
-	var _arg0 *C.GtkSourceRegionIter // out
-	var _arg1 C.GtkTextIter          // in
-	var _arg2 C.GtkTextIter          // in
-	var _cret C.gboolean             // in
-
-	_arg0 = (*C.GtkSourceRegionIter)(gextras.StructNative(unsafe.Pointer(iter)))
-
-	_cret = C.gtk_source_region_iter_get_subregion(_arg0, &_arg1, &_arg2)
-	runtime.KeepAlive(iter)
-
-	var _start *gtk.TextIter // out
-	var _end *gtk.TextIter   // out
-	var _ok bool             // out
-
-	_start = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer((&_arg1))))
-	_end = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer((&_arg2))))
-	if _cret != 0 {
-		_ok = true
+func (r *RegionClass) Padding() [8]unsafe.Pointer {
+	valptr := &r.native.padding
+	var _v [8]unsafe.Pointer // out
+	{
+		src := &*valptr
+		for i := 0; i < 8; i++ {
+			_v[i] = (unsafe.Pointer)(unsafe.Pointer(src[i]))
+		}
 	}
-
-	return _start, _end, _ok
-}
-
-// The function returns the following values:
-//
-//    - ok: whether iter is the end iterator.
-//
-func (iter *RegionIter) IsEnd() bool {
-	var _arg0 *C.GtkSourceRegionIter // out
-	var _cret C.gboolean             // in
-
-	_arg0 = (*C.GtkSourceRegionIter)(gextras.StructNative(unsafe.Pointer(iter)))
-
-	_cret = C.gtk_source_region_iter_is_end(_arg0)
-	runtime.KeepAlive(iter)
-
-	var _ok bool // out
-
-	if _cret != 0 {
-		_ok = true
-	}
-
-	return _ok
-}
-
-// Next moves iter to the next subregion.
-//
-// The function returns the following values:
-//
-//    - ok: TRUE if iter moved and is dereferenceable, or FALSE if iter has been
-//      set to the end iterator.
-//
-func (iter *RegionIter) Next() bool {
-	var _arg0 *C.GtkSourceRegionIter // out
-	var _cret C.gboolean             // in
-
-	_arg0 = (*C.GtkSourceRegionIter)(gextras.StructNative(unsafe.Pointer(iter)))
-
-	_cret = C.gtk_source_region_iter_next(_arg0)
-	runtime.KeepAlive(iter)
-
-	var _ok bool // out
-
-	if _cret != 0 {
-		_ok = true
-	}
-
-	return _ok
+	return _v
 }

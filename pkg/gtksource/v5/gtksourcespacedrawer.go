@@ -9,7 +9,7 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 )
@@ -19,18 +19,18 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcespacedrawer.go.
+// GType values.
 var (
-	GTypeSpaceLocationFlags = externglib.Type(C.gtk_source_space_location_flags_get_type())
-	GTypeSpaceTypeFlags     = externglib.Type(C.gtk_source_space_type_flags_get_type())
-	GTypeSpaceDrawer        = externglib.Type(C.gtk_source_space_drawer_get_type())
+	GTypeSpaceLocationFlags = coreglib.Type(C.gtk_source_space_location_flags_get_type())
+	GTypeSpaceTypeFlags     = coreglib.Type(C.gtk_source_space_type_flags_get_type())
+	GTypeSpaceDrawer        = coreglib.Type(C.gtk_source_space_drawer_get_type())
 )
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeSpaceLocationFlags, F: marshalSpaceLocationFlags},
-		{T: GTypeSpaceTypeFlags, F: marshalSpaceTypeFlags},
-		{T: GTypeSpaceDrawer, F: marshalSpaceDrawer},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeSpaceLocationFlags, F: marshalSpaceLocationFlags},
+		coreglib.TypeMarshaler{T: GTypeSpaceTypeFlags, F: marshalSpaceTypeFlags},
+		coreglib.TypeMarshaler{T: GTypeSpaceDrawer, F: marshalSpaceDrawer},
 	})
 }
 
@@ -43,8 +43,8 @@ type SpaceLocationFlags C.guint
 const (
 	// SourceSpaceLocationNone: no flags.
 	SourceSpaceLocationNone SpaceLocationFlags = 0b0
-	// SourceSpaceLocationLeading: leading white spaces on a line, i.e. the
-	// indentation.
+	// SourceSpaceLocationLeading: leading white spaces on a line, i.e.
+	// the indentation.
 	SourceSpaceLocationLeading SpaceLocationFlags = 0b1
 	// SourceSpaceLocationInsideText: white spaces inside a line of text.
 	SourceSpaceLocationInsideText SpaceLocationFlags = 0b10
@@ -55,7 +55,7 @@ const (
 )
 
 func marshalSpaceLocationFlags(p uintptr) (interface{}, error) {
-	return SpaceLocationFlags(externglib.ValueFromNative(unsafe.Pointer(p)).Flags()), nil
+	return SpaceLocationFlags(coreglib.ValueFromNative(unsafe.Pointer(p)).Flags()), nil
 }
 
 // String returns the names in string for SpaceLocationFlags.
@@ -118,7 +118,7 @@ const (
 )
 
 func marshalSpaceTypeFlags(p uintptr) (interface{}, error) {
-	return SpaceTypeFlags(externglib.ValueFromNative(unsafe.Pointer(p)).Flags()), nil
+	return SpaceTypeFlags(coreglib.ValueFromNative(unsafe.Pointer(p)).Flags()), nil
 }
 
 // String returns the names in string for SpaceTypeFlags.
@@ -162,43 +162,99 @@ func (s SpaceTypeFlags) Has(other SpaceTypeFlags) bool {
 	return (s & other) == other
 }
 
-// SpaceDrawerOverrider contains methods that are overridable.
-type SpaceDrawerOverrider interface {
+// SpaceDrawerOverrides contains methods that are overridable.
+type SpaceDrawerOverrides struct {
 }
 
+func defaultSpaceDrawerOverrides(v *SpaceDrawer) SpaceDrawerOverrides {
+	return SpaceDrawerOverrides{}
+}
+
+// SpaceDrawer: represent white space characters with symbols.
+//
+// SourceSpaceDrawer provides a way to visualize white spaces, by drawing
+// symbols.
+//
+// Call view.GetSpaceDrawer to get the GtkSourceSpaceDrawer instance of a
+// certain view.
+//
+// By default, no white spaces are drawn because the spacedrawer:enable-matrix
+// is FALSE.
+//
+// To draw white spaces, spacedrawer.SetTypesForLocations can be called to set
+// the spacedrawer:matrix property (by default all space types are enabled at
+// all locations). Then call spacedrawer.SetEnableMatrix.
+//
+// For a finer-grained method, there is also the tag's tag:draw-spaces property.
+//
+// # Example
+//
+// To draw non-breaking spaces everywhere and draw all types of trailing spaces
+// except newlines:
+//
+//    gtk_source_space_drawer_set_types_for_locations (space_drawer,
+//                                                     GTK_SOURCE_SPACE_LOCATION_ALL,
+//                                                     GTK_SOURCE_SPACE_TYPE_NBSP);
+//
+//    gtk_source_space_drawer_set_types_for_locations (space_drawer,
+//                                                     GTK_SOURCE_SPACE_LOCATION_TRAILING,
+//                                                     GTK_SOURCE_SPACE_TYPE_ALL &
+//                                                     ~GTK_SOURCE_SPACE_TYPE_NEWLINE);
+//
+//    gtk_source_space_drawer_set_enable_matrix (space_drawer, TRUE);
+//
+// Use-case: draw unwanted white spaces
+//
+// A possible use-case is to draw only unwanted white spaces. Examples:
+//
+// - Draw all trailing spaces.
+//
+// - If the indentation and alignment must be done with spaces, draw tabs.
+//
+// And non-breaking spaces can always be drawn, everywhere, to distinguish them
+// from normal spaces.
 type SpaceDrawer struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*SpaceDrawer)(nil)
+	_ coreglib.Objector = (*SpaceDrawer)(nil)
 )
 
-func classInitSpaceDrawerer(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*SpaceDrawer, *SpaceDrawerClass, SpaceDrawerOverrides](
+		GTypeSpaceDrawer,
+		initSpaceDrawerClass,
+		wrapSpaceDrawer,
+		defaultSpaceDrawerOverrides,
+	)
 }
 
-func wrapSpaceDrawer(obj *externglib.Object) *SpaceDrawer {
+func initSpaceDrawerClass(gclass unsafe.Pointer, overrides SpaceDrawerOverrides, classInitFunc func(*SpaceDrawerClass)) {
+	if classInitFunc != nil {
+		class := (*SpaceDrawerClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapSpaceDrawer(obj *coreglib.Object) *SpaceDrawer {
 	return &SpaceDrawer{
 		Object: obj,
 	}
 }
 
 func marshalSpaceDrawer(p uintptr) (interface{}, error) {
-	return wrapSpaceDrawer(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapSpaceDrawer(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
-// NewSpaceDrawer creates a new SourceSpaceDrawer object. Useful for storing
-// space drawing settings independently of a SourceView.
+// NewSpaceDrawer creates a new SourceSpaceDrawer object.
+//
+// Useful for storing space drawing settings independently of a view.
 //
 // The function returns the following values:
 //
-//    - spaceDrawer: new SourceSpaceDrawer.
+//   - spaceDrawer: new SourceSpaceDrawer.
 //
 func NewSpaceDrawer() *SpaceDrawer {
 	var _cret *C.GtkSourceSpaceDrawer // in
@@ -207,27 +263,27 @@ func NewSpaceDrawer() *SpaceDrawer {
 
 	var _spaceDrawer *SpaceDrawer // out
 
-	_spaceDrawer = wrapSpaceDrawer(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_spaceDrawer = wrapSpaceDrawer(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _spaceDrawer
 }
 
-// BindMatrixSetting binds the SourceSpaceDrawer:matrix property to a #GSettings
+// BindMatrixSetting binds the spacedrawer:matrix property to a gio.Settings
 // key.
 //
-// The #GSettings key must be of the same type as the SourceSpaceDrawer:matrix
+// The gio.Settings key must be of the same type as the spacedrawer:matrix
 // property, that is, "au".
 //
-// The g_settings_bind() function cannot be used, because the default GIO
-// mapping functions don't support #GVariant properties (maybe it will be
-// supported by a future GIO version, in which case this function can be
+// The gio.Settings.Bind() function cannot be used, because the default GIO
+// mapping functions don't support glib.Variant properties (maybe it will
+// be supported by a future GIO version, in which case this function can be
 // deprecated).
 //
 // The function takes the following parameters:
 //
-//    - settings #GSettings object.
-//    - key settings key to bind.
-//    - flags for the binding.
+//   - settings #GSettings object.
+//   - key settings key to bind.
+//   - flags for the binding.
 //
 func (drawer *SpaceDrawer) BindMatrixSetting(settings *gio.Settings, key string, flags gio.SettingsBindFlags) {
 	var _arg0 *C.GtkSourceSpaceDrawer // out
@@ -235,8 +291,8 @@ func (drawer *SpaceDrawer) BindMatrixSetting(settings *gio.Settings, key string,
 	var _arg2 *C.gchar                // out
 	var _arg3 C.GSettingsBindFlags    // out
 
-	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(externglib.InternObject(drawer).Native()))
-	_arg1 = (*C.GSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
+	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(coreglib.InternObject(drawer).Native()))
+	_arg1 = (*C.GSettings)(unsafe.Pointer(coreglib.InternObject(settings).Native()))
 	_arg2 = (*C.gchar)(unsafe.Pointer(C.CString(key)))
 	defer C.free(unsafe.Pointer(_arg2))
 	_arg3 = C.GSettingsBindFlags(flags)
@@ -250,13 +306,13 @@ func (drawer *SpaceDrawer) BindMatrixSetting(settings *gio.Settings, key string,
 
 // The function returns the following values:
 //
-//    - ok: whether the SourceSpaceDrawer:matrix property is enabled.
+//   - ok: whether the SourceSpaceDrawer:matrix property is enabled.
 //
 func (drawer *SpaceDrawer) EnableMatrix() bool {
 	var _arg0 *C.GtkSourceSpaceDrawer // out
 	var _cret C.gboolean              // in
 
-	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(externglib.InternObject(drawer).Native()))
+	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(coreglib.InternObject(drawer).Native()))
 
 	_cret = C.gtk_source_space_drawer_get_enable_matrix(_arg0)
 	runtime.KeepAlive(drawer)
@@ -270,22 +326,21 @@ func (drawer *SpaceDrawer) EnableMatrix() bool {
 	return _ok
 }
 
-// Matrix gets the value of the SourceSpaceDrawer:matrix property, as a
-// #GVariant. An empty array can be returned in case the matrix is a zero
-// matrix.
+// Matrix gets the value of the spacedrawer:matrix property, as a glib.Variant.
 //
-// The gtk_source_space_drawer_get_types_for_locations() function may be more
-// convenient to use.
+// An empty array can be returned in case the matrix is a zero matrix.
+//
+// The spacedrawer.GetTypesForLocations function may be more convenient to use.
 //
 // The function returns the following values:
 //
-//    - variant value as a new floating #GVariant instance.
+//   - variant value as a new floating #GVariant instance.
 //
 func (drawer *SpaceDrawer) Matrix() *glib.Variant {
 	var _arg0 *C.GtkSourceSpaceDrawer // out
 	var _cret *C.GVariant             // in
 
-	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(externglib.InternObject(drawer).Native()))
+	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(coreglib.InternObject(drawer).Native()))
 
 	_cret = C.gtk_source_space_drawer_get_matrix(_arg0)
 	runtime.KeepAlive(drawer)
@@ -304,28 +359,29 @@ func (drawer *SpaceDrawer) Matrix() *glib.Variant {
 }
 
 // TypesForLocations: if only one location is specified, this function returns
-// what kind of white spaces are drawn at that location. The value is retrieved
-// from the SourceSpaceDrawer:matrix property.
+// what kind of white spaces are drawn at that location.
 //
-// If several locations are specified, this function returns the logical AND for
-// those locations. Which means that if a certain kind of white space is present
-// in the return value, then that kind of white space is drawn at all the
-// specified locations.
+// The value is retrieved from the spacedrawer:matrix property.
+//
+// If several locations are specified, this function returns the logical AND
+// for those locations. Which means that if a certain kind of white space is
+// present in the return value, then that kind of white space is drawn at all
+// the specified locations.
 //
 // The function takes the following parameters:
 //
-//    - locations: one or several SourceSpaceLocationFlags.
+//   - locations: one or several SourceSpaceLocationFlags.
 //
 // The function returns the following values:
 //
-//    - spaceTypeFlags: combination of SourceSpaceTypeFlags.
+//   - spaceTypeFlags: combination of SourceSpaceTypeFlags.
 //
 func (drawer *SpaceDrawer) TypesForLocations(locations SpaceLocationFlags) SpaceTypeFlags {
 	var _arg0 *C.GtkSourceSpaceDrawer       // out
 	var _arg1 C.GtkSourceSpaceLocationFlags // out
 	var _cret C.GtkSourceSpaceTypeFlags     // in
 
-	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(externglib.InternObject(drawer).Native()))
+	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(coreglib.InternObject(drawer).Native()))
 	_arg1 = C.GtkSourceSpaceLocationFlags(locations)
 
 	_cret = C.gtk_source_space_drawer_get_types_for_locations(_arg0, _arg1)
@@ -339,18 +395,17 @@ func (drawer *SpaceDrawer) TypesForLocations(locations SpaceLocationFlags) Space
 	return _spaceTypeFlags
 }
 
-// SetEnableMatrix sets whether the SourceSpaceDrawer:matrix property is
-// enabled.
+// SetEnableMatrix sets whether the spacedrawer:matrix property is enabled.
 //
 // The function takes the following parameters:
 //
-//    - enableMatrix: new value.
+//   - enableMatrix: new value.
 //
 func (drawer *SpaceDrawer) SetEnableMatrix(enableMatrix bool) {
 	var _arg0 *C.GtkSourceSpaceDrawer // out
 	var _arg1 C.gboolean              // out
 
-	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(externglib.InternObject(drawer).Native()))
+	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(coreglib.InternObject(drawer).Native()))
 	if enableMatrix {
 		_arg1 = C.TRUE
 	}
@@ -360,23 +415,24 @@ func (drawer *SpaceDrawer) SetEnableMatrix(enableMatrix bool) {
 	runtime.KeepAlive(enableMatrix)
 }
 
-// SetMatrix sets a new value to the SourceSpaceDrawer:matrix property, as a
-// #GVariant. If matrix is NULL, then an empty array is set.
+// SetMatrix sets a new value to the spacedrawer:matrix property, as a
+// glib.Variant.
+//
+// If matrix is NULL, then an empty array is set.
 //
 // If matrix is floating, it is consumed.
 //
-// The gtk_source_space_drawer_set_types_for_locations() function may be more
-// convenient to use.
+// The spacedrawer.SetTypesForLocations function may be more convenient to use.
 //
 // The function takes the following parameters:
 //
-//    - matrix (optional): new matrix value, or NULL.
+//   - matrix (optional): new matrix value, or NULL.
 //
 func (drawer *SpaceDrawer) SetMatrix(matrix *glib.Variant) {
 	var _arg0 *C.GtkSourceSpaceDrawer // out
 	var _arg1 *C.GVariant             // out
 
-	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(externglib.InternObject(drawer).Native()))
+	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(coreglib.InternObject(drawer).Native()))
 	if matrix != nil {
 		_arg1 = (*C.GVariant)(gextras.StructNative(unsafe.Pointer(matrix)))
 	}
@@ -386,20 +442,20 @@ func (drawer *SpaceDrawer) SetMatrix(matrix *glib.Variant) {
 	runtime.KeepAlive(matrix)
 }
 
-// SetTypesForLocations modifies the SourceSpaceDrawer:matrix property at the
+// SetTypesForLocations modifies the spacedrawer:matrix property at the
 // specified locations.
 //
 // The function takes the following parameters:
 //
-//    - locations: one or several SourceSpaceLocationFlags.
-//    - types: combination of SourceSpaceTypeFlags.
+//   - locations: one or several SourceSpaceLocationFlags.
+//   - types: combination of SourceSpaceTypeFlags.
 //
 func (drawer *SpaceDrawer) SetTypesForLocations(locations SpaceLocationFlags, types SpaceTypeFlags) {
 	var _arg0 *C.GtkSourceSpaceDrawer       // out
 	var _arg1 C.GtkSourceSpaceLocationFlags // out
 	var _arg2 C.GtkSourceSpaceTypeFlags     // out
 
-	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(externglib.InternObject(drawer).Native()))
+	_arg0 = (*C.GtkSourceSpaceDrawer)(unsafe.Pointer(coreglib.InternObject(drawer).Native()))
 	_arg1 = C.GtkSourceSpaceLocationFlags(locations)
 	_arg2 = C.GtkSourceSpaceTypeFlags(types)
 
@@ -407,4 +463,14 @@ func (drawer *SpaceDrawer) SetTypesForLocations(locations SpaceLocationFlags, ty
 	runtime.KeepAlive(drawer)
 	runtime.KeepAlive(locations)
 	runtime.KeepAlive(types)
+}
+
+// SpaceDrawerClass: instance of this type is always passed by reference.
+type SpaceDrawerClass struct {
+	*spaceDrawerClass
+}
+
+// spaceDrawerClass is the struct that's finalized.
+type spaceDrawerClass struct {
+	native *C.GtkSourceSpaceDrawerClass
 }

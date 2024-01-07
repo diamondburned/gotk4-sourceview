@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdkpixbuf/v2"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 )
@@ -16,17 +17,23 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcegutterrendererpixbuf.go.
-var GTypeGutterRendererPixbuf = externglib.Type(C.gtk_source_gutter_renderer_pixbuf_get_type())
+// GType values.
+var (
+	GTypeGutterRendererPixbuf = coreglib.Type(C.gtk_source_gutter_renderer_pixbuf_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeGutterRendererPixbuf, F: marshalGutterRendererPixbuf},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeGutterRendererPixbuf, F: marshalGutterRendererPixbuf},
 	})
 }
 
-// GutterRendererPixbufOverrider contains methods that are overridable.
-type GutterRendererPixbufOverrider interface {
+// GutterRendererPixbufOverrides contains methods that are overridable.
+type GutterRendererPixbufOverrides struct {
+}
+
+func defaultGutterRendererPixbufOverrides(v *GutterRendererPixbuf) GutterRendererPixbufOverrides {
+	return GutterRendererPixbufOverrides{}
 }
 
 type GutterRendererPixbuf struct {
@@ -38,18 +45,26 @@ var (
 	_ GutterRendererer = (*GutterRendererPixbuf)(nil)
 )
 
-func classInitGutterRendererPixbuffer(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*GutterRendererPixbuf, *GutterRendererPixbufClass, GutterRendererPixbufOverrides](
+		GTypeGutterRendererPixbuf,
+		initGutterRendererPixbufClass,
+		wrapGutterRendererPixbuf,
+		defaultGutterRendererPixbufOverrides,
+	)
 }
 
-func wrapGutterRendererPixbuf(obj *externglib.Object) *GutterRendererPixbuf {
+func initGutterRendererPixbufClass(gclass unsafe.Pointer, overrides GutterRendererPixbufOverrides, classInitFunc func(*GutterRendererPixbufClass)) {
+	if classInitFunc != nil {
+		class := (*GutterRendererPixbufClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapGutterRendererPixbuf(obj *coreglib.Object) *GutterRendererPixbuf {
 	return &GutterRendererPixbuf{
 		GutterRenderer: GutterRenderer{
-			InitiallyUnowned: externglib.InitiallyUnowned{
+			InitiallyUnowned: coreglib.InitiallyUnowned{
 				Object: obj,
 			},
 		},
@@ -57,14 +72,14 @@ func wrapGutterRendererPixbuf(obj *externglib.Object) *GutterRendererPixbuf {
 }
 
 func marshalGutterRendererPixbuf(p uintptr) (interface{}, error) {
-	return wrapGutterRendererPixbuf(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapGutterRendererPixbuf(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // NewGutterRendererPixbuf: create a new SourceGutterRendererPixbuf.
 //
 // The function returns the following values:
 //
-//    - gutterRendererPixbuf: SourceGutterRenderer.
+//   - gutterRendererPixbuf: SourceGutterRenderer.
 //
 func NewGutterRendererPixbuf() *GutterRendererPixbuf {
 	var _cret *C.GtkSourceGutterRenderer // in
@@ -73,7 +88,7 @@ func NewGutterRendererPixbuf() *GutterRendererPixbuf {
 
 	var _gutterRendererPixbuf *GutterRendererPixbuf // out
 
-	_gutterRendererPixbuf = wrapGutterRendererPixbuf(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_gutterRendererPixbuf = wrapGutterRendererPixbuf(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _gutterRendererPixbuf
 }
@@ -82,13 +97,13 @@ func NewGutterRendererPixbuf() *GutterRendererPixbuf {
 //
 // The function returns the following values:
 //
-//    - icon: #GIcon.
+//   - icon: #GIcon.
 //
 func (renderer *GutterRendererPixbuf) GIcon() *gio.Icon {
 	var _arg0 *C.GtkSourceGutterRendererPixbuf // out
 	var _cret *C.GIcon                         // in
 
-	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	_cret = C.gtk_source_gutter_renderer_pixbuf_get_gicon(_arg0)
 	runtime.KeepAlive(renderer)
@@ -96,7 +111,7 @@ func (renderer *GutterRendererPixbuf) GIcon() *gio.Icon {
 	var _icon *gio.Icon // out
 
 	{
-		obj := externglib.Take(unsafe.Pointer(_cret))
+		obj := coreglib.Take(unsafe.Pointer(_cret))
 		_icon = &gio.Icon{
 			Object: obj,
 		}
@@ -111,7 +126,7 @@ func (renderer *GutterRendererPixbuf) IconName() string {
 	var _arg0 *C.GtkSourceGutterRendererPixbuf // out
 	var _cret *C.gchar                         // in
 
-	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	_cret = C.gtk_source_gutter_renderer_pixbuf_get_icon_name(_arg0)
 	runtime.KeepAlive(renderer)
@@ -127,13 +142,13 @@ func (renderer *GutterRendererPixbuf) IconName() string {
 //
 // The function returns the following values:
 //
-//    - pixbuf: Pixbuf.
+//   - pixbuf: Pixbuf.
 //
 func (renderer *GutterRendererPixbuf) Pixbuf() *gdkpixbuf.Pixbuf {
 	var _arg0 *C.GtkSourceGutterRendererPixbuf // out
 	var _cret *C.GdkPixbuf                     // in
 
-	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 
 	_cret = C.gtk_source_gutter_renderer_pixbuf_get_pixbuf(_arg0)
 	runtime.KeepAlive(renderer)
@@ -141,7 +156,7 @@ func (renderer *GutterRendererPixbuf) Pixbuf() *gdkpixbuf.Pixbuf {
 	var _pixbuf *gdkpixbuf.Pixbuf // out
 
 	{
-		obj := externglib.Take(unsafe.Pointer(_cret))
+		obj := coreglib.Take(unsafe.Pointer(_cret))
 		_pixbuf = &gdkpixbuf.Pixbuf{
 			Object: obj,
 			LoadableIcon: gio.LoadableIcon{
@@ -157,15 +172,15 @@ func (renderer *GutterRendererPixbuf) Pixbuf() *gdkpixbuf.Pixbuf {
 
 // The function takes the following parameters:
 //
-//    - icon (optional): icon, or NULL.
+//   - icon (optional): icon, or NULL.
 //
 func (renderer *GutterRendererPixbuf) SetGIcon(icon gio.Iconner) {
 	var _arg0 *C.GtkSourceGutterRendererPixbuf // out
 	var _arg1 *C.GIcon                         // out
 
-	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	if icon != nil {
-		_arg1 = (*C.GIcon)(unsafe.Pointer(externglib.InternObject(icon).Native()))
+		_arg1 = (*C.GIcon)(unsafe.Pointer(coreglib.InternObject(icon).Native()))
 	}
 
 	C.gtk_source_gutter_renderer_pixbuf_set_gicon(_arg0, _arg1)
@@ -175,13 +190,13 @@ func (renderer *GutterRendererPixbuf) SetGIcon(icon gio.Iconner) {
 
 // The function takes the following parameters:
 //
-//    - iconName (optional): icon name, or NULL.
+//   - iconName (optional): icon name, or NULL.
 //
 func (renderer *GutterRendererPixbuf) SetIconName(iconName string) {
 	var _arg0 *C.GtkSourceGutterRendererPixbuf // out
 	var _arg1 *C.gchar                         // out
 
-	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	if iconName != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(iconName)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -194,18 +209,29 @@ func (renderer *GutterRendererPixbuf) SetIconName(iconName string) {
 
 // The function takes the following parameters:
 //
-//    - pixbuf (optional): pixbuf, or NULL.
+//   - pixbuf (optional): pixbuf, or NULL.
 //
 func (renderer *GutterRendererPixbuf) SetPixbuf(pixbuf *gdkpixbuf.Pixbuf) {
 	var _arg0 *C.GtkSourceGutterRendererPixbuf // out
 	var _arg1 *C.GdkPixbuf                     // out
 
-	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(externglib.InternObject(renderer).Native()))
+	_arg0 = (*C.GtkSourceGutterRendererPixbuf)(unsafe.Pointer(coreglib.InternObject(renderer).Native()))
 	if pixbuf != nil {
-		_arg1 = (*C.GdkPixbuf)(unsafe.Pointer(externglib.InternObject(pixbuf).Native()))
+		_arg1 = (*C.GdkPixbuf)(unsafe.Pointer(coreglib.InternObject(pixbuf).Native()))
 	}
 
 	C.gtk_source_gutter_renderer_pixbuf_set_pixbuf(_arg0, _arg1)
 	runtime.KeepAlive(renderer)
 	runtime.KeepAlive(pixbuf)
+}
+
+// GutterRendererPixbufClass: instance of this type is always passed by
+// reference.
+type GutterRendererPixbufClass struct {
+	*gutterRendererPixbufClass
+}
+
+// gutterRendererPixbufClass is the struct that's finalized.
+type gutterRendererPixbufClass struct {
+	native *C.GtkSourceGutterRendererPixbufClass
 }

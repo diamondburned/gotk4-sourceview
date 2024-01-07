@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -15,43 +16,78 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcemap.go.
-var GTypeMap = externglib.Type(C.gtk_source_map_get_type())
+// GType values.
+var (
+	GTypeMap = coreglib.Type(C.gtk_source_map_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeMap, F: marshalMap},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeMap, F: marshalMap},
 	})
 }
 
-// MapOverrider contains methods that are overridable.
-type MapOverrider interface {
+// MapOverrides contains methods that are overridable.
+type MapOverrides struct {
 }
 
+func defaultMapOverrides(v *Map) MapOverrides {
+	return MapOverrides{}
+}
+
+// Map: widget that displays a map for a specific view.
+//
+// GtkSourceMap is a widget that maps the content of a view into a smaller view
+// so the user can have a quick overview of the whole document.
+//
+// This works by connecting a view to to the GtkSourceMap using the map:view
+// property or map.SetView.
+//
+// GtkSourceMap is a view object. This means that you can add a gutterrenderer
+// to a gutter in the same way you would for a view. One example might be a
+// gutterrenderer that shows which lines have changed in the document.
+//
+// Additionally, it is desirable to match the font of the GtkSourceMap and the
+// view used for editing. Therefore, map:font-desc should be used to set the
+// target font. You will need to adjust this to the desired font size for the
+// map. A 1pt font generally seems to be an appropriate font size. "Monospace 1"
+// is the default. See pango.FontDescription.SetSize() for how to alter the size
+// of an existing pango.FontDescription.
+//
+// When FontConfig is available, GtkSourceMap will try to use a bundled "block"
+// font to make the map more legible.
 type Map struct {
 	_ [0]func() // equal guard
 	View
 }
 
 var (
-	_ gtk.Widgetter       = (*Map)(nil)
-	_ externglib.Objector = (*Map)(nil)
+	_ gtk.Widgetter     = (*Map)(nil)
+	_ coreglib.Objector = (*Map)(nil)
 )
 
-func classInitMapper(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*Map, *MapClass, MapOverrides](
+		GTypeMap,
+		initMapClass,
+		wrapMap,
+		defaultMapOverrides,
+	)
 }
 
-func wrapMap(obj *externglib.Object) *Map {
+func initMapClass(gclass unsafe.Pointer, overrides MapOverrides, classInitFunc func(*MapClass)) {
+	if classInitFunc != nil {
+		class := (*MapClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapMap(obj *coreglib.Object) *Map {
 	return &Map{
 		View: View{
 			TextView: gtk.TextView{
 				Widget: gtk.Widget{
-					InitiallyUnowned: externglib.InitiallyUnowned{
+					InitiallyUnowned: coreglib.InitiallyUnowned{
 						Object: obj,
 					},
 					Object: obj,
@@ -75,14 +111,14 @@ func wrapMap(obj *externglib.Object) *Map {
 }
 
 func marshalMap(p uintptr) (interface{}, error) {
-	return wrapMap(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapMap(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
-// NewMap creates a new SourceMap.
+// NewMap creates a new GtkSourceMap.
 //
 // The function returns the following values:
 //
-//    - _map: new SourceMap.
+//   - _map: new SourceMap.
 //
 func NewMap() *Map {
 	var _cret *C.GtkWidget // in
@@ -91,23 +127,22 @@ func NewMap() *Map {
 
 	var __map *Map // out
 
-	__map = wrapMap(externglib.Take(unsafe.Pointer(_cret)))
+	__map = wrapMap(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return __map
 }
 
-// GetView gets the SourceMap:view property, which is the view this widget is
-// mapping.
+// GetView gets the map:view property, which is the view this widget is mapping.
 //
 // The function returns the following values:
 //
-//    - view (optional) or NULL.
+//   - view (optional) or NULL.
 //
 func (_map *Map) GetView() *View {
 	var _arg0 *C.GtkSourceMap  // out
 	var _cret *C.GtkSourceView // in
 
-	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(externglib.InternObject(_map).Native()))
+	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(coreglib.InternObject(_map).Native()))
 
 	_cret = C.gtk_source_map_get_view(_arg0)
 	runtime.KeepAlive(_map)
@@ -115,7 +150,7 @@ func (_map *Map) GetView() *View {
 	var _view *View // out
 
 	if _cret != nil {
-		_view = wrapView(externglib.Take(unsafe.Pointer(_cret)))
+		_view = wrapView(coreglib.Take(unsafe.Pointer(_cret)))
 	}
 
 	return _view
@@ -125,16 +160,33 @@ func (_map *Map) GetView() *View {
 //
 // The function takes the following parameters:
 //
-//    - view: SourceView.
+//   - view: SourceView.
 //
 func (_map *Map) SetView(view *View) {
 	var _arg0 *C.GtkSourceMap  // out
 	var _arg1 *C.GtkSourceView // out
 
-	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(externglib.InternObject(_map).Native()))
-	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(externglib.InternObject(view).Native()))
+	_arg0 = (*C.GtkSourceMap)(unsafe.Pointer(coreglib.InternObject(_map).Native()))
+	_arg1 = (*C.GtkSourceView)(unsafe.Pointer(coreglib.InternObject(view).Native()))
 
 	C.gtk_source_map_set_view(_arg0, _arg1)
 	runtime.KeepAlive(_map)
 	runtime.KeepAlive(view)
+}
+
+// MapClass: instance of this type is always passed by reference.
+type MapClass struct {
+	*mapClass
+}
+
+// mapClass is the struct that's finalized.
+type mapClass struct {
+	native *C.GtkSourceMapClass
+}
+
+func (m *MapClass) ParentClass() *ViewClass {
+	valptr := &m.native.parent_class
+	var _v *ViewClass // out
+	_v = (*ViewClass)(gextras.NewStructNative(unsafe.Pointer(valptr)))
+	return _v
 }

@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	externglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/core/gextras"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 )
 
 // #include <stdlib.h>
@@ -14,51 +15,69 @@ import (
 // #include <gtksourceview/gtksource.h>
 import "C"
 
-// glib.Type values for gtksourcesearchsettings.go.
-var GTypeSearchSettings = externglib.Type(C.gtk_source_search_settings_get_type())
+// GType values.
+var (
+	GTypeSearchSettings = coreglib.Type(C.gtk_source_search_settings_get_type())
+)
 
 func init() {
-	externglib.RegisterGValueMarshalers([]externglib.TypeMarshaler{
-		{T: GTypeSearchSettings, F: marshalSearchSettings},
+	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeSearchSettings, F: marshalSearchSettings},
 	})
 }
 
-// SearchSettingsOverrider contains methods that are overridable.
-type SearchSettingsOverrider interface {
+// SearchSettingsOverrides contains methods that are overridable.
+type SearchSettingsOverrides struct {
 }
 
+func defaultSearchSettingsOverrides(v *SearchSettings) SearchSettingsOverrides {
+	return SearchSettingsOverrides{}
+}
+
+// SearchSettings: search settings.
+//
+// A GtkSourceSearchSettings object represents the settings of a search.
+// The search settings can be associated with one or several searchcontexts.
 type SearchSettings struct {
 	_ [0]func() // equal guard
-	*externglib.Object
+	*coreglib.Object
 }
 
 var (
-	_ externglib.Objector = (*SearchSettings)(nil)
+	_ coreglib.Objector = (*SearchSettings)(nil)
 )
 
-func classInitSearchSettingser(gclassPtr, data C.gpointer) {
-	C.g_type_class_add_private(gclassPtr, C.gsize(unsafe.Sizeof(uintptr(0))))
-
-	goffset := C.g_type_class_get_instance_private_offset(gclassPtr)
-	*(*C.gpointer)(unsafe.Add(unsafe.Pointer(gclassPtr), goffset)) = data
-
+func init() {
+	coreglib.RegisterClassInfo[*SearchSettings, *SearchSettingsClass, SearchSettingsOverrides](
+		GTypeSearchSettings,
+		initSearchSettingsClass,
+		wrapSearchSettings,
+		defaultSearchSettingsOverrides,
+	)
 }
 
-func wrapSearchSettings(obj *externglib.Object) *SearchSettings {
+func initSearchSettingsClass(gclass unsafe.Pointer, overrides SearchSettingsOverrides, classInitFunc func(*SearchSettingsClass)) {
+	if classInitFunc != nil {
+		class := (*SearchSettingsClass)(gextras.NewStructNative(gclass))
+		classInitFunc(class)
+	}
+}
+
+func wrapSearchSettings(obj *coreglib.Object) *SearchSettings {
 	return &SearchSettings{
 		Object: obj,
 	}
 }
 
 func marshalSearchSettings(p uintptr) (interface{}, error) {
-	return wrapSearchSettings(externglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
+	return wrapSearchSettings(coreglib.ValueFromNative(unsafe.Pointer(p)).Object()), nil
 }
 
 // NewSearchSettings creates a new search settings object.
 //
 // The function returns the following values:
 //
-//    - searchSettings: new search settings object.
+//   - searchSettings: new search settings object.
 //
 func NewSearchSettings() *SearchSettings {
 	var _cret *C.GtkSourceSearchSettings // in
@@ -67,20 +86,20 @@ func NewSearchSettings() *SearchSettings {
 
 	var _searchSettings *SearchSettings // out
 
-	_searchSettings = wrapSearchSettings(externglib.AssumeOwnership(unsafe.Pointer(_cret)))
+	_searchSettings = wrapSearchSettings(coreglib.AssumeOwnership(unsafe.Pointer(_cret)))
 
 	return _searchSettings
 }
 
 // The function returns the following values:
 //
-//    - ok: whether to search at word boundaries.
+//   - ok: whether to search at word boundaries.
 //
 func (settings *SearchSettings) AtWordBoundaries() bool {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(coreglib.InternObject(settings).Native()))
 
 	_cret = C.gtk_source_search_settings_get_at_word_boundaries(_arg0)
 	runtime.KeepAlive(settings)
@@ -96,13 +115,13 @@ func (settings *SearchSettings) AtWordBoundaries() bool {
 
 // The function returns the following values:
 //
-//    - ok: whether the search is case sensitive.
+//   - ok: whether the search is case sensitive.
 //
 func (settings *SearchSettings) CaseSensitive() bool {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(coreglib.InternObject(settings).Native()))
 
 	_cret = C.gtk_source_search_settings_get_case_sensitive(_arg0)
 	runtime.KeepAlive(settings)
@@ -118,13 +137,13 @@ func (settings *SearchSettings) CaseSensitive() bool {
 
 // The function returns the following values:
 //
-//    - ok: whether to search by regular expressions.
+//   - ok: whether to search by regular expressions.
 //
 func (settings *SearchSettings) RegexEnabled() bool {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(coreglib.InternObject(settings).Native()))
 
 	_cret = C.gtk_source_search_settings_get_regex_enabled(_arg0)
 	runtime.KeepAlive(settings)
@@ -138,20 +157,21 @@ func (settings *SearchSettings) RegexEnabled() bool {
 	return _ok
 }
 
-// SearchText gets the text to search. The return value must not be freed.
+// SearchText gets the text to search.
 //
-// You may be interested to call gtk_source_utils_escape_search_text() after
-// this function.
+// The return value must not be freed.
+//
+// You may be interested to call utils_escape_search_text after this function.
 //
 // The function returns the following values:
 //
-//    - utf8 (optional): text to search, or NULL if the search is disabled.
+//   - utf8 (optional): text to search, or NULL if the search is disabled.
 //
 func (settings *SearchSettings) SearchText() string {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _cret *C.gchar                   // in
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(coreglib.InternObject(settings).Native()))
 
 	_cret = C.gtk_source_search_settings_get_search_text(_arg0)
 	runtime.KeepAlive(settings)
@@ -167,13 +187,13 @@ func (settings *SearchSettings) SearchText() string {
 
 // The function returns the following values:
 //
-//    - ok: whether to wrap around the search.
+//   - ok: whether to wrap around the search.
 //
 func (settings *SearchSettings) WrapAround() bool {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _cret C.gboolean                 // in
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(coreglib.InternObject(settings).Native()))
 
 	_cret = C.gtk_source_search_settings_get_wrap_around(_arg0)
 	runtime.KeepAlive(settings)
@@ -187,20 +207,21 @@ func (settings *SearchSettings) WrapAround() bool {
 	return _ok
 }
 
-// SetAtWordBoundaries: change whether the search is done at word boundaries. If
-// at_word_boundaries is TRUE, a search match must start and end a word. The
-// match can span multiple words. See also gtk_text_iter_starts_word() and
-// gtk_text_iter_ends_word().
+// SetAtWordBoundaries: change whether the search is done at word boundaries.
+//
+// If at_word_boundaries is TRUE, a search match must start and end a word.
+// The match can span multiple words. See also gtk.TextIter.StartsWord() and
+// gtk.TextIter.EndsWord().
 //
 // The function takes the following parameters:
 //
-//    - atWordBoundaries: setting.
+//   - atWordBoundaries: setting.
 //
 func (settings *SearchSettings) SetAtWordBoundaries(atWordBoundaries bool) {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _arg1 C.gboolean                 // out
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(coreglib.InternObject(settings).Native()))
 	if atWordBoundaries {
 		_arg1 = C.TRUE
 	}
@@ -214,13 +235,13 @@ func (settings *SearchSettings) SetAtWordBoundaries(atWordBoundaries bool) {
 //
 // The function takes the following parameters:
 //
-//    - caseSensitive: setting.
+//   - caseSensitive: setting.
 //
 func (settings *SearchSettings) SetCaseSensitive(caseSensitive bool) {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _arg1 C.gboolean                 // out
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(coreglib.InternObject(settings).Native()))
 	if caseSensitive {
 		_arg1 = C.TRUE
 	}
@@ -231,23 +252,24 @@ func (settings *SearchSettings) SetCaseSensitive(caseSensitive bool) {
 }
 
 // SetRegexEnabled enables or disables whether to search by regular expressions.
-// If enabled, the SourceSearchSettings:search-text property contains the
-// pattern of the regular expression.
 //
-// SourceSearchContext uses #GRegex when regex search is enabled. See the
-// Regular expression syntax
+// If enabled, the searchsettings:search-text property contains the pattern of
+// the regular expression.
+//
+// searchcontext uses #GRegex when regex search
+// is enabled. See the Regular expression syntax
 // (https://developer.gnome.org/glib/stable/glib-regex-syntax.html) page in the
 // GLib reference manual.
 //
 // The function takes the following parameters:
 //
-//    - regexEnabled: setting.
+//   - regexEnabled: setting.
 //
 func (settings *SearchSettings) SetRegexEnabled(regexEnabled bool) {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _arg1 C.gboolean                 // out
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(coreglib.InternObject(settings).Native()))
 	if regexEnabled {
 		_arg1 = C.TRUE
 	}
@@ -257,23 +279,25 @@ func (settings *SearchSettings) SetRegexEnabled(regexEnabled bool) {
 	runtime.KeepAlive(regexEnabled)
 }
 
-// SetSearchText sets the text to search. If search_text is NULL or is empty,
-// the search will be disabled. A copy of search_text will be made, so you can
-// safely free search_text after a call to this function.
+// SetSearchText sets the text to search.
 //
-// You may be interested to call gtk_source_utils_unescape_search_text() before
+// If search_text is NULL or is empty, the search will be disabled. A copy of
+// search_text will be made, so you can safely free search_text after a call to
 // this function.
+//
+// You may be interested to call utils_unescape_search_text before this
+// function.
 //
 // The function takes the following parameters:
 //
-//    - searchText (optional): nul-terminated text to search, or NULL to disable
-//      the search.
+//   - searchText (optional): nul-terminated text to search, or NULL to disable
+//     the search.
 //
 func (settings *SearchSettings) SetSearchText(searchText string) {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _arg1 *C.gchar                   // out
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(coreglib.InternObject(settings).Native()))
 	if searchText != "" {
 		_arg1 = (*C.gchar)(unsafe.Pointer(C.CString(searchText)))
 		defer C.free(unsafe.Pointer(_arg1))
@@ -284,20 +308,21 @@ func (settings *SearchSettings) SetSearchText(searchText string) {
 	runtime.KeepAlive(searchText)
 }
 
-// SetWrapAround enables or disables the wrap around search. If wrap_around is
-// TRUE, the forward search continues at the beginning of the buffer if no
-// search occurrences are found. Similarly, the backward search continues to
-// search at the end of the buffer.
+// SetWrapAround enables or disables the wrap around search.
+//
+// If wrap_around is TRUE, the forward search continues at the beginning of the
+// buffer if no search occurrences are found. Similarly, the backward search
+// continues to search at the end of the buffer.
 //
 // The function takes the following parameters:
 //
-//    - wrapAround: setting.
+//   - wrapAround: setting.
 //
 func (settings *SearchSettings) SetWrapAround(wrapAround bool) {
 	var _arg0 *C.GtkSourceSearchSettings // out
 	var _arg1 C.gboolean                 // out
 
-	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(externglib.InternObject(settings).Native()))
+	_arg0 = (*C.GtkSourceSearchSettings)(unsafe.Pointer(coreglib.InternObject(settings).Native()))
 	if wrapAround {
 		_arg1 = C.TRUE
 	}
@@ -305,4 +330,14 @@ func (settings *SearchSettings) SetWrapAround(wrapAround bool) {
 	C.gtk_source_search_settings_set_wrap_around(_arg0, _arg1)
 	runtime.KeepAlive(settings)
 	runtime.KeepAlive(wrapAround)
+}
+
+// SearchSettingsClass: instance of this type is always passed by reference.
+type SearchSettingsClass struct {
+	*searchSettingsClass
+}
+
+// searchSettingsClass is the struct that's finalized.
+type searchSettingsClass struct {
+	native *C.GtkSourceSearchSettingsClass
 }
