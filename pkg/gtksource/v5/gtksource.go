@@ -12,7 +12,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 )
 
-// #cgo pkg-config: gtksourceview-5
+// #cgo pkg-config: gtksourceview-5 libpcre2-8
 // #cgo CFLAGS: -Wno-deprecated-declarations
 // #include <stdlib.h>
 // #include <glib-object.h>

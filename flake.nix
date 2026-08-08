@@ -29,6 +29,7 @@
                 gtksourceview3
                 gtksourceview4
                 gtksourceview5
+                pcre2 # propagated from gtksourceview5
               ];
           };
           pkgs = import nixpkgs-gotk4 {

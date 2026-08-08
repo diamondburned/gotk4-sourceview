@@ -1,6 +1,7 @@
 package gensourceview
 
 import (
+	"github.com/diamondburned/gotk4/gir"
 	"github.com/diamondburned/gotk4/gir/cmd/gir-generate/genmain"
 	"github.com/diamondburned/gotk4/gir/girgen/types"
 )
@@ -21,6 +22,14 @@ var Data = genmain.Data{
 		"go.mod",
 		"go.sum",
 		"LICENSE",
+	},
+	Preprocessors: []types.Preprocessor{
+		types.PreprocessorFunc(func(repos gir.Repositories) {
+			// CC=clang fails to link without explicitly adding this to
+			// pkg-config for the linker flags.
+			repo := repos.FromGIRFile("GtkSource-5.gir")
+			repo.Packages = append(repo.Packages, gir.Package{Name: "libpcre2-8"})
+		}),
 	},
 	Filters: []types.FilterMatcher{
 		// /nix/store/kmqs0wll31ylwbqkpmlgbjrn6ny3myik-binutils-2.35.1/bin/ld: $WORK/b069/_x006.o: in function `_cgo_f791a2727c11_Cfunc_gtk_source_completion_context_get_start_iter':
