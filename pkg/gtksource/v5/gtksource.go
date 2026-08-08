@@ -21,6 +21,7 @@ import "C"
 
 // GType values.
 var (
+	GTypeAnnotationStyle       = coreglib.Type(C.gtk_source_annotation_style_get_type())
 	GTypeBackgroundPatternType = coreglib.Type(C.gtk_source_background_pattern_type_get_type())
 	GTypeBracketMatchType      = coreglib.Type(C.gtk_source_bracket_match_type_get_type())
 	GTypeChangeCaseType        = coreglib.Type(C.gtk_source_change_case_type_get_type())
@@ -35,6 +36,7 @@ var (
 
 func init() {
 	coreglib.RegisterGValueMarshalers([]coreglib.TypeMarshaler{
+		coreglib.TypeMarshaler{T: GTypeAnnotationStyle, F: marshalAnnotationStyle},
 		coreglib.TypeMarshaler{T: GTypeBackgroundPatternType, F: marshalBackgroundPatternType},
 		coreglib.TypeMarshaler{T: GTypeBracketMatchType, F: marshalBracketMatchType},
 		coreglib.TypeMarshaler{T: GTypeChangeCaseType, F: marshalChangeCaseType},
@@ -46,6 +48,42 @@ func init() {
 		coreglib.TypeMarshaler{T: GTypeViewGutterPosition, F: marshalViewGutterPosition},
 		coreglib.TypeMarshaler{T: GTypeSortFlags, F: marshalSortFlags},
 	})
+}
+
+type AnnotationStyle C.gint
+
+const (
+	// SourceAnnotationStyleNone: same color as drawn spaces.
+	SourceAnnotationStyleNone AnnotationStyle = iota
+	// SourceAnnotationStyleWarning: same as the diff:changed-line foreground
+	// color.
+	SourceAnnotationStyleWarning
+	// SourceAnnotationStyleError: same as the diff:removed-line foreground
+	// color.
+	SourceAnnotationStyleError
+	// SourceAnnotationStyleAccent: same as the diff:added-line foreground
+	// color.
+	SourceAnnotationStyleAccent
+)
+
+func marshalAnnotationStyle(p uintptr) (interface{}, error) {
+	return AnnotationStyle(coreglib.ValueFromNative(unsafe.Pointer(p)).Enum()), nil
+}
+
+// String returns the name in string for AnnotationStyle.
+func (a AnnotationStyle) String() string {
+	switch a {
+	case SourceAnnotationStyleNone:
+		return "None"
+	case SourceAnnotationStyleWarning:
+		return "Warning"
+	case SourceAnnotationStyleError:
+		return "Error"
+	case SourceAnnotationStyleAccent:
+		return "Accent"
+	default:
+		return fmt.Sprintf("AnnotationStyle(%d)", a)
+	}
 }
 
 type BackgroundPatternType C.gint
@@ -354,6 +392,10 @@ const (
 	SourceSortFlagsReverseOrder SortFlags = 0b10
 	// SourceSortFlagsRemoveDuplicates: remove duplicates.
 	SourceSortFlagsRemoveDuplicates SortFlags = 0b100
+	// SourceSortFlagsFilename: improved sorting for filenames.
+	//
+	// see glib.UTF8CollateKeyForFilename().
+	SourceSortFlagsFilename SortFlags = 0b1000
 )
 
 func marshalSortFlags(p uintptr) (interface{}, error) {
@@ -367,7 +409,7 @@ func (s SortFlags) String() string {
 	}
 
 	var builder strings.Builder
-	builder.Grow(108)
+	builder.Grow(132)
 
 	for s != 0 {
 		next := s & (s - 1)
@@ -382,6 +424,8 @@ func (s SortFlags) String() string {
 			builder.WriteString("ReverseOrder|")
 		case SourceSortFlagsRemoveDuplicates:
 			builder.WriteString("RemoveDuplicates|")
+		case SourceSortFlagsFilename:
+			builder.WriteString("Filename|")
 		default:
 			builder.WriteString(fmt.Sprintf("SortFlags(0b%b)|", bit))
 		}

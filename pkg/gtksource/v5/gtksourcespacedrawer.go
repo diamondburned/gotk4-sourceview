@@ -203,6 +203,24 @@ func defaultSpaceDrawerOverrides(v *SpaceDrawer) SpaceDrawerOverrides {
 //
 //	gtk_source_space_drawer_set_enable_matrix (space_drawer, TRUE);
 //
+//
+//
+//
+//	space_drawer.set_types_for_locations(
+//	    locations=GtkSource.SpaceLocationFlags.ALL,
+//	    types=GtkSource.SpaceTypeFlags.NBSP,
+//	)
+//
+//	all_types_except_newline = GtkSource.SpaceTypeFlags(
+//	    int(GtkSource.SpaceTypeFlags.ALL) & ~int(GtkSource.SpaceTypeFlags.NEWLINE)
+//	)
+//	space_drawer.set_types_for_locations(
+//	    locations=GtkSource.SpaceLocationFlags.TRAILING,
+//	    types=all_types_except_newline,
+//	)
+//
+//	space_drawer.set_enable_matrix(True)
+//
 // Use-case: draw unwanted white spaces
 //
 // A possible use-case is to draw only unwanted white spaces. Examples:

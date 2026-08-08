@@ -21,6 +21,9 @@ func Finalize() {
 //
 // This function can be called several times, but is meant to be called at the
 // beginning of main(), before any other GtkSourceView function call.
+//
+// The counterpart to this function is finalize which can be convenient when
+// using memory debugging tools.
 func Init() {
 	C.gtk_source_init()
 }

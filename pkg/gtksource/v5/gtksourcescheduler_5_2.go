@@ -22,31 +22,8 @@ import "C"
 // background work such as spell checking or semantic syntax highlighting.
 type SchedulerCallback func(deadline int64) (ok bool)
 
-// SchedulerAdd: simplified version of scheduler_add_full.
-//
-// The function takes the following parameters:
-//
-//   - callback to execute.
-func SchedulerAdd(callback SchedulerCallback) uint {
-	var _arg1 C.GtkSourceSchedulerCallback // out
-	var _arg2 C.gpointer
-	var _cret C.gsize // in
-
-	_arg1 = (*[0]byte)(C._gotk4_gtksource5_SchedulerCallback)
-	_arg2 = C.gpointer(gbox.AssignOnce(callback))
-
-	_cret = C.gtk_source_scheduler_add(_arg1, _arg2)
-	runtime.KeepAlive(callback)
-
-	var _gsize uint // out
-
-	_gsize = uint(_cret)
-
-	return _gsize
-}
-
-// SchedulerAddFull adds a new callback that will be executed as time permits on
-// the main thread.
+// SchedulerAdd adds a new callback that will be executed as time permits on the
+// main thread.
 //
 // This is useful when you need to do a lot of background work but want to do it
 // incrementally.
@@ -59,7 +36,7 @@ func SchedulerAdd(callback SchedulerCallback) uint {
 // The function takes the following parameters:
 //
 //   - callback to execute.
-func SchedulerAddFull(callback SchedulerCallback) uint {
+func SchedulerAdd(callback SchedulerCallback) uint {
 	var _arg1 C.GtkSourceSchedulerCallback // out
 	var _arg2 C.gpointer
 	var _arg3 C.GDestroyNotify

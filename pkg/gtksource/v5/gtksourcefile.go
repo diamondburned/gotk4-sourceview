@@ -155,7 +155,7 @@ func (file *File) Encoding() *Encoding {
 
 // The function returns the following values:
 //
-//   - ret: #GFile.
+//   - ret (optional): #GFile.
 func (file *File) Location() *gio.File {
 	var _arg0 *C.GtkSourceFile // out
 	var _cret *C.GFile         // in
@@ -167,10 +167,12 @@ func (file *File) Location() *gio.File {
 
 	var _ret *gio.File // out
 
-	{
-		obj := coreglib.Take(unsafe.Pointer(_cret))
-		_ret = &gio.File{
-			Object: obj,
+	if _cret != nil {
+		{
+			obj := coreglib.Take(unsafe.Pointer(_cret))
+			_ret = &gio.File{
+				Object: obj,
+			}
 		}
 	}
 

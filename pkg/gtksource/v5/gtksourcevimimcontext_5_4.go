@@ -81,7 +81,34 @@ func defaultVimIMContextOverrides(v *VimIMContext) VimIMContextOverrides {
 //	gtk_im_context_set_client_widget (im_context, view);
 //
 //	g_object_bind_property (im_context, "command-bar-text", command_bar_label, "label", 0);
-//	g_object_bind_property (im_context, "command-text", command_label, "label", 0);.
+//	g_object_bind_property (im_context, "command-text", command_label, "label", 0);
+//
+//
+//
+//
+//	key = Gtk.EventControllerKey.new()
+//	im_context = GtkSource.VimIMContext.new()
+//	buffer = GtkSource.Buffer()
+//	view = GtkSource.View.new_with_buffer(buffer)
+//
+//	key.set_im_context(im_context)
+//	key.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+//	view.add_controller(key)
+//	im_context.set_client_widget(view)
+//
+//	im_context.bind_property(
+//	    source_property="command-text",
+//	    target=command_label,
+//	    target_property="label",
+//	    flags=GObject.BindingFlags.DEFAULT,
+//	)
+//
+//	im_context.bind_property(
+//	    source_property="command-bar-text",
+//	    target=command_bar_label,
+//	    target_property="label",
+//	    flags=GObject.BindingFlags.DEFAULT,
+//	).
 type VimIMContext struct {
 	_ [0]func() // equal guard
 	gtk.IMContext

@@ -139,25 +139,31 @@ func (self *HoverContext) Buffer() *Buffer {
 	return _buffer
 }
 
-func (self *HoverContext) Iter(iter *gtk.TextIter) bool {
+// Iter gets the location of the pointer where the request was made.
+//
+// The function returns the following values:
+//
+//   - iter: TextIter.
+//   - ok: TRUE if the mark is still valid and iter was set.
+func (self *HoverContext) Iter() (*gtk.TextIter, bool) {
 	var _arg0 *C.GtkSourceHoverContext // out
-	var _arg1 *C.GtkTextIter           // out
+	var _arg1 C.GtkTextIter            // in
 	var _cret C.gboolean               // in
 
 	_arg0 = (*C.GtkSourceHoverContext)(unsafe.Pointer(coreglib.InternObject(self).Native()))
-	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(iter)))
 
-	_cret = C.gtk_source_hover_context_get_iter(_arg0, _arg1)
+	_cret = C.gtk_source_hover_context_get_iter(_arg0, &_arg1)
 	runtime.KeepAlive(self)
-	runtime.KeepAlive(iter)
 
-	var _ok bool // out
+	var _iter *gtk.TextIter // out
+	var _ok bool            // out
 
+	_iter = (*gtk.TextIter)(gextras.NewStructNative(unsafe.Pointer((&_arg1))))
 	if _cret != 0 {
 		_ok = true
 	}
 
-	return _ok
+	return _iter, _ok
 }
 
 // The function returns the following values:

@@ -236,6 +236,13 @@ func (lm *LanguageManager) SearchPath() []string {
 //	lang = gtk_source_language_manager_guess_language (manager, filename, NULL);
 //	gtk_source_buffer_set_language (buffer, lang);
 //
+//
+//
+//
+//	manager = GtkSource.LanguageManager.get_default()
+//	language = manager.guess_language(filename=filename, content_type=None)
+//	buffer.set_language(language=language)
+//
 // or
 //
 //	GtkSourceLanguage *lang = NULL;
@@ -255,6 +262,17 @@ func (lm *LanguageManager) SearchPath() []string {
 //	gtk_source_buffer_set_language (buffer, lang);
 //
 //	g_free (content_type);
+//
+//
+//
+//
+//	content_type, uncertain = Gio.content_type_guess(filename=filename, data=None)
+//	if uncertain:
+//	    content_type = None
+//
+//	manager = GtkSource.LanguageManager.get_default()
+//	language = manager.guess_language(filename=filename, content_type=content_type)
+//	buffer.set_language(language=language)
 //
 // etc. Use language.GetMIMETypes and language.GetGlobs if you need full control
 // over file -> language mapping.

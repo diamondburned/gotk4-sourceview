@@ -133,14 +133,20 @@ func defaultViewOverrides(v *View) ViewOverrides {
 // manner that allows for components like map to scale the desired font.
 //
 //	GtkCssProvider *provider = gtk_css_provider_new ();
-//	gtk_css_provider_load_from_data (provider,
-//	                                 "textview { font-family: Monospace; font-size: 8pt; }",
-//	                                 -1,
-//	                                 NULL);
+//	gtk_css_provider_load_from_string (provider,
+//	                                  "textview { font-family: Monospace; font-size: 8pt; }");
 //	gtk_style_context_add_provider (gtk_widget_get_style_context (view),
 //	                                GTK_STYLE_PROVIDER (provider),
 //	                                GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 //	g_object_unref (provider);
+//
+//
+//
+//
+//	provider = Gtk.CssProvider()
+//	provider.load_from_string("textview { font-family: Monospace; font-size: 8pt; }")
+//	style_context = view.get_style_context()
+//	style_context.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 //
 // If you need to adjust the font or size of font within a portion of the
 // document only, you should use a gtk.TextTag with the gtk.TextTag:family or
@@ -354,6 +360,30 @@ func NewViewWithBuffer(buffer *Buffer) *View {
 	_view = wrapView(coreglib.Take(unsafe.Pointer(_cret)))
 
 	return _view
+}
+
+// Annotations gets the annotations associated with view.
+//
+// The returned object is guaranteed to be the same for the lifetime of view.
+// Each view object has a different annotations.
+//
+// The function returns the following values:
+//
+//   - annotations associated with view.
+func (view *View) Annotations() *Annotations {
+	var _arg0 *C.GtkSourceView        // out
+	var _cret *C.GtkSourceAnnotations // in
+
+	_arg0 = (*C.GtkSourceView)(unsafe.Pointer(coreglib.InternObject(view).Native()))
+
+	_cret = C.gtk_source_view_get_annotations(_arg0)
+	runtime.KeepAlive(view)
+
+	var _annotations *Annotations // out
+
+	_annotations = wrapAnnotations(coreglib.Take(unsafe.Pointer(_cret)))
+
+	return _annotations
 }
 
 // AutoIndent returns whether auto-indentation of text is enabled.

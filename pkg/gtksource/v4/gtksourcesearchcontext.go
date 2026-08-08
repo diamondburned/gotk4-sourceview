@@ -709,7 +709,7 @@ func (s *SearchContextClass) Padding() [10]unsafe.Pointer {
 	valptr := &s.native.padding
 	var _v [10]unsafe.Pointer // out
 	{
-		src := &*valptr
+		src := unsafe.Slice(&(*valptr)[0], 10)
 		for i := 0; i < 10; i++ {
 			_v[i] = (unsafe.Pointer)(unsafe.Pointer(src[i]))
 		}

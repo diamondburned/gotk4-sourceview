@@ -5,15 +5,88 @@ package gtksource
 import (
 	"unsafe"
 
+	"github.com/diamondburned/gotk4/pkg/core/gerror"
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
+	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
 // #include <stdlib.h>
 // #include <gtksourceview/gtksource.h>
 import "C"
+
+//export _gotk4_gtksource5_AnnotationProviderClass_populate_hover_finish
+func _gotk4_gtksource5_AnnotationProviderClass_populate_hover_finish(arg0 *C.GtkSourceAnnotationProvider, arg1 *C.GAsyncResult, _cerr **C.GError) (cret C.gboolean) {
+	instance0 := coreglib.Take(unsafe.Pointer(arg0))
+	overrides := coreglib.OverridesFromObj[AnnotationProviderOverrides](instance0)
+	if overrides.PopulateHoverFinish == nil {
+		panic("gotk4: " + instance0.TypeFromInstance().String() + ": expected AnnotationProviderOverrides.PopulateHoverFinish, got none")
+	}
+
+	var _result gio.AsyncResulter // out
+
+	{
+		objptr := unsafe.Pointer(arg1)
+		if objptr == nil {
+			panic("object of type gio.AsyncResulter is nil")
+		}
+
+		object := coreglib.Take(objptr)
+		casted := object.WalkCast(func(obj coreglib.Objector) bool {
+			_, ok := obj.(gio.AsyncResulter)
+			return ok
+		})
+		rv, ok := casted.(gio.AsyncResulter)
+		if !ok {
+			panic("no marshaler for " + object.TypeFromInstance().String() + " matching gio.AsyncResulter")
+		}
+		_result = rv
+	}
+
+	_goerr := overrides.PopulateHoverFinish(_result)
+
+	var _ error
+
+	if _goerr != nil && _cerr != nil {
+		*_cerr = (*C.GError)(gerror.New(_goerr))
+	}
+
+	return cret
+}
+
+//export _gotk4_gtksource5_AnnotationProvider_ConnectChanged
+func _gotk4_gtksource5_AnnotationProvider_ConnectChanged(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := coreglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
+}
+
+//export _gotk4_gtksource5_Annotations_ConnectChanged
+func _gotk4_gtksource5_Annotations_ConnectChanged(arg0 C.gpointer, arg1 C.guintptr) {
+	var f func()
+	{
+		closure := coreglib.ConnectedGeneratedClosure(uintptr(arg1))
+		if closure == nil {
+			panic("given unknown closure user_data")
+		}
+		defer closure.TryRepanic()
+
+		f = closure.Func.(func())
+	}
+
+	f()
+}
 
 //export _gotk4_gtksource5_BufferClass_bracket_matched
 func _gotk4_gtksource5_BufferClass_bracket_matched(arg0 *C.GtkSourceBuffer, arg1 *C.GtkTextIter, arg2 C.GtkSourceBracketMatchType) {

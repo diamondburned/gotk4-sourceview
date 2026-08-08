@@ -229,6 +229,44 @@ func (lines *GutterLines) Last() uint {
 	return _guint
 }
 
+// LineExtent gets the Y range for a line based on mode.
+//
+// The value for y is relative to the renderers widget coordinates.
+//
+// The function takes the following parameters:
+//
+//   - line number starting from zero.
+//   - mode: SourceGutterRendererAlignmentMode.
+//
+// The function returns the following values:
+//
+//   - y: location for the Y position in widget coordinates.
+//   - height: line height based on mode.
+func (lines *GutterLines) LineExtent(line uint, mode GutterRendererAlignmentMode) (y, height float64) {
+	var _arg0 *C.GtkSourceGutterLines                // out
+	var _arg1 C.guint                                // out
+	var _arg2 C.GtkSourceGutterRendererAlignmentMode // out
+	var _arg3 C.double                               // in
+	var _arg4 C.double                               // in
+
+	_arg0 = (*C.GtkSourceGutterLines)(unsafe.Pointer(coreglib.InternObject(lines).Native()))
+	_arg1 = C.guint(line)
+	_arg2 = C.GtkSourceGutterRendererAlignmentMode(mode)
+
+	C.gtk_source_gutter_lines_get_line_extent(_arg0, _arg1, _arg2, &_arg3, &_arg4)
+	runtime.KeepAlive(lines)
+	runtime.KeepAlive(line)
+	runtime.KeepAlive(mode)
+
+	var _y float64      // out
+	var _height float64 // out
+
+	_y = float64(_arg3)
+	_height = float64(_arg4)
+
+	return _y, _height
+}
+
 // LineYrange gets the Y range for a line based on mode.
 //
 // The value for y is relative to the renderers widget coordinates.

@@ -18,12 +18,12 @@ const MAJOR_VERSION = 5
 // MICRO_VERSION: like gtk_source_get_micro_version(), but from the headers used
 // at application compile time, rather than from the library linked against at
 // application run time.
-const MICRO_VERSION = 1
+const MICRO_VERSION = 0
 
 // MINOR_VERSION: like gtk_source_get_minor_version(), but from the headers used
 // at application compile time, rather than from the library linked against at
 // application run time.
-const MINOR_VERSION = 12
+const MINOR_VERSION = 20
 
 // CheckVersion: like GTK_SOURCE_CHECK_VERSION, but the check for
 // gtk_source_check_version is at runtime instead of compile time. This is

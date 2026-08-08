@@ -394,7 +394,7 @@ func (r *RegionClass) Padding() [8]unsafe.Pointer {
 	valptr := &r.native.padding
 	var _v [8]unsafe.Pointer // out
 	{
-		src := &*valptr
+		src := unsafe.Slice(&(*valptr)[0], 8)
 		for i := 0; i < 8; i++ {
 			_v[i] = (unsafe.Pointer)(unsafe.Pointer(src[i]))
 		}

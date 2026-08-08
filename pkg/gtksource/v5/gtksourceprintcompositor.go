@@ -163,7 +163,19 @@ func NewPrintCompositorFromView(view *View) *PrintCompositor {
 //	    gtk_source_print_compositor_draw_page (compositor,
 //	                                           context,
 //	                                           page_nr);
-//	}.
+//	}
+//
+//
+//
+//
+//	def on_draw_page(
+//	    operation: Gtk.PrintOperation,
+//	    context: Gtk.PrintContext,
+//	    page_nr: int,
+//	    compositor: GtkSource.PrintCompositor,
+//	) -> None:
+//	    """Signal handler for draw-page that renders a single page."""
+//	    compositor.draw_page(context=context, page_nr=page_nr).
 //
 // The function takes the following parameters:
 //
@@ -665,6 +677,20 @@ func (compositor *PrintCompositor) IgnoreTag(tag *gtk.TextTag) {
 //	    return FALSE;
 //	}
 //
+//
+//
+//
+//	def on_paginate(
+//	    operation: Gtk.PrintOperation,
+//	    context: Gtk.PrintContext,
+//	    compositor: GtkSource.PrintCompositor,
+//	) -> bool:
+//	    if compositor.paginate(context=context):
+//	        n_pages = compositor.get_n_pages()
+//	        operation.set_n_pages(n_pages=n_pages)
+//	        return True
+//	    return False
+//
 // If you don't need to do pagination in chunks, you can simply do it all in
 // the gtk.PrintOperation::begin-print handler, and set the number of pages from
 // there, like in the following example:
@@ -685,7 +711,24 @@ func (compositor *PrintCompositor) IgnoreTag(tag *gtk.TextTag) {
 //
 //	    n_pages = gtk_source_print_compositor_get_n_pages (compositor);
 //	    gtk_print_operation_set_n_pages (operation, n_pages);
-//	}.
+//	}
+//
+//
+//
+//
+//	def on_begin_print(
+//	    operation: Gtk.PrintOperation,
+//	    context: Gtk.PrintContext,
+//	    compositor: GtkSource.PrintCompositor,
+//	) -> None:
+//
+// Paginate until complete
+//
+//	while not compositor.paginate(context=context):
+//	    pass
+//
+//	n_pages = compositor.get_n_pages()
+//	operation.set_n_pages(n_pages=n_pages).
 //
 // The function takes the following parameters:
 //

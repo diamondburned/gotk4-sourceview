@@ -1186,7 +1186,7 @@ func (v *ViewClass) Padding() [20]unsafe.Pointer {
 	valptr := &v.native.padding
 	var _v [20]unsafe.Pointer // out
 	{
-		src := &*valptr
+		src := unsafe.Slice(&(*valptr)[0], 20)
 		for i := 0; i < 20; i++ {
 			_v[i] = (unsafe.Pointer)(unsafe.Pointer(src[i]))
 		}

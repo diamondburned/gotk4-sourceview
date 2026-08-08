@@ -39,17 +39,17 @@ func init() {
 // This can be changed by implementing GtkSourceIndenter and setting the
 // view:indenter property.
 //
-// Implementors of this interface should implement both indenter.IsTrigger and
-// indenter.Indent.
+// Implementors of this interface should implement both
+// gtksource.Indenter.IsTrigger() and gtksource.Indenter.Indent().
 //
-// indenter.IsTrigger is called upon key-press to determine of the key press
-// should trigger an indentation. The default implementation of the interface
-// checks to see if the key was gdk.KEYReturn or gdk.KEYKPEnter without
-// GDK_SHIFT_MASK set.
+// gtksource.Indenter.IsTrigger() is called upon key-press to determine of
+// the key press should trigger an indentation. The default implementation of
+// the interface checks to see if the key was gdk.KEYReturn or gdk.KEYKPEnter
+// without GDK_SHIFT_MASK set.
 //
-// indenter.Indent is called after text has been inserted into buffer when
-// indenter.IsTrigger returned TRUE. The gtk.TextIter is placed directly after
-// the inserted character or characters.
+// gtksource.Indenter.Indent() is called after text has been inserted into
+// buffer when gtksource.Indenter.IsTrigger() returned TRUE. The gtk.TextIter is
+// placed directly after the inserted character or characters.
 //
 // It may be beneficial to move the insertion mark using
 // gtk.TextBuffer.SelectRange() depending on how the indenter changes the

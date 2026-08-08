@@ -97,6 +97,14 @@ func defaultBufferOverrides(v *Buffer) BufferOverrides {
 //	tag_table = gtk_text_buffer_get_tag_table (buffer);
 //	tag = gtk_text_tag_table_lookup (tag_table, "gtksourceview:context-classes:string");
 //
+//
+//
+//
+//	buffer = GtkSource.Buffer()
+//
+//	tag_table = buffer.get_tag_table()
+//	tag = tag_table.lookup(name="gtksourceview:context-classes:string")
+//
 // The tag must be used for read-only purposes.
 //
 // Accessing a context class via the associated gtk.TextTag is less convenient
@@ -507,6 +515,45 @@ func (buffer *Buffer) Loading() bool {
 	}
 
 	return _ok
+}
+
+// Markup returns the text in the specified range converting any text formatting
+// to equivalent Pango markup tags. This allows the styled text to be displayed
+// in other widgets that support Pango markup, such as Label.
+//
+// For very long ranges this function can take long enough that you could
+// potentially miss frame renderings.
+//
+// The function takes the following parameters:
+//
+//   - start of range as a TextIter.
+//   - end of range as a TextIter.
+//
+// The function returns the following values:
+//
+//   - utf8: newly-allocated string containing the text with Pango markup,
+//     or NULL if start and end are invalid.
+func (buffer *Buffer) Markup(start, end *gtk.TextIter) string {
+	var _arg0 *C.GtkSourceBuffer // out
+	var _arg1 *C.GtkTextIter     // out
+	var _arg2 *C.GtkTextIter     // out
+	var _cret *C.char            // in
+
+	_arg0 = (*C.GtkSourceBuffer)(unsafe.Pointer(coreglib.InternObject(buffer).Native()))
+	_arg1 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(start)))
+	_arg2 = (*C.GtkTextIter)(gextras.StructNative(unsafe.Pointer(end)))
+
+	_cret = C.gtk_source_buffer_get_markup(_arg0, _arg1, _arg2)
+	runtime.KeepAlive(buffer)
+	runtime.KeepAlive(start)
+	runtime.KeepAlive(end)
+
+	var _utf8 string // out
+
+	_utf8 = C.GoString((*C.gchar)(unsafe.Pointer(_cret)))
+	defer C.free(unsafe.Pointer(_cret))
+
+	return _utf8
 }
 
 // SourceMarksAtIter returns the list of marks of the given category at iter.

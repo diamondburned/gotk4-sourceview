@@ -257,6 +257,10 @@ func (manager *StyleSchemeManager) PrependSearchPath(path string) {
 //
 // If path is NULL, the search path is reset to default.
 //
+// Since GtkSourceView 5.16 this function will allow you to provide paths in
+// the form of "resource:///" URIs to embedded GResources. They must contain the
+// path of a directory within the GResource.
+//
 // The function takes the following parameters:
 //
 //   - path (optional): NULL-terminated array of strings or NULL.

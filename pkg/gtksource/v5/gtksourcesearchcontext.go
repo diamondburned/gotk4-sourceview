@@ -488,7 +488,7 @@ func (search *SearchContext) Highlight() bool {
 
 // The function returns the following values:
 //
-//   - style to apply on search matches.
+//   - style (optional) to apply on search matches.
 func (search *SearchContext) MatchStyle() *Style {
 	var _arg0 *C.GtkSourceSearchContext // out
 	var _cret *C.GtkSourceStyle         // in
@@ -500,7 +500,9 @@ func (search *SearchContext) MatchStyle() *Style {
 
 	var _style *Style // out
 
-	_style = wrapStyle(coreglib.Take(unsafe.Pointer(_cret)))
+	if _cret != nil {
+		_style = wrapStyle(coreglib.Take(unsafe.Pointer(_cret)))
+	}
 
 	return _style
 }

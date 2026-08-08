@@ -272,7 +272,7 @@ func (self *Completion) UnblockInteractive() {
 	runtime.KeepAlive(self)
 }
 
-// CompletionFuZZYHighlight: this will add <b> tags around matched characters in
+// CompletionFuzzyHighlight: this will add <b> tags around matched characters in
 // haystack based on casefold_query.
 //
 // The function takes the following parameters:
@@ -283,7 +283,7 @@ func (self *Completion) UnblockInteractive() {
 // The function returns the following values:
 //
 //   - attrList (optional) or NULL.
-func CompletionFuZZYHighlight(haystack, casefoldQuery string) *pango.AttrList {
+func CompletionFuzzyHighlight(haystack, casefoldQuery string) *pango.AttrList {
 	var _arg1 *C.char          // out
 	var _arg2 *C.char          // out
 	var _cret *C.PangoAttrList // in
@@ -312,7 +312,7 @@ func CompletionFuZZYHighlight(haystack, casefoldQuery string) *pango.AttrList {
 	return _attrList
 }
 
-// CompletionFuZZYMatch: this helper function can do a fuzzy match for you
+// CompletionFuzzyMatch: this helper function can do a fuzzy match for you
 // giving a haystack and casefolded needle.
 //
 // Casefold your needle using glib.UTF8Casefold() before running the query.
@@ -329,7 +329,7 @@ func CompletionFuZZYHighlight(haystack, casefoldQuery string) *pango.AttrList {
 //
 //   - priority (optional): optional location for the score of the match.
 //   - ok: TRUE if haystack matched casefold_needle, otherwise FALSE.
-func CompletionFuZZYMatch(haystack, casefoldNeedle string) (uint, bool) {
+func CompletionFuzzyMatch(haystack, casefoldNeedle string) (uint, bool) {
 	var _arg1 *C.char    // out
 	var _arg2 *C.char    // out
 	var _arg3 C.guint    // in
